@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Bog & Bounty</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap');
+
+:root{
+  --bg-deep:#0e160d;
+  --bg-panel:#1a2617;
+  --bg-card:#223020;
+  --line:#354430;
+  --moss:#6f9556;
+  --moss-bright:#8fc26a;
+  --bone:#eae4d1;
+  --bone-dim:#a8a690;
+  --gold:#d4af37;
+  --common:#7c8b6f;
+  --uncommon:#4f8b6b;
+  --rare:#4f9fc9;
+  --epic:#a86bd6;
+  --legendary:#d4af37;
+  --mythical:#ff7a45;
+  --godly:#ffd94d;
+  --secret:#00e5ff;
+  --crocalario:#ffe9a3;
+  --bog:#00ff9d;
+  --bounty:#ffcf40;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:radial-gradient(ellipse at 20% 0%, #1a2617 0%, var(--bg-deep) 60%);
+  color:var(--bone);
+  font-family:'Space Grotesk',sans-serif;
+  min-height:100vh;
+}
+h1,h2,h3,.display{font-family:'Fredoka',sans-serif;}
+.mono{font-family:'JetBrains Mono',monospace;}
+#app{max-width:960px;margin:0 auto;padding:20px 16px 60px;}
+
+/* LOGIN */
+#login{min-height:90vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:18px;}
+.title-block h1{font-size:44px;margin:0;color:var(--moss-bright);letter-spacing:1px;text-shadow:0 0 24px rgba(143,194,106,0.35);}
+.title-block p{color:var(--bone-dim);margin:6px 0 0;font-size:15px;}
+.croc-teaser{font-size:64px;filter:drop-shadow(0 0 20px rgba(255,217,77,.55));animation:float 3.5s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.login-box{background:var(--bg-panel);border:1px solid var(--line);border-radius:14px;padding:24px;width:320px;}
+.login-box input{width:100%;padding:11px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg-deep);color:var(--bone);font-family:'JetBrains Mono',monospace;font-size:14px;margin-bottom:12px;}
+.login-box input:focus{outline:2px solid var(--moss-bright);}
+.btn{cursor:pointer;border:none;border-radius:8px;padding:11px 16px;font-family:'Fredoka',sans-serif;font-weight:700;font-size:14px;letter-spacing:.3px;transition:transform .12s ease, filter .12s ease;}
+.btn:active{transform:scale(.96);}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+.btn-primary{background:var(--moss-bright);color:#132111;width:100%;}
+.btn-primary:hover:not(:disabled){filter:brightness(1.08);}
+.btn-gold{background:var(--gold);color:#2a2004;}
+.btn-ghost{background:transparent;color:var(--bone-dim);border:1px solid var(--line);}
+.saved-list{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:340px;}
+.chip{background:var(--bg-card);border:1px solid var(--line);color:var(--bone);padding:7px 12px;border-radius:999px;font-size:13px;cursor:pointer;}
+.chip:hover{border-color:var(--moss-bright);}
+
+/* MAIN */
+#game{display:block;}
+header.topbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;background:var(--bg-panel);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:16px;}
+.trapper-name{font-family:'Fredoka',sans-serif;font-size:18px;color:var(--moss-bright);}
+.stats-row{display:flex;gap:14px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--bone-dim);}
+.coin{color:var(--gold);font-weight:700;}
+.logout{font-size:12px;color:var(--bone-dim);text-decoration:underline;cursor:pointer;background:none;border:none;}
+
+.tabs{display:flex;gap:6px;margin-bottom:16px;}
+.tab{flex:1;text-align:center;padding:10px;border-radius:9px;background:var(--bg-panel);border:1px solid var(--line);cursor:pointer;font-family:'Fredoka',sans-serif;font-size:14px;color:var(--bone-dim);}
+.tab.active{background:var(--bg-card);color:var(--moss-bright);border-color:var(--moss-bright);}
+
+.panel{background:var(--bg-panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px;}
+
+/* Pet slots (3-loadout) */
+.pet-slots{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+.pet-slot{flex:1;min-width:100px;background:var(--bg-card);border:1px solid var(--line);border-radius:10px;padding:10px 8px;text-align:center;cursor:pointer;}
+.pet-slot.empty{opacity:.5;cursor:default;font-size:26px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:88px;}
+.pet-slot .ps-slot-name{font-family:'Fredoka',sans-serif;font-size:11px;margin-top:4px;}
+.pet-slot .ps-slot-rarity{font-size:9px;font-weight:700;margin-top:2px;}
+.pet-totals{font-size:11px;color:var(--bone-dim);font-family:'JetBrains Mono',monospace;text-align:center;}
+
+.explore-grid{display:flex;gap:12px;flex-wrap:wrap;}
+.explore-grid .btn{flex:1;min-width:150px;}
+.pity-wrap{margin-top:14px;}
+.pity-label{display:flex;justify-content:space-between;font-size:12px;color:var(--bone-dim);margin-bottom:5px;font-family:'JetBrains Mono',monospace;}
+.pity-bar{height:10px;border-radius:999px;background:var(--bg-deep);overflow:hidden;border:1px solid var(--line);}
+.pity-fill{height:100%;background:linear-gradient(90deg,var(--moss),var(--godly));transition:width .4s ease;}
+
+/* reveal */
+#reveal-area{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;min-height:10px;}
+.reveal-card{width:140px;border-radius:12px;padding:14px 10px;text-align:center;background:var(--bg-card);border:2px solid var(--line);animation:pop .35s ease;}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+.reveal-card .emoji{font-size:40px;display:block;margin-bottom:6px;}
+.reveal-card .rname{font-size:13px;font-weight:700;font-family:'Fredoka',sans-serif;}
+.reveal-card .rtag{font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-top:4px;font-family:'JetBrains Mono',monospace;}
+.reveal-card.dup{opacity:.75;}
+.reveal-card .dupnote{font-size:10px;color:var(--gold);margin-top:4px;}
+.reveal-card.godly{border-color:var(--godly);box-shadow:0 0 30px rgba(255,217,77,.65);background:radial-gradient(circle at 50% 20%, #3a2f0e, var(--bg-card));}
+.reveal-card.mythical{border-color:var(--mythical);box-shadow:0 0 22px rgba(255,122,69,.5);}
+
+/* collection */
+.rarity-section{margin-bottom:22px;}
+.rarity-title{display:flex;align-items:center;gap:8px;font-family:'Fredoka',sans-serif;font-size:15px;margin-bottom:10px;}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;}
+.card{background:var(--bg-card);border-radius:11px;padding:10px 6px;text-align:center;border:1px solid var(--line);min-height:112px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:default;position:relative;}
+.card.locked{opacity:.5;}
+.card .emoji{font-size:28px;}
+.card.locked .emoji{filter:grayscale(1) brightness(.5);}
+.card .cname{font-size:11px;margin-top:5px;}
+.card .ccount{font-size:10px;color:var(--gold);margin-top:2px;font-family:'JetBrains Mono',monospace;}
+.card.godlycard.locked{border-color:var(--godly);animation:glow 2.2s ease-in-out infinite;}
+@keyframes glow{0%,100%{box-shadow:0 0 6px rgba(255,217,77,.25)}50%{box-shadow:0 0 18px rgba(255,217,77,.65)}}
+.card.owned{cursor:pointer;}
+.card.equipped{border-color:var(--moss-bright);box-shadow:0 0 0 2px var(--moss-bright) inset;}
+.ride-tag{position:absolute;top:4px;right:5px;font-size:9px;background:var(--moss-bright);color:#132111;padding:1px 5px;border-radius:6px;font-family:'JetBrains Mono',monospace;}
+
+/* custom art badges for legendary+ */
+.art-ring{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:var(--bg-deep);flex-shrink:0;margin-bottom:6px;}
+.art-ring svg{display:block;border-radius:50%;}
+.art-ring.rarity-legendary{box-shadow:0 0 0 2px var(--legendary),0 0 12px rgba(212,175,55,.55);}
+.art-ring.rarity-mythical{box-shadow:0 0 0 2px var(--mythical),0 0 14px rgba(255,122,69,.6);}
+.art-ring.rarity-godly{box-shadow:0 0 0 3px var(--godly),0 0 20px rgba(255,217,77,.8);}
+.art-ring.rarity-secret{box-shadow:0 0 0 2px var(--secret),0 0 16px rgba(0,229,255,.7);animation:flicker 1.6s steps(2) infinite;}
+.art-ring.rarity-crocalario{box-shadow:0 0 0 3px var(--crocalario),0 0 30px rgba(255,233,163,.95);animation:godpulse 1.8s ease-in-out infinite;}
+.art-ring.rarity-bog{box-shadow:0 0 0 3px var(--bog),0 0 34px rgba(0,255,157,1);animation:godpulse 1.4s ease-in-out infinite;}
+.art-ring.rarity-bounty{box-shadow:0 0 0 3px var(--bounty),0 0 34px rgba(255,207,64,1);animation:godpulse 1.4s ease-in-out infinite;}
+@keyframes flicker{0%,100%{opacity:1}45%{opacity:1}50%{opacity:.35}55%{opacity:1}}
+@keyframes godpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+
+/* pet sidebar */
+.pet-sidebar{
+  display:none;position:fixed;top:130px;right:28px;width:210px;height:auto;
+  background:var(--bg-panel);border:2px solid var(--line);border-radius:16px;padding:16px;
+  flex-direction:column;align-items:stretch;text-align:center;gap:6px;z-index:20;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);
+}
+.pet-sidebar .ps-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--bone-dim);text-align:center;margin-bottom:4px;}
+.pet-sidebar .ps-row{display:flex;align-items:center;gap:8px;background:var(--bg-card);border-radius:9px;padding:6px 8px;text-align:left;}
+.pet-sidebar .ps-row.empty{opacity:.5;}
+.pet-sidebar .ps-row-visual{font-size:26px;display:flex;align-items:center;justify-content:center;width:30px;}
+.pet-sidebar .ps-row-name{font-family:'Fredoka',sans-serif;font-size:12px;}
+.pet-sidebar .ps-row-rarity{font-size:9.5px;font-weight:700;}
+.pet-sidebar .ps-bonus{font-size:10.5px;color:var(--bone-dim);font-family:'JetBrains Mono',monospace;line-height:1.6;text-align:center;margin-top:6px;}
+@media (min-width:1450px){ .pet-sidebar{display:flex;} }
+
+/* minigame */
+#minigame-panel{display:none;}
+.wheelie-stage{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:linear-gradient(180deg,#16221a 0%,#0e160d 70%);}
+canvas{display:block;width:100%;height:220px;}
+.wheelie-hud{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--bone-dim);margin:10px 0 6px;}
+.wheelie-hud b{color:var(--gold);}
+.gauge-wrap{margin:8px 0 14px;}
+.gauge{position:relative;height:16px;border-radius:999px;background:var(--bg-deep);border:1px solid var(--line);overflow:hidden;}
+.gauge .sweet{position:absolute;top:0;bottom:0;background:rgba(143,194,106,0.28);}
+.gauge .needle{position:absolute;top:-3px;width:3px;height:22px;background:var(--gold);border-radius:2px;}
+.hold-btn{width:100%;padding:20px;font-size:18px;background:var(--moss-bright);color:#132111;border:none;border-radius:12px;font-family:'Fredoka',sans-serif;font-weight:700;user-select:none;touch-action:none;}
+.hold-btn.holding{background:var(--gold);}
+.wheelie-tip{font-size:11px;color:var(--bone-dim);text-align:center;margin-top:8px;}
+.run-summary{text-align:center;padding:10px 0;}
+.run-summary h3{margin:4px 0;color:var(--moss-bright);}
+
+.blurb{font-size:11px;color:var(--bone-dim);margin-top:10px;line-height:1.4;min-height:14px;}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--bg-card);border:1px solid var(--moss-bright);color:var(--bone);padding:10px 18px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .3s ease;pointer-events:none;}
+.toast.show{opacity:1;}
+footer.small{text-align:center;color:var(--bone-dim);font-size:11px;margin-top:24px;}
+
+/* bikes & quests */
+.bike-row{display:flex;gap:10px;flex-wrap:wrap;}
+.bike-card{flex:1;min-width:110px;background:var(--bg-card);border:2px solid var(--line);border-radius:11px;padding:12px 8px;text-align:center;cursor:pointer;position:relative;}
+.bike-card.locked{opacity:.5;cursor:default;}
+.bike-card.selected{border-color:var(--moss-bright);box-shadow:0 0 10px rgba(143,194,106,.4);}
+.bike-card .bemoji{font-size:30px;}
+.bike-card .bname{font-family:'Fredoka',sans-serif;font-size:12px;margin-top:4px;}
+.bike-card .bmult{font-size:10px;color:var(--gold);font-family:'JetBrains Mono',monospace;margin-top:2px;}
+.bike-card .briding{position:absolute;top:4px;right:5px;font-size:8px;background:var(--moss-bright);color:#132111;padding:1px 5px;border-radius:6px;font-family:'JetBrains Mono',monospace;}
+.quest-card{background:var(--bg-card);border:1px solid var(--line);border-radius:11px;padding:14px;margin-bottom:12px;}
+.quest-card.done{border-color:var(--moss-bright);}
+.quest-head{display:flex;justify-content:space-between;font-family:'Fredoka',sans-serif;font-size:14px;margin-bottom:4px;}
+.quest-desc{font-size:12px;color:var(--bone-dim);margin-bottom:8px;}
+.quest-reward{font-size:11px;color:var(--gold);margin-top:6px;font-family:'JetBrains Mono',monospace;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="game">
+    <div class="pet-sidebar" id="pet-sidebar"></div>
+    <header class="topbar">
+      <div class="trapper-name" id="hdr-name">🐊 Bog & Bounty</div>
+      <div class="stats-row">
+        <span>🪙 <span class="coin mono" id="hdr-coins">0</span></span>
+        <span>💎 <span class="mono" id="hdr-gems" style="color:var(--secret);">0</span></span>
+        <span>📖 <span class="mono" id="hdr-count">0/120</span></span>
+      </div>
+      <button class="logout" onclick="resetGame()">reset progress</button>
+    </header>
+
+    <div class="tabs">
+      <div class="tab active" id="tab-explore" onclick="showTab('explore')">Ride &amp; Summon</div>
+      <div class="tab" id="tab-collection" onclick="showTab('collection')">Collection</div>
+      <div class="tab" id="tab-quests" onclick="showTab('quests')">Quests</div>
+    </div>
+
+    <div id="view-explore">
+
+      <div class="panel" id="pet-panel"></div>
+
+      <div class="panel" id="explore-actions">
+        <div class="explore-grid">
+          <button class="btn btn-ghost" onclick="openMinigame()">🏍️ Ride the Wheelie Trail (earn coin)</button>
+          <button class="btn btn-primary" id="btn-summon1" onclick="summon(1)">🎲 Summon x1 — 50🪙</button>
+          <button class="btn btn-gold" id="btn-summon10" onclick="summon(10)">✨ Summon x10 — 500🪙</button>
+        </div>
+        <div class="pity-wrap">
+          <div class="pity-label"><span>Godly pity meter</span><span class="mono" id="pity-text">0/20000</span></div>
+          <div class="pity-bar"><div class="pity-fill" id="pity-fill-godly" style="width:0%"></div></div>
+        </div>
+        <p class="wheelie-tip" style="margin-top:10px;">Godly pity guarantees a Godly-or-better pull by 20,000 rolls. Secret, Crocalario, and Bog &amp; Bounty are pure luck — Crocalario is 1 in 10,000,000, and Bog &amp; Bounty are 1 in 10,000,000,000 each. Gems only come from the wheelie trail, and they're the only way to buy bikes in the shop.</p>
+      </div>
+
+      <div class="panel" id="minigame-panel">
+        <div class="wheelie-stage">
+          <canvas id="wheelie-canvas" width="600" height="220"></canvas>
+        </div>
+        <div class="wheelie-hud">
+          <span>Distance: <b id="wg-dist">0</b>m</span>
+          <span>Combo: <b id="wg-combo">1.0x</b></span>
+          <span>Time: <b id="wg-time">45</b>s</span>
+        </div>
+        <div class="gauge-wrap">
+          <div class="gauge" id="wg-gauge">
+            <div class="sweet" id="wg-sweet"></div>
+            <div class="needle" id="wg-needle" style="left:0%"></div>
+          </div>
+        </div>
+        <button class="hold-btn" id="wg-hold">HOLD TO WHEELIE (or press SPACE)</button>
+        <p class="wheelie-tip">Hold to lift the front wheel, let go to ease it down — the wheel drops faster than it rises, so tap in short bursts to hover in the green zone instead of holding flat out.</p>
+        <div class="run-summary" id="wg-summary" style="display:none;"></div>
+      </div>
+
+      <div class="panel" id="reveal-panel">
+        <div id="reveal-area"><p class="blurb" id="reveal-placeholder">Your last summon results will appear here.</p></div>
+      </div>
+    </div>
+
+    <div id="view-collection" style="display:none;"></div>
+    <div id="view-quests" style="display:none;"></div>
+
+    <footer class="small">Nothing here is saved — refreshing the page starts a brand new run.</footer>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------------- DATA ---------------- */
+const RARITY = {
+  common:{label:'Common',color:'var(--common)',chance:0,sell:2},
+  uncommon:{label:'Uncommon',color:'var(--uncommon)',chance:0.22,sell:6},
+  rare:{label:'Rare',color:'var(--rare)',chance:0.09,sell:20},
+  epic:{label:'Epic',color:'var(--epic)',chance:0.008,sell:55},
+  legendary:{label:'Legendary',color:'var(--legendary)',chance:1/3000,sell:150},
+  mythical:{label:'Mythical',color:'var(--mythical)',chance:1/20000,sell:400},
+  godly:{label:'Godly',color:'var(--godly)',chance:1/250000,sell:3000},
+  secret:{label:'??? Secret',color:'var(--secret)',chance:1/2000000,sell:20000},
+  crocalario:{label:'??? CROCALARIO ???',color:'var(--crocalario)',chance:1/10000000,sell:250000},
+  bog:{label:'★ BOG ★',color:'var(--bog)',chance:1/10000000000,sell:5000000},
+  bounty:{label:'★ BOUNTY ★',color:'var(--bounty)',chance:1/10000000000,sell:5000000},
+};
+// common absorbs whatever probability is left over so everything always sums to exactly 1
+RARITY.common.chance = 1 - Object.keys(RARITY).filter(k=>k!=='common').reduce((s,k)=>s+RARITY[k].chance,0);
+
+const RARITY_ORDER=['bog','bounty','crocalario','secret','godly','mythical','legendary','epic','rare','uncommon','common'];
+
+// luck/money bonus per equipped pet's rarity (used for summon odds + duplicate sell bonus)
+const PET_BONUS={ common:0, uncommon:0.04, rare:0.10, epic:0.20, legendary:0.35, mythical:4.0, godly:20.0, secret:1000.0, crocalario:20000.0, bog:50000000.0, bounty:50000000.0 };
+// passive coins-per-second while ridden — literal rates for mythic+, luck*100 for everything below
+const PASSIVE_OVERRIDE={ mythical:400, godly:2000, secret:100000, crocalario:2000000, bog:5000000000, bounty:5000000000 };
+function passiveRate(rarity){ return PASSIVE_OVERRIDE[rarity]!==undefined ? PASSIVE_OVERRIDE[rarity] : (PET_BONUS[rarity]||0)*100; }
+
+const CHARACTERS = [
+ // COMMON (20)
+ {id:1,name:'Puddlemouse',emoji:'🐁',rarity:'common',blurb:'Lives in the smallest puddle it can find and defends it fiercely.'},
+ {id:2,name:'Reedhopper',emoji:'🦗',rarity:'common',blurb:'Springs between reeds; louder than anything its size should be.'},
+ {id:3,name:'Mossbeetle',emoji:'🪲',rarity:'common',blurb:'Wears a coat of real moss that it grooms daily.'},
+ {id:4,name:'Dabbleduck',emoji:'🦆',rarity:'common',blurb:'Never swims in a straight line, out of principle.'},
+ {id:5,name:'Snailshade',emoji:'🐌',rarity:'common',blurb:'Its shell is cool to the touch even in summer.'},
+ {id:6,name:'Bogfrog',emoji:'🐸',rarity:'common',blurb:'Croaks in perfect rhythm with dripping water.'},
+ {id:7,name:'Twiglegs',emoji:'🦟',rarity:'common',blurb:'So thin it can hide behind a single reed.'},
+ {id:8,name:'Muckrat',emoji:'🐀',rarity:'common',blurb:'Hoards shiny pebbles in a den no one has found.'},
+ {id:9,name:'Ferngnat',emoji:'🐜',rarity:'common',blurb:'Travels in swarms that spell nothing, on purpose.'},
+ {id:10,name:'Cattail Wisp',emoji:'🌾',rarity:'common',blurb:'Rumored to be more plant than creature. Nobody has asked it.'},
+ {id:11,name:'Sludgeworm',emoji:'🪱',rarity:'common',blurb:'Leaves a trail that smells faintly of mint, oddly.'},
+ {id:12,name:'Peeper Toad',emoji:'🐸',rarity:'common',blurb:'Its call is the unofficial alarm clock of the bog.'},
+ {id:13,name:'Bramblebug',emoji:'🐞',rarity:'common',blurb:'Rolls itself into thorns when startled.'},
+ {id:14,name:'Waterstrider',emoji:'🕷️',rarity:'common',blurb:'Has never once gotten its feet wet.'},
+ {id:15,name:'Gnatling',emoji:'🦟',rarity:'common',blurb:'Annoying to everyone except other gnatlings.'},
+ {id:16,name:'Silt Skipper',emoji:'🐟',rarity:'common',blurb:'Skims the shallows kicking up little clouds of mud.'},
+ {id:17,name:'Marsh Mouse',emoji:'🐭',rarity:'common',blurb:'Builds nests out of whatever the last flood left behind.'},
+ {id:18,name:'Loblolly Lark',emoji:'🐦',rarity:'common',blurb:'Sings the same four notes, always in a different order.'},
+ {id:19,name:'Duckweed Dot',emoji:'🟢',rarity:'common',blurb:'Technically a plant. Technically also a character.'},
+ {id:20,name:'Croakling',emoji:'🐸',rarity:'common',blurb:'A baby frog with an ego problem.'},
+
+ // UNCOMMON (12)
+ {id:21,name:'Bullfrog Baron',emoji:'🐸',rarity:'uncommon',blurb:'Struts the shoreline like he owns the whole bog.'},
+ {id:22,name:'Heron Stilt',emoji:'🦩',rarity:'uncommon',blurb:'Stands so still that fish forget it exists.'},
+ {id:23,name:'Cypress Sprite',emoji:'🌳',rarity:'uncommon',blurb:'Said to live inside the oldest knee of every cypress tree.'},
+ {id:24,name:'Turtleback Tom',emoji:'🐢',rarity:'uncommon',blurb:'Carries a tiny garden of moss on his shell.'},
+ {id:25,name:'Firefly Wisp',emoji:'✨',rarity:'uncommon',blurb:'Blinks in patterns that some swear are actual sentences.'},
+ {id:26,name:'Otterling',emoji:'🦦',rarity:'secret',blurb:'Steals things purely to see how long it takes you to notice. Turns out it was never just an Uncommon.'},
+ {id:27,name:'Swamp Skunk',emoji:'🦨',rarity:'uncommon',blurb:'Surprisingly polite about the whole smell thing.'},
+ {id:28,name:'Beaverkin',emoji:'🦫',rarity:'uncommon',blurb:'Redesigns your dam whether you asked or not.'},
+ {id:29,name:'Ragweed Rascal',emoji:'🌿',rarity:'uncommon',blurb:'Causes trouble and allergies in equal measure.'},
+ {id:30,name:'Possum Pickle',emoji:'🐭',rarity:'uncommon',blurb:'Plays dead so convincingly it once fooled itself.'},
+ {id:31,name:'Mudlark',emoji:'🐦',rarity:'uncommon',blurb:'Builds its nest entirely out of dried mud bricks.'},
+ {id:32,name:'Egret Echo',emoji:'🦢',rarity:'uncommon',blurb:'Its reflection is said to move a half-second late.'},
+
+ // RARE (10)
+ {id:33,name:'Alligator Snapper Jr.',emoji:'🐢',rarity:'rare',blurb:'A snapping turtle with a bite that echoes across the water.'},
+ {id:34,name:'Bayou Banshee',emoji:'👻',rarity:'rare',blurb:'A wailing shape seen only on the foggiest nights.'},
+ {id:35,name:'Ironshell Terrapin',emoji:'🐢',rarity:'rare',blurb:'Its shell has never once cracked, not even from a fall off a bridge.'},
+ {id:36,name:'Willow Wisp',emoji:'🕯️',rarity:'rare',blurb:'A drifting light that leads travelers gently astray.'},
+ {id:37,name:'Copperhead Cad',emoji:'🐍',rarity:'rare',blurb:'Smooth-talking and impossible to trust, but hard not to like.'},
+ {id:38,name:'Marsh King Heron',emoji:'🦩',rarity:'rare',blurb:'Every other heron in the bog answers to this one.'},
+ {id:39,name:'Sinkhole Serpent',emoji:'🐍',rarity:'rare',blurb:'Lives in the deepest sinkholes and is rarely seen twice.'},
+ {id:40,name:'Glimmergator',emoji:'🐊',rarity:'rare',blurb:'Its scales catch light like scattered coins underwater.'},
+ {id:41,name:'Moss Golem',emoji:'🗿',rarity:'rare',blurb:'A slow-moving mound of moss, mud, and old roots.'},
+ {id:42,name:'Peat Bog Phantom',emoji:'👤',rarity:'rare',blurb:'A shape in the peat that vanishes the moment you look straight at it.'},
+
+ // EPIC (8)
+ {id:43,name:'Emberback Cayman',emoji:'🐊',rarity:'epic',blurb:'Its ridged back glows faintly like dying embers at dusk.'},
+ {id:44,name:'Thunderjaw Gar',emoji:'🐟',rarity:'epic',blurb:'A fish so old and so large the locals call it a weather omen.'},
+ {id:45,name:'Spectral Spoonbill',emoji:'🦩',rarity:'epic',blurb:'Flies in flocks that cast no shadow on the water.'},
+ {id:46,name:'Obsidian Cottonmouth',emoji:'🐍',rarity:'epic',blurb:'Black as wet stone, and just as silent when it moves.'},
+ {id:47,name:'Ironhide Behemoth Turtle',emoji:'🐢',rarity:'epic',blurb:'Whole islands of duckweed have taken root on its back.'},
+ {id:48,name:'Duskfang Alligator',emoji:'🐊',rarity:'epic',blurb:'Hunts only in the last violet minutes before full dark.'},
+ {id:49,name:'Stormcaller Ibis',emoji:'🦩',rarity:'epic',blurb:'Flocks scatter into flight right before every storm — it always knows first.'},
+ {id:50,name:'Bramblehide Boar',emoji:'🐗',rarity:'epic',blurb:'Its hide is so thick that thornbrush just snaps against it.'},
+
+ // LEGENDARY (10)
+ {id:51,name:'Kingfisher Sovereign',emoji:'👑',rarity:'legendary',icon:'bird',colors:['#1c3a5e','#ffd94d'],blurb:'Every dive it makes is said to bring good fortune to whoever sees it.'},
+ {id:52,name:'The Old Growth Treant',emoji:'🌲',rarity:'legendary',icon:'tree',colors:['#22331a','#8fc26a'],blurb:'A cypress so ancient the bog itself grew up around it.'},
+ {id:53,name:'Ashen Bull Gator',emoji:'🐊',rarity:'legendary',icon:'gator',colors:['#33332f','#ff8a3d'],blurb:'Survived a wildfire that swallowed half the bog, and grew larger for it.'},
+ {id:54,name:'Silverback Snapping King',emoji:'🐢',rarity:'legendary',icon:'turtle',colors:['#28363d','#bcd4de'],blurb:'The largest snapper ever recorded, with a shell like hammered iron.'},
+ {id:55,name:'Wraithmoss Colossus',emoji:'🗿',rarity:'legendary',icon:'moss',colors:['#1c2617','#7fae55'],blurb:'A walking hill of ancient moss that some trappers mistake for land.'},
+ {id:56,name:'Hollowfang Serpent King',emoji:'🐍',rarity:'legendary',icon:'serpent',colors:['#241033','#a86bd6'],blurb:'Every other snake in the bog scatters at the sound of its rattle.'},
+ {id:80,name:'Sablefang Dire Gator',emoji:'🐊',rarity:'legendary',icon:'gator',colors:['#150a0a','#c0203a'],blurb:'Jaws dark as wet slate, and twice the length of any gator on record.'},
+ {id:81,name:'The Cypress Cathedral Guardian',emoji:'🏛️',rarity:'legendary',icon:'cathedral',colors:['#12241a','#8fc26a'],blurb:'Roots older than any building still guard the ruins beneath the moss.'},
+ {id:82,name:'Ninefold Marsh Serpent',emoji:'🐍',rarity:'legendary',icon:'serpent',colors:['#0d2b1a','#4fd18a'],blurb:'Trappers claim it has nine turns in its body and never uses the same one twice.'},
+ {id:83,name:'Duskcrown Phoenix Heron',emoji:'🦩',rarity:'legendary',icon:'bird',colors:['#2f1030','#ff9ecf'],blurb:'Its plumage shifts color with the sunset it always seems to fly toward.'},
+ {id:97,name:'Cindermaw the Relentless',emoji:'🐊',rarity:'legendary',icon:'gator',colors:['#1a0a0a','#ff3b3b'],blurb:'Never stops hunting once it starts. Never has. Never will.'},
+ {id:98,name:'The Thousand-Reed Chorus',emoji:'🎶',rarity:'legendary',icon:'bird',colors:['#0a1a12','#9fffb0'],blurb:'Thousands of reed-warblers that sing as a single, impossibly coordinated voice.'},
+ {id:99,name:'Duskmire Colossus Serpent',emoji:'🐍',rarity:'legendary',icon:'serpent',colors:['#150a20','#7a5cff'],blurb:'Long enough that trappers who have seen the head never live to see the tail.'},
+ {id:122,name:'Stormcrown Alligator',emoji:'🐊',rarity:'legendary',icon:'gator',colors:['#0a1a2e','#4fd1ff'],blurb:'Lightning is said to follow it out of pure professional courtesy.'},
+ {id:123,name:'The Weald Unbroken',emoji:'🌳',rarity:'legendary',icon:'tree',colors:['#0a2410','#c9ff6b'],blurb:'Every axe ever brought against it is still out there somewhere, rusting.'},
+
+ // MYTHICAL (7)
+ {id:57,name:'Emberfall Wyrm-Gator',emoji:'🐉',rarity:'mythical',icon:'dragonflame',colors:['#2b140a','#ff5a2e'],blurb:'A crocodilian shape wreathed in drifting embers, seen only during marsh fires.'},
+ {id:58,name:'Starlit Marsh Phantom',emoji:'🌌',rarity:'mythical',icon:'ghost',colors:['#141433','#c9c8ff'],blurb:'Its outline is stitched from starlight reflected off still black water.'},
+ {id:59,name:'The Drowned Cathedral Turtle',emoji:'🐢',rarity:'mythical',icon:'cathedral',colors:['#0f2b2a','#3f9b93'],blurb:'Carries what looks like the ruins of a sunken chapel on its back.'},
+ {id:60,name:'Nightbloom Hydra',emoji:'🐲',rarity:'mythical',icon:'hydra',colors:['#26102f','#e879c9'],blurb:'Grows a new head from every flower that blooms after midnight.'},
+ {id:84,name:'Voidscale Leviathan',emoji:'🐋',rarity:'mythical',icon:'serpent',colors:['#05060f','#4a5aff'],blurb:'A shape so vast that whole stretches of the bog are just its resting coils.'},
+ {id:85,name:'The Weeping Bog Mother',emoji:'👵',rarity:'mythical',icon:'ghost',colors:['#1a0f1f','#9fd6c9'],blurb:'Said to cry for every creature the bog has ever swallowed, and it has swallowed many.'},
+ {id:86,name:'Chronofen Tortoise',emoji:'⏳',rarity:'mythical',icon:'turtle',colors:['#241c0a','#ffb84d'],blurb:'Its shell shows the bog as it looked centuries before any trapper arrived.'},
+ {id:100,name:'The Endless Undertow',emoji:'🌊',rarity:'mythical',icon:'serpent',colors:['#04080f','#3ad6ff'],blurb:'A current that pulls toward somewhere no trapper has ever described the same way twice.'},
+ {id:124,name:'The Hourless Choir',emoji:'🎼',rarity:'mythical',icon:'ghost',colors:['#1a0a2e','#ffb3ec'],blurb:'Sings in a time signature that doesn\'t match anything a clock can measure.'},
+
+ // GODLY (4)
+ {id:87,name:'Aureth, the Sunken Sun',emoji:'☀️',rarity:'godly',icon:'sun',colors:['#3a2a06','#ffe27a'],blurb:'Trappers who claim to have seen it say the whole bog brightened for a heartbeat.'},
+ {id:88,name:'Maelithra, Queen of Rot',emoji:'🌿',rarity:'godly',icon:'moss',colors:['#1a1006','#c98f3a'],blurb:'Where she walks, the bog grows a hundred years older and twice as alive.'},
+ {id:89,name:'The Hollow King',emoji:'👑',rarity:'godly',icon:'ghost',colors:['#0a0a14','#8f8fd6'],blurb:'A crowned shape with no face, ruling over a throne no one has ever found.'},
+ {id:90,name:'Verdantia, First Root',emoji:'🌳',rarity:'godly',icon:'tree',colors:['#0e1e0a','#ffe27a'],blurb:'Legend says every tree in the bog is a single branch of her, still growing.'},
+ {id:101,name:'Threshold, Keeper of the Gate',emoji:'🚪',rarity:'godly',icon:'sun',colors:['#241a04','#ffb84d'],blurb:'Stands at the edge between the bog anyone can visit and the one almost nobody survives.'},
+
+ // ??? SECRET (near impossible) (2)
+ {id:91,name:'Glitch in the Reeds',emoji:'❓',rarity:'secret',icon:'glitch',colors:['#050505','#00e5ff'],blurb:'Not supposed to be here. The bog itself seems confused by it too.'},
+ {id:92,name:"The Dev's Pet Gator",emoji:'🐊',rarity:'secret',icon:'gator',colors:['#0a0a0a','#ff2fd1'],blurb:'Wears sunglasses that were definitely not in the original concept art.'},
+ {id:102,name:'Static Bloom',emoji:'❓',rarity:'secret',icon:'glitch',colors:['#050505','#ff9ecf'],blurb:'Grows where the bog\'s rendering distance quietly gives up.'},
+
+ // ??? CROCALARIO ??? (1 in 2,000,000)
+ {id:61,name:'Crocalario',emoji:'🐊',rarity:'crocalario',icon:'crocgod',colors:['#3a2f0e','#ffd94d'],blurb:'The godly crocodile of the deep bog. Golden-eyed and ancient beyond count, said to have slept beneath the bog since before the first trapper was born. Legends say the whole swamp exists because it dreams it does.'},
+
+ // ★ BOG & BOUNTY ★ (1 in 5,000,000,000 each — above even Crocalario)
+ {id:103,name:'Bog',emoji:'🌑',rarity:'bog',icon:'bogicon',colors:['#03140b','#00ff9d'],blurb:'Not a creature of the bog. The bog itself, wearing an eye so it can watch you find it.'},
+ {id:104,name:'Bounty',emoji:'🪙',rarity:'bounty',icon:'bountyicon',colors:['#3a2506','#ffe27a'],blurb:'Everything anyone has ever lost in the bog, gathered into one impossible, overflowing shape.'},
+];
+
+/* new common/uncommon/rare/epic additions */
+CHARACTERS.push(
+ {id:62,name:'Sootmoth',emoji:'🦋',rarity:'common',blurb:'Its wings are the exact grey of dying campfire smoke.'},
+ {id:63,name:'Ripple Newt',emoji:'🦎',rarity:'common',blurb:'Leaves perfect concentric ripples no matter how it enters the water.'},
+ {id:64,name:'Hollow Reed Wren',emoji:'🐦',rarity:'common',blurb:'Nests exclusively in reeds that have already fallen over.'},
+ {id:65,name:'Bog Pixie Gnat',emoji:'🦟',rarity:'common',blurb:'Convinced, incorrectly, that it is a fairy.'},
+ {id:66,name:'Driftwood Beetle',emoji:'🪲',rarity:'common',blurb:'Rides logs downstream and refuses to admit it is lost.'},
+ {id:67,name:'Marsh Hawk Cadet',emoji:'🦅',rarity:'uncommon',blurb:'Still practicing its dive. The fish have started keeping score.'},
+ {id:68,name:'Tanglefoot Hare',emoji:'🐇',rarity:'uncommon',blurb:'Somehow trips over roots it has hopped past a thousand times.'},
+ {id:69,name:'Copperback Crawdad',emoji:'🦞',rarity:'uncommon',blurb:'Its shell has a shine that local trappers swap stories about.'},
+ {id:70,name:'Fen Fiddler Crab',emoji:'🦀',rarity:'uncommon',blurb:'Waves its oversized claw in a rhythm nobody has decoded.'},
+ {id:71,name:'Blackwater Piranha',emoji:'🐟',rarity:'rare',blurb:'Travels in a school so tight it looks like one moving shadow.'},
+ {id:72,name:'Wisp-eyed Owl',emoji:'🦉',rarity:'rare',blurb:'Its eyes glow faintly, like two low candles in the canopy.'},
+ {id:73,name:'Thornback Iguana',emoji:'🦎',rarity:'rare',blurb:'A ridge of hardened thorns runs the length of its spine.'},
+ {id:74,name:'Sunken Bell Toad',emoji:'🐸',rarity:'rare',blurb:'Its croak echoes like a bell rung underwater.'},
+ {id:75,name:'Ridgeback Cottonmouth',emoji:'🐍',rarity:'rare',blurb:'A jagged spine ridge that catches moonlight like broken glass.'},
+ {id:76,name:'Voidmire Panther',emoji:'🐆',rarity:'epic',blurb:'Moves through fog so completely that only its eyes seem to exist.'},
+ {id:77,name:'Ironjaw Snapping Colossus',emoji:'🐢',rarity:'epic',blurb:'A single bite from it has ended more than one trapper legend early.'},
+ {id:78,name:'Emberlit Firefly Swarm',emoji:'✨',rarity:'epic',blurb:'Thousands of fireflies that move and glow as if they share one mind.'},
+ {id:79,name:'Gravebog Wraithstag',emoji:'🦌',rarity:'epic',blurb:'Antlers strung with old marsh-lights that never quite go out.'},
+ {id:105,name:'Tuckahoe Vole',emoji:'🐁',rarity:'common',blurb:'Digs tunnels that map out, oddly, like tiny riverbeds.'},
+ {id:106,name:'Pinbark Moth',emoji:'🦋',rarity:'common',blurb:'Wings patterned exactly like the bark it sleeps on.'},
+ {id:107,name:'Slough Skater',emoji:'🦗',rarity:'common',blurb:'Skates across still water on legs thinner than reeds.'},
+ {id:108,name:'Bramblefinch',emoji:'🐦',rarity:'common',blurb:'Builds its nest inside the thorniest bush it can find, on purpose.'},
+ {id:109,name:'Mudflat Piper',emoji:'🐦',rarity:'common',blurb:'Runs in short bursts, then freezes, then runs again. Nobody knows why.'},
+ {id:110,name:'Weft Spider',emoji:'🕷️',rarity:'common',blurb:'Its web always has exactly seven sides. Always.'},
+ {id:111,name:'Marsh Badger',emoji:'🦡',rarity:'uncommon',blurb:'Digs faster than anything else in the bog, usually in the wrong direction.'},
+ {id:112,name:'Copperwing Dragonfly',emoji:'🦟',rarity:'uncommon',blurb:'Its wings catch the light like hammered copper coins.'},
+ {id:113,name:'Ridgeline Fox',emoji:'🦊',rarity:'uncommon',blurb:'Walks only along the driest ridge of every trail, without exception.'},
+ {id:114,name:'Sable Heron',emoji:'🐦',rarity:'uncommon',blurb:'Feathers so dark it seems to fold into the shadows at dusk.'},
+ {id:115,name:'Longtooth Gar',emoji:'🐟',rarity:'rare',blurb:'A living fossil with a grin no fisherman wants to see up close.'},
+ {id:116,name:'Ashveil Moth',emoji:'🦋',rarity:'rare',blurb:'Leaves a trail of pale ash-dust that never seems to settle.'},
+ {id:117,name:'Bramblehorn Stag',emoji:'🦌',rarity:'rare',blurb:'Antlers grown through with living thornbrush.'},
+ {id:118,name:'Coalback Crane',emoji:'🕊️',rarity:'rare',blurb:'Stands motionless for hours, black as a burnt-out fire.'},
+ {id:119,name:'Voidmarsh Kraken-pup',emoji:'🐙',rarity:'epic',blurb:'Too small to be dangerous yet, but it is clearly taking notes.'},
+ {id:120,name:'Stormroot Ent',emoji:'🌳',rarity:'epic',blurb:'Roots crackle faintly with static before every storm.'},
+ {id:121,name:'Nightglass Panther',emoji:'🐆',rarity:'epic',blurb:'Its coat looks wet and black as obsidian, even bone dry.'}
+);
+
+/* custom SVG icon glyphs for legendary+ characters, drawn centered at (0,0) */
+const ICONS = {
+  bird:`<polygon points="-15,3 8,-9 20,-3 9,1 13,10 -8,10" fill="#ffffff"/><polygon points="17,-4 30,-6 18,3" fill="#ffe27a"/><circle cx="-3" cy="-3" r="2.2" fill="#1a2617"/>`,
+  tree:`<rect x="-4" y="2" width="8" height="16" rx="3" fill="#6b4a2c"/><circle cx="0" cy="-10" r="15" fill="#7fae55"/><circle cx="-11" cy="-3" r="9" fill="#6f9556"/><circle cx="11" cy="-3" r="9" fill="#6f9556"/>`,
+  gator:`<path d="M -20,4 Q 0,-11 24,1 Q 0,12 -20,4 Z" fill="#d8d8d8"/><polygon points="-13,4 -9,-2 -5,4 -1,-2 3,4 7,-2 11,4" fill="#ff8a3d"/><circle cx="15" cy="-3" r="2.2" fill="#ffd94d"/>`,
+  turtle:`<circle cx="0" cy="2" r="17" fill="#bcd4de"/><polygon points="0,-9 8,-4.5 8,4.5 0,9 -8,4.5 -8,-4.5" fill="#5f7c8f"/><circle cx="0" cy="2" r="17" fill="none" stroke="#eae4d1" stroke-width="1.4" opacity=".5"/>`,
+  moss:`<ellipse cx="0" cy="11" rx="21" ry="9" fill="#3d4a30"/><circle cx="-9" cy="0" r="9" fill="#5c7a4a"/><circle cx="7" cy="-5" r="12" fill="#7fae55"/><circle cx="13" cy="4" r="7" fill="#5c7a4a"/>`,
+  serpent:`<path d="M -17,11 Q -9,-15 4,-3 Q 17,11 11,-6" fill="none" stroke="#a86bd6" stroke-width="6" stroke-linecap="round"/><circle cx="11" cy="-6" r="3.6" fill="#eae4d1"/>`,
+  dragonflame:`<path d="M -19,4 Q 0,-13 21,2 Q 0,13 -19,4 Z" fill="#4a2418"/><path d="M 0,-17 Q 5,-8 0,-1 Q -5,-8 0,-17 Z" fill="#ff8a3d"/><path d="M -6,-13 Q -3,-8 -6,-3 Q -9,-8 -6,-13 Z" fill="#ffd94d"/><circle cx="13" cy="-3" r="2.2" fill="#ffe27a"/>`,
+  ghost:`<path d="M -15,-9 Q -15,-19 0,-19 Q 15,-19 15,-9 L 15,7 Q 10,2 6,8 Q 2,2 -2,8 Q -6,2 -10,8 Q -15,2 -15,7 Z" fill="#e5e4ff" opacity=".92"/><circle cx="-5.5" cy="-6" r="1.6" fill="#1a1a2e"/><circle cx="5.5" cy="-6" r="1.6" fill="#1a1a2e"/><circle cx="18" cy="-16" r="1.3" fill="#fff"/><circle cx="-19" cy="-4" r="1" fill="#fff"/>`,
+  cathedral:`<circle cx="0" cy="5" r="17" fill="#3f9b93"/><rect x="-3.2" y="-9" width="6.4" height="15" fill="#d7d2bc"/><polygon points="-4,-9 0,-16 4,-9" fill="#d7d2bc"/><rect x="-1" y="-4" width="2" height="5" fill="#0f2b2a"/>`,
+  hydra:`<path d="M -11,10 Q -15,-7 -6,-15" fill="none" stroke="#7a3a8f" stroke-width="5" stroke-linecap="round"/><path d="M 0,10 Q 0,-9 0,-17" fill="none" stroke="#7a3a8f" stroke-width="5" stroke-linecap="round"/><path d="M 11,10 Q 15,-7 6,-15" fill="none" stroke="#7a3a8f" stroke-width="5" stroke-linecap="round"/><circle cx="-6" cy="-15" r="3.4" fill="#e879c9"/><circle cx="0" cy="-17" r="3.4" fill="#e879c9"/><circle cx="6" cy="-15" r="3.4" fill="#e879c9"/>`,
+  sun:`<g opacity=".9">${Array.from({length:12}).map((_,i)=>`<line x1="0" y1="0" x2="${(Math.cos(i*Math.PI/6)*34).toFixed(1)}" y2="${(Math.sin(i*Math.PI/6)*34).toFixed(1)}" stroke="#ffe27a" stroke-width="3" stroke-linecap="round"/>`).join('')}</g><circle cx="0" cy="0" r="15" fill="#fff6cf"/>`,
+  glitch:`<rect x="-16" y="-14" width="12" height="10" fill="#00e5ff" opacity=".85" transform="rotate(-8)"/><rect x="2" y="-4" width="14" height="9" fill="#ff2fd1" opacity=".85" transform="rotate(6)"/><rect x="-10" y="4" width="10" height="8" fill="#ffe27a" opacity=".75" transform="rotate(-4)"/><rect x="4" y="8" width="9" height="7" fill="#00e5ff" opacity=".65"/>`,
+  crocgod:`<g opacity=".5">${Array.from({length:8}).map((_,i)=>`<line x1="0" y1="0" x2="${Math.cos(i*Math.PI/4)*40}" y2="${Math.sin(i*Math.PI/4)*40}" stroke="#ffe27a" stroke-width="2"/>`).join('')}</g><path d="M -23,5 Q 0,-15 27,2 Q 0,15 -23,5 Z" fill="#f0e2a0"/><polygon points="-15,5 -10,-2 -5,5 0,-2 5,5 10,-2 15,5" fill="#ffd94d"/><polygon points="-2,-18 3,-9 8,-18 3,-13" fill="#ffe27a"/><circle cx="17" cy="-3" r="2.6" fill="#3a2f0e"/><circle cx="17" cy="-3" r="1.1" fill="#ffe27a"/>`,
+  bogicon:`<ellipse cx="0" cy="0" rx="12" ry="16" fill="#052a1a"/><circle cx="0" cy="0" r="7" fill="#00ff9d"/><circle cx="0" cy="0" r="2.6" fill="#001a10"/><path d="M -27,11 Q -14,-5 0,11 Q 14,-5 27,11" fill="none" stroke="#00c97a" stroke-width="3" stroke-linecap="round"/><path d="M -23,19 Q -10,6 2,19 Q 14,6 25,19" fill="none" stroke="#017a4a" stroke-width="3" stroke-linecap="round" opacity=".7"/>`,
+  bountyicon:`<path d="M -22,6 L -22,18 L 22,18 L 22,6 Z" fill="#7a4a1a"/><path d="M -24,-2 Q 0,-14 24,-2 L 22,6 L -22,6 Z" fill="#a86a2a"/><circle cx="-10" cy="-6" r="4" fill="#ffe27a"/><circle cx="2" cy="-11" r="5" fill="#ffd94d"/><circle cx="12" cy="-5" r="4" fill="#ffe27a"/><circle cx="0" cy="2" r="3.5" fill="#fff6cf"/><rect x="-23" y="4" width="46" height="2.5" fill="#5a3a12"/>`,
+};
+const CROWN_OVERLAY=`<polygon points="-14,-24 -14,-34 -7,-27 0,-38 7,-27 14,-34 14,-24" fill="#ffe27a" stroke="#ffd94d" stroke-width="1"/>`;
+
+function charVisual(char, ctx){
+  const sizes={reveal:44, card:30, sidebar:96};
+  const size=sizes[ctx]||32;
+  if(char.icon){
+    const gid='art'+char.id+'_'+ctx;
+    const inner=size-8;
+    const crown = (char.rarity==='godly') ? CROWN_OVERLAY : '';
+    return `<span class="art-ring rarity-${char.rarity}" style="width:${size}px;height:${size}px;">`+
+      `<svg viewBox="0 0 100 100" width="${size}" height="${size}">`+
+      `<defs><radialGradient id="${gid}" cx="35%" cy="30%" r="75%">`+
+      `<stop offset="0%" stop-color="${char.colors[1]}"/><stop offset="100%" stop-color="${char.colors[0]}"/>`+
+      `</radialGradient></defs>`+
+      `<circle cx="50" cy="50" r="49" fill="url(#${gid})"/>`+
+      `<g transform="translate(50,54) scale(${inner/60})">${ICONS[char.icon]}${crown}</g>`+
+      `</svg></span>`;
+  }
+  return `<span class="emoji" style="font-size:${Math.round(size*0.86)}px;line-height:1;">${char.emoji}</span>`;
+}
+
+/* ---------------- STATE ---------------- */
+let state=null; // {name, coins, gems, owned:{id:count}, totalRolls, equippedPets, bikes, selectedBike, totalPlaySeconds, rollsSinceGodly, lastActiveTs}
+const PITY_GODLY_CAP=20000;
+const MAX_EQUIPPED_PETS=3;
+
+function blankState(name){
+  return {name, coins:150, gems:0, owned:{}, totalRolls:0, equippedPets:[], bikes:['starter'], selectedBike:'starter', totalPlaySeconds:0, rollsSinceGodly:0, lastActiveTs:Date.now()};
+}
+
+function migrate(s){
+  if(s.equippedPets===undefined){
+    s.equippedPets = s.equippedPet ? [s.equippedPet] : [];
+  }
+  delete s.equippedPet;
+  if(s.bikes===undefined) s.bikes=['starter'];
+  if(s.selectedBike===undefined) s.selectedBike='starter';
+  if(s.totalPlaySeconds===undefined) s.totalPlaySeconds=0;
+  if(s.rollsSinceGodly===undefined) s.rollsSinceGodly=0;
+  if(s.lastActiveTs===undefined) s.lastActiveTs=Date.now();
+  if(s.gems===undefined) s.gems=0;
+  return s;
+}
+
+/* ---------------- BIKES & QUESTS ---------------- */
+const BIKES=[
+  {id:'starter', name:'Rusty Beater', emoji:'🏍️', earnMult:1.0, desc:'Your first ride. Gets the job done.', source:'default'},
+  {id:'cruiser', name:'Swamp Cruiser', emoji:'🛵', earnMult:1.3, desc:'Smoother suspension — 30% more coin per run.', source:'quest'},
+  {id:'chopper', name:'Ember Chopper', emoji:'🛴', earnMult:1.6, desc:'Built from parts off something mythical — 60% more coin per run.', source:'quest'},
+  {id:'marathon', name:'Marathon Cruiser', emoji:'🚲', earnMult:1.45, desc:'Built for endurance — 45% more coin per run.', source:'quest'},
+  {id:'ultrabee', name:'Ultra Bee Light', emoji:'🛺', earnMult:2.0, desc:'Featherweight electric ride — 2x coin per run.', source:'shop', price:15},
+  {id:'crf250', name:'CRF250 Honda', emoji:'🏍️', earnMult:2.2, desc:'A dirt-trail classic, tuned for balance — 2.2x coin per run.', source:'shop', price:35},
+  {id:'talaria', name:'Talaria X3', emoji:'🏍️', earnMult:2.5, desc:'Electric torque built for the trail — 2.5x coin per run.', source:'shop', price:60},
+  {id:'varg', name:'Stark Varg', emoji:'🐺', earnMult:3.5, desc:'Only earned by mastering every mythical creature in the bog — 3.5x coin per run.', source:'quest'},
+  {id:'talariaxxx', name:'Talaria XXX', emoji:'🏍️', earnMult:6.0, desc:'Built from something that shouldn\'t exist. 6x coin per run.', source:'quest'},
+  {id:'surronbee', name:'Surron Ultra Bee μn', emoji:'🏍️', earnMult:6.5, desc:'Overflowing with more torque than a bike should hold. 6.5x coin per run.', source:'quest'},
+];
+function getBike(id){ return BIKES.find(b=>b.id===id)||BIKES[0]; }
+function getSelectedBike(){ return getBike(state.selectedBike); }
+
+function commonsOwned(){ return CHARACTERS.filter(c=>c.rarity==='common'&&state.owned[c.id]).length; }
+function mythicalsOwned(){ return CHARACTERS.filter(c=>c.rarity==='mythical'&&state.owned[c.id]).length; }
+const TOTAL_COMMONS=CHARACTERS.filter(c=>c.rarity==='common').length;
+const TOTAL_MYTHICALS=CHARACTERS.filter(c=>c.rarity==='mythical').length;
+
+const QUESTS=[
+  {id:'allCommons', title:'Full Common Log', icon:'📖', desc:'Own at least one of every Common-tier critter.', goal:()=>TOTAL_COMMONS, progress:()=>commonsOwned(), rewardBike:'cruiser'},
+  {id:'mythicHunter', title:'Mythic Hunter', icon:'🌌', desc:'Own 3 different Mythical-tier creatures.', goal:()=>3, progress:()=>Math.min(3,mythicalsOwned()), rewardBike:'chopper'},
+  {id:'roadWarrior', title:'Road Warrior', icon:'⏱️', desc:'Spend 20 minutes total riding the wheelie trail.', goal:()=>1200, progress:()=>Math.min(1200,Math.floor(state.totalPlaySeconds||0)), rewardBike:'marathon', isTime:true},
+  {id:'mythicMaster', title:'Mythic Master', icon:'🐺', desc:'Own every single Mythical-tier creature in the bog.', goal:()=>TOTAL_MYTHICALS, progress:()=>mythicalsOwned(), rewardBike:'varg'},
+  {id:'bogRider', title:'Ride the Bog Itself', icon:'🌑', desc:'Own Bog.', goal:()=>1, progress:()=>state.owned[103]?1:0, rewardBike:'talariaxxx'},
+  {id:'bountyRider', title:'Claim the Bounty', icon:'🪙', desc:'Own Bounty.', goal:()=>1, progress:()=>state.owned[104]?1:0, rewardBike:'surronbee'},
+];
+
+function buyBike(id){
+  const bike=getBike(id);
+  if(!bike || bike.source!=='shop' || state.bikes.includes(id)) return;
+  if((state.gems||0)<bike.price){ toast('Not enough gems for the '+bike.name+' — ride the wheelie trail to earn more.'); return; }
+  state.gems-=bike.price;
+  state.bikes.push(id);
+  saveProfile(); renderHeader(); renderQuests();
+  toast('🏍️ Bought the '+bike.name+'!');
+}
+
+function checkQuests(){
+  let unlocked=false;
+  QUESTS.forEach(q=>{
+    if(!state.bikes.includes(q.rewardBike) && q.progress()>=q.goal()){
+      state.bikes.push(q.rewardBike);
+      unlocked=true;
+      const bike=getBike(q.rewardBike);
+      toast('🏆 New bike unlocked: '+bike.emoji+' '+bike.name);
+    }
+  });
+  if(unlocked){ saveProfile(); renderQuests(); }
+}
+
+function selectBike(id){
+  if(!state.bikes.includes(id)) return;
+  state.selectedBike=id;
+  saveProfile();
+  renderQuests();
+  toast('Now riding the '+getBike(id).name);
+}
+
+function fmtTime(sec){
+  const m=Math.floor(sec/60), s=Math.floor(sec%60);
+  return m+'m '+s+'s';
+}
+
+function renderQuests(){
+  const el=document.getElementById('view-quests');
+  if(!el) return;
+  let html='<div class="panel"><h3 style="margin:0 0 4px;font-family:\'Fredoka\',sans-serif;color:var(--moss-bright);">Your Bikes</h3><div class="bike-row">';
+  BIKES.forEach(b=>{
+    const owned=state.bikes.includes(b.id);
+    const selected=state.selectedBike===b.id;
+    const canBuy = !owned && b.source==='shop';
+    html+=`<div class="bike-card ${owned||canBuy?'':'locked'} ${selected?'selected':''}" ${owned?`onclick="selectBike('${b.id}')"`:''}>
+      <div class="bemoji">${owned?b.emoji:(canBuy?b.emoji:'🔒')}</div>
+      <div class="bname">${owned||canBuy?b.name:'?????'}</div>
+      <div class="bmult">${owned?('x'+b.earnMult+' coin'):(canBuy?('x'+b.earnMult+' coin'):'quest locked')}</div>
+      ${selected?'<div class="briding">RIDING</div>':''}
+      ${canBuy?`<button class="btn btn-gold" style="width:100%;margin-top:6px;padding:6px;font-size:11px;" onclick="event.stopPropagation();buyBike('${b.id}')">Buy ${b.price}💎</button>`:''}
+    </div>`;
+  });
+  html+='</div></div><div class="panel"><h3 style="margin:0 0 12px;font-family:\'Fredoka\',sans-serif;color:var(--moss-bright);">Quests</h3>';
+  QUESTS.forEach(q=>{
+    const done=state.bikes.includes(q.rewardBike);
+    const p=q.progress(), g=q.goal();
+    const pct=Math.min(100,(p/g*100));
+    const bike=getBike(q.rewardBike);
+    html+=`<div class="quest-card ${done?'done':''}">
+      <div class="quest-head"><span>${q.icon} ${q.title}</span><span class="mono" style="font-size:12px;color:var(--bone-dim);">${done?'COMPLETE ✓':(q.isTime?fmtTime(p)+' / '+fmtTime(g):p+'/'+g)}</span></div>
+      <div class="quest-desc">${q.desc}</div>
+      <div class="pity-bar"><div class="pity-fill" style="width:${pct}%"></div></div>
+      <div class="quest-reward">Reward: ${bike.emoji} ${bike.name} ${done?'(unlocked)':''}</div>
+    </div>`;
+  });
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t=setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+// no persistence, by design — saveProfile is a no-op kept so the rest of the code doesn't need touching
+async function saveProfile(){ /* progress is intentionally never saved */ }
+
+/* ---------------- INIT (no login, no save) ---------------- */
+function initGame(){
+  state = blankState('Trapper');
+  renderAll();
+  checkQuests();
+  startPassiveLoop();
+}
+
+function resetGame(){
+  stopPassiveLoop();
+  state = blankState('Trapper');
+  renderAll();
+  toast('Progress reset — starting fresh.');
+  startPassiveLoop();
+}
+
+let passiveIntervalId=null;
+function startPassiveLoop(){
+  if(passiveIntervalId) clearInterval(passiveIntervalId);
+  passiveIntervalId=setInterval(()=>{
+    if(!state) return;
+    const rate=getPassiveRate();
+    if(rate>0){
+      state.coins+=rate;
+      const coinsEl=document.getElementById('hdr-coins');
+      if(coinsEl) coinsEl.textContent=Math.floor(state.coins);
+    }
+  },1000);
+}
+function stopPassiveLoop(){
+  if(passiveIntervalId){ clearInterval(passiveIntervalId); passiveIntervalId=null; }
+}
+
+/* ---------------- TABS ---------------- */
+function showTab(t){
+  document.getElementById('tab-explore').classList.toggle('active', t==='explore');
+  document.getElementById('tab-collection').classList.toggle('active', t==='collection');
+  document.getElementById('tab-quests').classList.toggle('active', t==='quests');
+  document.getElementById('view-explore').style.display = t==='explore' ? 'block':'none';
+  document.getElementById('view-collection').style.display = t==='collection' ? 'block':'none';
+  document.getElementById('view-quests').style.display = t==='quests' ? 'block':'none';
+  if(t==='collection') renderCollection();
+  if(t==='quests') renderQuests();
+}
+
+/* ---------------- PET / BONUS ---------------- */
+function getPetChars(){
+  return state.equippedPets.map(id=>CHARACTERS.find(c=>c.id===id)).filter(Boolean);
+}
+function getBonuses(){
+  const pets=getPetChars();
+  let luck=0, money=0;
+  pets.forEach(p=>{ const b=PET_BONUS[p.rarity]||0; luck+=b; money+=b; });
+  return {luck, money};
+}
+function getPassiveRate(){
+  return getPetChars().reduce((sum,p)=>sum+passiveRate(p.rarity),0);
+}
+function renderPetPanel(){
+  const pets=getPetChars();
+  const {luck,money}=getBonuses();
+  const rate=getPassiveRate();
+  const el=document.getElementById('pet-panel');
+  let slotsHtml='<div class="pet-slots">';
+  for(let i=0;i<MAX_EQUIPPED_PETS;i++){
+    const p=pets[i];
+    if(p){
+      slotsHtml+=`<div class="pet-slot filled" onclick="equipPet(${p.id})" title="Tap to unequip">${charVisual(p,'card')}<div class="ps-slot-name">${p.name}</div><div class="ps-slot-rarity" style="color:${RARITY[p.rarity].color}">${RARITY[p.rarity].label}</div></div>`;
+    }else{
+      slotsHtml+=`<div class="pet-slot empty">🐾<div class="ps-slot-name">Empty slot</div></div>`;
+    }
+  }
+  slotsHtml+='</div>';
+  const totals = pets.length ? `<div class="pet-totals">Total: +${Math.round(luck*100)}% luck · +${Math.round(money*100)}% coin on summons · <span style="color:var(--gold);">+${rate.toFixed(1)}🪙/s</span> passive</div>` : `<div class="pet-totals">Tap up to 3 owned critters in the Collection tab to ride with them. Better pets = more luck, more summon coin, and passive coin every second.</div>`;
+  el.innerHTML = slotsHtml + totals;
+
+  const petTag = pets.length ? ` (${pets.length} pet${pets.length>1?'s':''} riding)` : '';
+  const b1=document.getElementById('btn-summon1'), b10=document.getElementById('btn-summon10');
+  if(b1) b1.innerHTML=`🎲 Summon x1${petTag} — 50🪙`;
+  if(b10) b10.innerHTML=`✨ Summon x10${petTag} — 500🪙`;
+  renderPetSidebar();
+}
+function renderPetSidebar(){
+  const pets=getPetChars();
+  const {luck,money}=getBonuses();
+  const rate=getPassiveRate();
+  const el=document.getElementById('pet-sidebar');
+  let html='<div class="ps-label">Riding Pets ('+pets.length+'/'+MAX_EQUIPPED_PETS+')</div>';
+  for(let i=0;i<MAX_EQUIPPED_PETS;i++){
+    const p=pets[i];
+    if(p){
+      html+=`<div class="ps-row"><span class="ps-row-visual">${charVisual(p,'card')}</span><div class="ps-row-info"><div class="ps-row-name">${p.name}</div><div class="ps-row-rarity" style="color:${RARITY[p.rarity].color}">${RARITY[p.rarity].label}</div></div></div>`;
+    }else{
+      html+=`<div class="ps-row empty"><span class="ps-row-visual">🐾</span><div class="ps-row-info"><div class="ps-row-name">Empty slot</div></div></div>`;
+    }
+  }
+  html+=`<div class="ps-bonus">+${Math.round(luck*100)}% luck<br>+${Math.round(money*100)}% coin<br><span style="color:var(--gold);">+${rate.toFixed(1)}🪙/s</span></div>`;
+  el.innerHTML=html;
+}
+function equipPet(id){
+  const owned=state.owned[id]||0;
+  if(!owned) return;
+  const idx=state.equippedPets.indexOf(id);
+  if(idx>=0){
+    state.equippedPets.splice(idx,1);
+    toast('Unequipped '+CHARACTERS.find(c=>c.id===id).name);
+  }else{
+    if(state.equippedPets.length>=MAX_EQUIPPED_PETS){
+      toast('You can only ride with '+MAX_EQUIPPED_PETS+' pets at once — unequip one first.');
+      return;
+    }
+    state.equippedPets.push(id);
+    toast('Now riding with '+CHARACTERS.find(c=>c.id===id).name);
+  }
+  saveProfile();
+  renderPetPanel();
+  renderCollection();
+}
+
+/* ---------------- SUMMON LOGIC ---------------- */
+function weightedRarityRoll(){
+  const {luck}=getBonuses();
+  if(state.rollsSinceGodly>=PITY_GODLY_CAP-1) return 'godly'; // hard pity, godly-or-better guarantee
+  let godlyChance = RARITY.godly.chance*(1+luck*0.8);
+  if(state.rollsSinceGodly>PITY_GODLY_CAP*0.5){
+    godlyChance += (state.rollsSinceGodly-PITY_GODLY_CAP*0.5) * (RARITY.godly.chance*3/(PITY_GODLY_CAP*0.5));
+  }
+  const tiers=[
+    ['bog',        RARITY.bog.chance*(1+luck)],
+    ['bounty',     RARITY.bounty.chance*(1+luck)],
+    ['crocalario', RARITY.crocalario.chance*(1+luck)],
+    ['secret',     RARITY.secret.chance*(1+luck*0.8)],
+    ['godly',      godlyChance],
+    ['mythical',   RARITY.mythical.chance*(1+luck*0.6)],
+    ['legendary',  RARITY.legendary.chance*(1+luck*0.5)],
+    ['epic',       RARITY.epic.chance*(1+luck*0.3)],
+    ['rare',       RARITY.rare.chance],
+    ['uncommon',   RARITY.uncommon.chance],
+  ];
+  const r=Math.random();
+  let acc=0;
+  for(const [key,p] of tiers){
+    acc+=p;
+    if(r<acc) return key;
+  }
+  return 'common';
+}
+
+function pickCharacter(rarity){
+  const pool=CHARACTERS.filter(c=>c.rarity===rarity);
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function doOneRoll(){
+  const {money}=getBonuses();
+  const rarity=weightedRarityRoll();
+  const char=pickCharacter(rarity);
+  state.totalRolls++;
+  if(rarity==='godly'||rarity==='crocalario'||rarity==='secret'||rarity==='bog'||rarity==='bounty') state.rollsSinceGodly=0;
+  else state.rollsSinceGodly++;
+
+  const owned=state.owned[char.id]||0;
+  let dup=false, gained=0;
+  if(owned>0){
+    dup=true;
+    gained=Math.round(RARITY[rarity].sell*(1+money));
+    state.coins+=gained;
+  }
+  state.owned[char.id]=owned+1;
+  return {char,rarity,dup,gained};
+}
+
+function summon(count){
+  const cost = count===1 ? 50 : 500;
+  if(state.coins<cost){ toast('Not enough coins — ride the wheelie trail'); return; }
+  state.coins-=cost;
+  const results=[];
+  for(let i=0;i<count;i++) results.push(doOneRoll());
+  renderReveal(results);
+  renderHeader(); saveProfile();
+  checkQuests();
+}
+
+/* ---------------- RENDER: HEADER / REVEAL ---------------- */
+function renderHeader(){
+  document.getElementById('hdr-coins').textContent=state.coins;
+  document.getElementById('hdr-gems').textContent=state.gems||0;
+  const ownedCount=Object.keys(state.owned).length;
+  document.getElementById('hdr-count').textContent=ownedCount+'/'+CHARACTERS.length;
+  document.getElementById('pity-text').textContent=state.rollsSinceGodly+'/'+PITY_GODLY_CAP;
+  document.getElementById('pity-fill-godly').style.width=Math.min(100,(state.rollsSinceGodly/PITY_GODLY_CAP*100))+'%';
+}
+
+function renderReveal(results){
+  const area=document.getElementById('reveal-area');
+  area.innerHTML='';
+  results.forEach(r=>{
+    const card=document.createElement('div');
+    const ultra = r.rarity==='godly'||r.rarity==='secret'||r.rarity==='crocalario'||r.rarity==='bog'||r.rarity==='bounty';
+    card.className='reveal-card'+(r.dup?' dup':'')+(ultra?' godly':'')+(r.rarity==='mythical'?' mythical':'');
+    if(!(ultra||r.rarity==='mythical')) card.style.borderColor=RARITY[r.rarity].color;
+    card.innerHTML=`
+      ${charVisual(r.char,'reveal')}
+      <div class="rname">${r.char.name}</div>
+      <div class="rtag" style="color:${RARITY[r.rarity].color}">${RARITY[r.rarity].label}</div>
+      ${r.dup?`<div class="dupnote">dup +${r.gained}🪙</div>`:''}
+    `;
+    area.appendChild(card);
+  });
+  if(results.some(r=>r.rarity==='bog'||r.rarity==='bounty')) toast('★★★ IMPOSSIBLE. YOU FOUND '+(results.find(r=>r.rarity==='bog'||r.rarity==='bounty').char.name).toUpperCase()+' ★★★');
+  else if(results.some(r=>r.rarity==='crocalario')) toast('🐊👑 CROCALARIO HAS AWOKEN — 1 IN 2,000,000 👑🐊');
+  else if(results.some(r=>r.rarity==='secret')) toast('❓ You found a SECRET creature ❓');
+  else if(results.some(r=>r.rarity==='godly')) toast('☀️ A godly being answers your summons ☀️');
+  else if(results.some(r=>r.rarity==='mythical')) toast('A mythical creature emerges from the mist!');
+}
+
+/* ---------------- COLLECTION ---------------- */
+function renderCollection(){
+  const el=document.getElementById('view-collection');
+  el.innerHTML='';
+  RARITY_ORDER.forEach(rk=>{
+    const chars=CHARACTERS.filter(c=>c.rarity===rk);
+    const section=document.createElement('div');
+    section.className='rarity-section';
+    section.innerHTML=`<div class="rarity-title"><span class="dot" style="background:${RARITY[rk].color}"></span>${RARITY[rk].label} <span class="mono" style="color:var(--bone-dim);font-size:11px;">(${chars.filter(c=>state.owned[c.id]).length}/${chars.length})</span></div>`;
+    const grid=document.createElement('div');
+    grid.className='grid';
+    chars.forEach(c=>{
+      const owned=state.owned[c.id]||0;
+      const equipped=state.equippedPets.includes(c.id);
+      const card=document.createElement('div');
+      const ultraLocked = (c.rarity==='godly'||c.rarity==='secret'||c.rarity==='crocalario'||c.rarity==='bog'||c.rarity==='bounty') && !owned;
+      card.className='card'+(owned?' owned':' locked')+(ultraLocked?' godlycard':'')+(equipped?' equipped':'');
+      card.title=owned?(c.blurb+(owned?' Tap to '+(equipped?'unequip':'ride with')+' this pet.':'')):'???';
+      card.innerHTML=`
+        ${equipped?'<span class="ride-tag">RIDING</span>':''}
+        ${owned ? charVisual(c,'card') : `<span class="emoji">❔</span>`}
+        <div class="cname">${owned?c.name:'?????'}</div>
+        ${owned?`<div class="ccount">x${owned}</div>`:''}
+      `;
+      if(owned) card.onclick=()=>equipPet(c.id);
+      grid.appendChild(card);
+    });
+    section.appendChild(grid);
+    el.appendChild(section);
+  });
+}
+
+function renderAll(){
+  renderHeader();
+  renderPetPanel();
+  renderCollection();
+  renderQuests();
+}
+
+/* ================= WHEELIE MINIGAME ================= */
+let wg = null; // runtime state
+const WG_DURATION=45; // seconds
+const WG_SWEET_HALF=13, WG_CRASH=85;
+const WG_LIFT_RATE=58, WG_FALL_RATE=78;
+
+function openMinigame(){
+  document.getElementById('explore-actions').style.display='none';
+  document.getElementById('reveal-panel').style.display='none';
+  document.getElementById('minigame-panel').style.display='block';
+  document.getElementById('wg-summary').style.display='none';
+  document.getElementById('wg-hold').style.display='block';
+  startWheelieRun();
+}
+
+function closeMinigame(){
+  document.getElementById('explore-actions').style.display='block';
+  document.getElementById('reveal-panel').style.display='block';
+  document.getElementById('minigame-panel').style.display='none';
+  if(wg && wg.raf) cancelAnimationFrame(wg.raf);
+  wg=null;
+}
+
+function startWheelieRun(){
+  const canvas=document.getElementById('wheelie-canvas');
+  const ctx=canvas.getContext('2d');
+  const {luck}=getBonuses();
+  const bike=getSelectedBike();
+  wg={
+    ctx, canvas,
+    angle:0, holding:false,
+    combo:1, peakCombo:1,
+    distance:0, score:0, elapsed:0,
+    timeLeft:WG_DURATION,
+    crashed:false, ended:false,
+    scrollX:0,
+    sweetCenter:53, sweetTarget:53, sweetTimer:2+Math.random()*2,
+    sweetMin:40, sweetMax:66,
+    bikeEmoji: bike.emoji, bikeEarnMult: bike.earnMult,
+    lastTs:null, raf:null,
+    luckSpeedBonus: 1+luck*0.15 // better pet = slightly faster/steadier trail
+  };
+
+  const holdBtn=document.getElementById('wg-hold');
+  holdBtn.classList.remove('holding');
+  const down=(e)=>{ e.preventDefault(); wg.holding=true; holdBtn.classList.add('holding'); };
+  const up=(e)=>{ wg.holding=false; holdBtn.classList.remove('holding'); };
+  holdBtn.onpointerdown=down; holdBtn.onpointerup=up; holdBtn.onpointerleave=up; holdBtn.onpointercancel=up;
+  window.onkeydown=(e)=>{ if(e.code==='Space' && wg && !wg.ended){ e.preventDefault(); wg.holding=true; holdBtn.classList.add('holding'); } };
+  window.onkeyup=(e)=>{ if(e.code==='Space' && wg){ wg.holding=false; holdBtn.classList.remove('holding'); } };
+
+  wg.raf=requestAnimationFrame(wgLoop);
+}
+
+function wgLoop(ts){
+  if(!wg || wg.ended) return;
+  if(!wg.lastTs) wg.lastTs=ts;
+  const dt=Math.min(0.05,(ts-wg.lastTs)/1000);
+  wg.lastTs=ts;
+  wg.elapsed += dt;
+
+  // simple lean control: holding raises the front wheel, releasing lets gravity drop it faster
+  if(wg.holding) wg.angle += WG_LIFT_RATE*dt;
+  else wg.angle -= WG_FALL_RATE*dt;
+  wg.angle = Math.max(0, Math.min(95, wg.angle));
+
+  if(wg.angle<=0){
+    // front wheel touches down — grounded, combo resets, but you keep riding
+    wg.angle=0; wg.combo=1;
+  }
+  if(wg.angle>=WG_CRASH){
+    wg.angle=WG_CRASH;
+    wg.crashed=true;
+    endWheelieRun();
+    return;
+  }
+
+  // the goldilocks zone drifts around instead of sitting still
+  wg.sweetTimer -= dt;
+  if(wg.sweetTimer<=0){
+    wg.sweetTarget = 22+Math.random()*56;
+    wg.sweetTimer = 2.5+Math.random()*2.5;
+  }
+  wg.sweetCenter += (wg.sweetTarget-wg.sweetCenter)*Math.min(1,dt*0.9);
+  wg.sweetMin=Math.max(0,wg.sweetCenter-WG_SWEET_HALF);
+  wg.sweetMax=Math.min(WG_CRASH-2,wg.sweetCenter+WG_SWEET_HALF);
+
+  // combo logic
+  const inSweet = wg.angle>=wg.sweetMin && wg.angle<=wg.sweetMax;
+  if(inSweet){ wg.combo=Math.min(6, wg.combo+0.6*dt); }
+  else{ wg.combo=Math.max(1, wg.combo-0.9*dt); }
+  wg.peakCombo=Math.max(wg.peakCombo,wg.combo);
+
+  // scoring
+  const speed=140*wg.luckSpeedBonus; // px/sec base scroll speed
+  wg.scrollX += speed*dt;
+  wg.distance += speed*dt*0.06;
+  wg.score += speed*dt*0.06*wg.combo;
+
+  wg.timeLeft -= dt;
+  if(wg.timeLeft<=0){ wg.timeLeft=0; endWheelieRun(); return; }
+
+  drawWheelie();
+  updateWheelieHUD();
+
+  wg.raf=requestAnimationFrame(wgLoop);
+}
+
+function drawWheelie(){
+  const {ctx,canvas}=wg;
+  const w=canvas.width,h=canvas.height;
+  ctx.clearRect(0,0,w,h);
+  // sky
+  const grad=ctx.createLinearGradient(0,0,0,h);
+  grad.addColorStop(0,'#16221a'); grad.addColorStop(1,'#0e160d');
+  ctx.fillStyle=grad; ctx.fillRect(0,0,w,h);
+  // ground
+  const groundY=h-40;
+  ctx.strokeStyle='#354430'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.moveTo(0,groundY); ctx.lineTo(w,groundY); ctx.stroke();
+  // scrolling dashes
+  ctx.strokeStyle='#4f6b3a55'; ctx.lineWidth=2;
+  const dashLen=40, offset=wg.scrollX%dashLen;
+  ctx.beginPath();
+  for(let x=-offset;x<w;x+=dashLen){ ctx.moveTo(x,groundY+12); ctx.lineTo(x+20,groundY+12); }
+  ctx.stroke();
+  // bike — mounted backwards on purpose, rotation compensated so it still reads as a wheelie
+  const bx=w*0.28, by=groundY-4;
+  ctx.save();
+  ctx.translate(bx,by);
+  ctx.scale(-1,1);
+  ctx.rotate(wg.angle*Math.PI/180*0.5);
+  ctx.font='54px serif';
+  ctx.textAlign='center'; ctx.textBaseline='bottom';
+  ctx.fillText(wg.bikeEmoji||'🏍️',0,4);
+  ctx.restore();
+  if(wg.combo>2.5){
+    ctx.font='24px serif'; ctx.fillText('🔥',bx-46,by-30);
+  }
+}
+
+function updateWheelieHUD(){
+  document.getElementById('wg-dist').textContent=Math.floor(wg.distance);
+  document.getElementById('wg-combo').textContent=wg.combo.toFixed(1)+'x';
+  document.getElementById('wg-time').textContent=Math.ceil(wg.timeLeft);
+  const pct=Math.min(100,(wg.angle/WG_CRASH)*100);
+  document.getElementById('wg-needle').style.left=pct+'%';
+  const sweetEl=document.getElementById('wg-sweet');
+  sweetEl.style.left=(wg.sweetMin/WG_CRASH*100)+'%';
+  sweetEl.style.width=((wg.sweetMax-wg.sweetMin)/WG_CRASH*100)+'%';
+}
+
+function endWheelieRun(){
+  if(wg.ended) return;
+  wg.ended=true;
+  if(wg.raf) cancelAnimationFrame(wg.raf);
+  window.onkeydown=null; window.onkeyup=null;
+  const holdBtn=document.getElementById('wg-hold');
+  holdBtn.onpointerdown=null; holdBtn.onpointerup=null;
+  holdBtn.style.display='none';
+
+  const {money}=getBonuses();
+  const baseCoins=Math.round(wg.score*1.4);
+  const coinsEarned=Math.round(baseCoins*(1+money)*wg.bikeEarnMult);
+  const gemsEarned=Math.max(1, Math.floor(wg.distance/25) + Math.floor(wg.peakCombo));
+  state.coins+=coinsEarned;
+  state.gems=(state.gems||0)+gemsEarned;
+  state.totalPlaySeconds=(state.totalPlaySeconds||0)+wg.elapsed;
+  checkQuests();
+  saveProfile(); renderHeader();
+
+  const summary=document.getElementById('wg-summary');
+  summary.style.display='block';
+  summary.innerHTML=`
+    <h3>${wg.crashed?'💥 You crashed!':'⏱️ Time!'}</h3>
+    <p class="mono">Distance: ${Math.floor(wg.distance)}m &nbsp;·&nbsp; Peak Combo: ${wg.peakCombo.toFixed(1)}x</p>
+    <p class="mono" style="color:var(--gold);font-size:16px;">+${coinsEarned} 🪙 earned (${getSelectedBike().name} x${wg.bikeEarnMult})</p>
+    <p class="mono" style="color:var(--secret);font-size:14px;">+${gemsEarned} 💎 gems earned</p>
+    <div class="explore-grid" style="margin-top:12px;">
+      <button class="btn btn-primary" onclick="openMinigame()">Ride Again</button>
+      <button class="btn btn-ghost" onclick="closeMinigame()">Back to Summoning</button>
+    </div>
+  `;
+  toast('+'+coinsEarned+' 🪙 collected from the trail');
+}
+
+initGame();
+</script>
+</body>
+</html>
