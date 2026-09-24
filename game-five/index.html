@@ -543,6 +543,23 @@
   .cup-advance-msg{ font-family:'Fredoka',sans-serif; font-size:14px; color:#8fe88f; text-align:center; margin:8px 0; }
   .cup-eliminated-msg{ font-family:'Fredoka',sans-serif; font-size:14px; color:#f88; text-align:center; margin:8px 0; }
 
+
+.mg-pitch{display:flex;flex-direction:column;gap:16px;align-items:center;padding:18px 8px;border-radius:16px;background:linear-gradient(160deg,#0b3aa8,#0a1f5c 60%,#050d2a);border:2px solid #2a5fd0;}
+.pitch-row{display:flex;justify-content:center;gap:12px;width:100%;}
+.pitch-slot{display:flex;flex-direction:column;align-items:center;}
+.fut{width:104px;height:150px;position:relative;border-radius:10px 10px 30px 30px;background:linear-gradient(160deg,#2a63d8,#12328f 55%,#0a1c5a);border:2px solid #e8c56a;box-shadow:0 4px 12px rgba(0,0,0,.55);color:#f6e7b0;text-align:center;cursor:pointer;overflow:hidden;font-family:Fredoka,sans-serif;}
+.fut.icon{background:linear-gradient(160deg,#f6d774,#c99a2a 55%,#7a5510);color:#3a2604;border-color:#fff2b8;}
+.fut.ego{background:linear-gradient(160deg,#00c8ff,#0a4fa0 55%,#001a4d);color:#e6fbff;border-color:#8fe8ff;}
+.fut.sel{outline:3px solid #fff;transform:translateY(-5px);}
+.fut.empty{background:rgba(255,255,255,.07);border:2px dashed #6f8fe0;color:#9fb6f0;display:flex;align-items:center;justify-content:center;flex-direction:column;}
+.fut .fr,.fut .fp,.fut .plus3,.fut .fslot{z-index:3;text-shadow:0 1px 3px rgba(0,0,0,.7);}
+.fut .fr{position:absolute;left:8px;top:6px;font-size:24px;font-weight:700;line-height:1;}
+.fut .fp{position:absolute;left:8px;top:32px;font-size:11px;font-weight:600;}
+.fut .plus3{position:absolute;left:8px;top:45px;font-size:10px;font-weight:700;color:#7dff7d;}
+.fut .fslot{position:absolute;right:8px;top:8px;font-size:11px;font-weight:600;opacity:.9;}
+.fut canvas{position:absolute;left:50%;top:-6px;width:104px;height:104px;transform:translateX(-50%);pointer-events:none;z-index:1;}
+.fut .fn{position:absolute;bottom:26px;left:0;right:0;font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px;}
+.fut .fs{position:absolute;bottom:9px;left:0;right:0;font-size:9px;opacity:.9;}
 </style>
 </head>
 <body>
@@ -615,13 +632,13 @@
   <div id="managerScreen" class="screen hidden">
     <div class="mg-header">
       <h2 class="mg-title">&#x1F4BC; MANAGER MODE</h2>
-      <div class="mg-budget-box">&#x1FA99; <span id="mgBudget">3000</span></div>
+      <div class="mg-budget-box">&#x1FA99; <span id="mgBudget">$900M</span></div>
       <button class="secondary-btn" id="mgBackBtn">&#x2190; MENU</button>
     </div>
     <div class="mg-tabs">
       <button class="mg-tab active" data-tab="squad">&#x1F465; SQUAD</button>
       <button class="mg-tab" data-tab="market">&#x1F6D2; MARKET</button>
-      <button class="mg-tab" data-tab="cup">&#x1F3C6; WORLD CUP</button>
+      <button class="mg-tab" data-tab="cup">&#x1F3C6; COMPETE</button>
     </div>
     <!-- SQUAD TAB -->
     <div class="mg-panel" id="tab-squad">
@@ -631,27 +648,36 @@
         <span id="mgSquadFull" class="hidden" style="color:var(--gold)">&#x26A0;&#xFE0F; SQUAD FULL</span>
       </div>
       <div class="mg-squad-grid" id="mgSquadGrid"></div>
-      <div class="hint" style="margin-top:8px;">Buy players in the Market tab. Max 5 players.</div>
+      <div class="hint" style="margin-top:8px;">Formation 1-3-1. Tap a card, then tap another slot to swap. Tap an empty slot to shop for that position. Your CENTRE mid (CM ★) is who you control on PLAY. Own position = +3.</div>
     </div>
     <!-- MARKET TAB -->
     <div class="mg-panel hidden" id="tab-market">
       <div class="mg-market-sections">
         <div class="mg-market-group">
           <h3 class="mg-section-lbl">&#x1F30D; WORLD PLAYERS</h3>
+          <select id="mgPosFilter" style="margin-bottom:8px;padding:5px;border-radius:8px;"><option value="">All positions</option><option value="D">Defenders</option><option value="M">Midfielders</option><option value="F">Forwards</option></select>
           <div class="mg-market-grid" id="mgMarketGrid"></div>
         </div>
         <div class="mg-market-group">
           <h3 class="mg-section-lbl" style="color:#00c8ff;text-shadow:0 0 8px rgba(0,200,255,0.5)">&#x26A1; EGO STRIKERS</h3>
           <div class="mg-market-grid" id="mgEgoMarketGrid"></div>
         </div>
+        <div class="mg-market-group">
+          <h3 class="mg-section-lbl" style="color:#ffd700">&#x1F451; ICONS</h3>
+          <div class="mg-market-grid" id="mgIconMarketGrid"></div>
+        </div>
       </div>
     </div>
     <!-- CUP TAB -->
     <div class="mg-panel hidden" id="tab-cup">
       <div id="cupPreLaunch">
-        <div class="hint" style="margin-bottom:10px;">Build a squad then enter the 16-team World Cup. You can play or simulate each match.</div>
+        <div class="hint" style="margin-bottom:10px;">Play or simulate every match. Placing high pays prize money ($M) — the further you go, the more you earn.</div>
         <div class="mg-groups-preview" id="mgGroupsPreview"></div>
-        <button class="start-btn" id="mgStartCupBtn" style="margin-top:12px;" disabled>&#x1F3C6; ENTER WORLD CUP</button>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
+          <button class="start-btn" id="mgStartCupBtn" disabled>&#x1F3C6; WORLD CUP &mdash; rivals &#x2B50;100-120 &mdash; win $300M</button>
+          <button class="start-btn" id="mgStartCLBtn" disabled>&#x2B50; CHAMPIONS CHIP LEAGUE &mdash; rivals &#x2B50;90-110 &mdash; win $400M</button>
+          <button class="start-btn" id="mgStartLigaBtn" disabled>&#x1F947; LA LIGA PAPA &mdash; rivals &#x2B50;70-90 &mdash; title wins $300M</button>
+        </div>
       </div>
       <div id="cupInProgress" class="hidden">
         <div id="cupStageLabel" class="mg-stage-lbl">GROUP STAGE</div>
@@ -662,6 +688,7 @@
 
   <!-- ===================== GAME SCREEN ===================== -->
   <div id="gameScreen" class="screen hidden">
+    <div id="cupVsBar" class="hidden" style="text-align:center;font-family:Fredoka,sans-serif;font-size:15px;color:var(--gold);margin-bottom:6px;"></div>
     <div id="tournamentBar" class="hidden">
       <div class="t-round-lbl" id="tRoundLbl">ROUND 1 / 5</div>
       <div class="t-dots" id="tDots"></div>
@@ -711,7 +738,7 @@ const CHARACTERS = [
     id:'pessi', name:'Isigma Pessi', nick:'"El Spudo"',
     primary:'#74acdf', secondary:'#ffffff', hairColor:'#5a3a1e',
     hairStyle:'tuft', jerseyStyle:'stripes_v', number:10,
-    speed:5.6, jump:13.0, kickPower:14.5,
+    speed:6.1, jump:14.2, kickPower:15.6,
     statSpeed:5, statJump:3, statKick:4,
     blurb:"Tiny, slippery, impossible to tackle. Born in a sack, raised on the pitch."
   },
@@ -719,7 +746,7 @@ const CHARACTERS = [
     id:'potadaldo', name:'Potadaldo', nick:'"CR-Yukon"',
     primary:'#cc0000', secondary:'#006600', hairColor:'#3a2a16',
     hairStyle:'quiff', jerseyStyle:'plain', number:7,
-    speed:4.9, jump:15.8, kickPower:15.5,
+    speed:5.3, jump:16.2, kickPower:16.6,
     statSpeed:3, statJump:5, statKick:5,
     blurb:"Towers over the field. Never skips leg day, or any day, technically."
   },
@@ -727,7 +754,7 @@ const CHARACTERS = [
     id:'mbafry', name:'Mbafry', nick:'"The Fry Guy"',
     primary:'#002395', secondary:'#ffffff', hairColor:'#1a1a1a',
     hairStyle:'curls', jerseyStyle:'plain', number:10,
-    speed:6.3, jump:13.4, kickPower:13.2,
+    speed:7.2, jump:15.8, kickPower:17.0,
     statSpeed:5, statJump:3, statKick:3,
     blurb:"Blistering speed, fresh out of the fryer. Crispy on the outside."
   },
@@ -743,7 +770,7 @@ const CHARACTERS = [
     id:'haataland', name:'Erling Haataland', nick:'"The Spud Viking"',
     primary:'#ef2b2d', secondary:'#002868', hairColor:'#f0d060',
     hairStyle:'viking', jerseyStyle:'cross', number:9,
-    speed:4.8, jump:16.5, kickPower:16.0,
+    speed:5.7, jump:17.6, kickPower:18.2,
     statSpeed:3, statJump:5, statKick:5,
     blurb:"Seven feet of Norwegian potato. Headers so hard they dent the crossbar."
   },
@@ -751,7 +778,7 @@ const CHARACTERS = [
     id:'fryingham', name:'Jude Fryingham', nick:'"The Golden Hash"',
     primary:'#ffffff', secondary:'#cf081f', hairColor:'#1a0f08',
     hairStyle:'fade', jerseyStyle:'cross', number:10,
-    speed:5.9, jump:14.2, kickPower:14.8,
+    speed:6.5, jump:15.4, kickPower:16.4,
     statSpeed:4, statJump:4, statKick:4,
     blurb:"Box-to-box spud. Goals, assists, and drip — all in one crispy package."
   },
@@ -759,7 +786,7 @@ const CHARACTERS = [
     id:'frymar', name:'Frymar', nick:'"O Spudinho"',
     primary:'#004d98', secondary:'#a50044', hairColor:'#1a0f08',
     hairStyle:'frymar', jerseyStyle:'stripes_v', number:11,
-    speed:6.8, jump:15.0, kickPower:16.5,
+    speed:7.4, jump:16.8, kickPower:18.5,
     statSpeed:5, statJump:4, statKick:5,
     blurb:"Prime Barca magic in every touch. Nutmegs, tricks, and goals — the full package."
   },
@@ -791,6 +818,86 @@ const CHARACTERS = [
     blurb:"Sees the field like a god. Direct Drive instinct in every kernel."
   }
 ];
+
+/* ---- Ratings, positions, icons, manager-only players ---- */
+const POS0={pessi:'F',potadaldo:'F',mbafry:'F',yamtato:'F',haataland:'F',fryingham:'M',frymar:'F',spudoshi:'F',mashiro:'M',ispudgi:'M'};
+const RAT0={pessi:85,yamtato:88,frymar:96,mbafry:95,haataland:95,fryingham:92,potadaldo:83};
+CHARACTERS.forEach(c=>{ c.pos=POS0[c.id]; if(RAT0[c.id]) c.rating=RAT0[c.id]; });
+const KIT={liv:['#c8102e','#ffffff'],mad:['#f8f8f8','#c9a227'],mci:['#6cabdd','#1c2c5b'],ars:['#ef0107','#ffffff'],bay:['#dc052d','#ffffff'],bar:['#a50044','#004d98'],psg:['#004170','#da291c'],int:['#0068a8','#111111'],che:['#034694','#ffffff'],mun:['#da291c','#ffffff'],atm:['#cb3524','#272e61'],nap:['#12a0d7','#ffffff'],mil:['#fb090b','#111111'],lev:['#e32221','#111111'],tot:['#132257','#ffffff'],eng:['#f0f0f0','#0a2a66']};
+const SKIN={yukon:['#f6e08a','#e0c060','#b8963a'],red:['#e58a8a','#c8505a','#993040'],purple:['#b48ad0','#8a5aa8','#603a80'],sweet:['#f5a35c','#e07a30','#b0561a'],white:['#f4ecd8','#e0d2b0','#b8a67c'],dark:['#c9a27a','#a0754c','#6f4a2c']};
+const JR={p:'plain',s:'stripes_v',c:'cross'};
+function mk(id,name,nick,pos,r,kit,j,hair,hc,skin,acc,num,extra){
+  const k=Array.isArray(kit)?kit:KIT[kit];
+  const c={id,name,nick:'"'+nick+'"',pos,rating:r,primary:k[0],secondary:k[1],hairColor:hc,hairStyle:hair,jerseyStyle:JR[j],number:+num,skin:SKIN[skin],acc:acc==='none'?null:acc};
+  const st=Math.max(1,Math.min(5,Math.round((r-55)/10)));
+  c.speed=Math.min(9,4.2+(r-60)*0.06); c.jump=Math.min(21,12+(r-60)*0.12); c.kickPower=Math.min(22,12.5+(r-60)*0.13);
+  c.statSpeed=Math.min(5,st+(pos==='M'?1:0)); c.statJump=Math.min(5,st+(pos==='D'?1:0)); c.statKick=Math.min(5,st+(pos==='F'?1:0));
+  c.blurb=({F:'Forward',M:'Midfielder',D:'Defender'}[pos])+' rated '+r+'. '+nick+'.';
+  return Object.assign(c,extra||{});
+}
+/* Icons + prime versions: playable everywhere */
+CHARACTERS.push(
+  mk('potadinho','Potadinho','The Smiling Spud','M',116,['#f8d000','#009c3b'],'p','long','#1a0f08','dark','band',10,{icon:true,blurb:'Pure joy in a jersey. Nutmegs you, then grins about it.'}),
+  mk('spele','Spelé','O Rei Spudo','F',122,['#f8d000','#009c3b'],'c','crop','#1a0f08','dark','none',10,{icon:true,blurb:'The King. Three World Cups and never once peeled.'}),
+  mk('zitater','Zinedine Zi-Tuber','The Maestro','M',114,['#fdfdfd','#1a3d8f'],'s','bald','#111111','russet','beard',5,{icon:true,blurb:'Elegance, spin moves, and a very stern headbutt.'}),
+  mk('maldimash','Paolo Maldimash','Il Capitano Mash','D',115,'mil','s','fade','#2a1a0a','russet','none',3,{icon:true,blurb:'Twenty-five years, one club, zero tackles missed. The wall of Milan.'}),
+  mk('primepessi','Prime Pessi','Barca Era Spud','F',130,'bar','s','tuft','#5a3a1e','russet','freckles',10,{icon:true,blurb:'Peak Barcelona. Untouchable. Physics filed a complaint.'}),
+  mk('primepotadaldo','Prime Potadaldo','Madrid Era Yukon','F',129,'mad','p','quiff','#3a2a16','yukon','earring',7,{icon:true,blurb:'Peak Madrid. Leaps like a launched tater tot.'})
+);
+/* Manager-mode-only players: name|nickname|pos|rating|kit|jersey|hair|hairColor|skin|accessory|number */
+const MG=`Mo Spudah|The Egyptian Fry|F|89|liv|p|curls|#1a0f08|dark|beard|11
+Harry Kanefry|Golden Boot Tot|F|88|eng|p|crop|#b98a4a|white|none|9
+Vinispud Jr|Samba Wedge|F|90|mad|c|afro|#111111|dark|band|7
+Rodrygo Roasto|Slow Roast|F|84|mad|p|mohawk|#222222|sweet|none|11
+Robert Lewandowspud|Lewa-Lewa|F|82|bar|s|crop|#5a3a1e|white|freckles|9
+Antoine Griezmash|Le Petit Mash|F|82|atm|s|quiff|#c9a25a|yukon|earring|7
+Victor Osimash|Big Nose Fry|F|85|nap|p|bald|#111111|purple|eyeblack|9
+Lautaro Martuber|El Toro Tuber|F|87|int|s|fade|#2a1a0a|red|scar|10
+Julian Alvaspud|The Spider|F|84|mci|p|crop|#3a2a16|red|freckles|19
+Son Heung-mash|Sonny Spud|F|83|tot|p|fade|#111111|yukon|eyeblack|7
+Raphichipa|Chippy|F|85|bar|s|curls|#1a0f08|dark|earring|11
+Kvara-Tuber|Kvaradona|F|84|psg|p|long|#2a1a0a|sweet|beard|7
+Bukayo Sack-a|Starboy Fry|F|86|ars|c|crop|#111111|dark|none|7
+Phil Fry-den|Stockport Spud|F|86|mci|p|quiff|#e8d080|white|freckles|47
+Jamal Mash-iala|Bayern Bounce|F|87|bay|s|tuft|#3a2a16|sweet|eyeblack|10
+Florian Wirtato|Wonder Wedge|M|87|lev|p|fade|#5a3a1e|yukon|none|10
+Pedri-Pomme|Pomme de Pedri|M|95|bar|s|long|#2a1a0a|purple|none|8
+Gavi Gravy|Gravy Train|M|82|bar|s|crop|#1a0f08|red|scar|6
+Rodri Rosti|The Metronome|M|90|mci|c|crop|#2a1a0a|white|none|16
+Kevin De Broil|Slow Cooker|M|89|mci|p|quiff|#c9702a|white|freckles|17
+Luka Modrisp|Crispy Luka|M|84|mad|p|long|#c9a25a|purple|stache|10
+Toni Kroostini|Tonic Toni|M|80|mad|c|fade|#d8c090|white|none|8
+Bernardo Skin-va|Silver Skin|M|85|mci|p|crop|#111111|sweet|earring|20
+Bruno Fern-Andip|Dip Master|M|85|mun|s|bald|#111111|yukon|stache|8
+Martin Odeg-Hard|Captain Crunch|M|86|ars|p|fade|#c9a25a|white|none|8
+Declan Rice-Cake|Rice Cake|M|94|ars|p|crop|#5a3a1e|yukon|freckles|41
+Federico Valverdip|Halcon Hash|M|85|mad|p|quiff|#2a1a0a|red|eyeblack|15
+Tchoua-Mash-ni|Big Mash|M|83|mad|s|bald|#111111|dark|none|18
+Enzo Fernandough|Doughboy|M|82|che|p|curls|#3a2a16|sweet|earring|8
+Casemash-ro|The Wall|M|80|mun|p|crop|#1a0f08|purple|beard|18
+Virgil Van Dijon|Mustard Wall|D|95|liv|p|crop|#1a0f08|dark|beard|4
+Ruben Dice|Diced Dias|D|86|mci|p|fade|#2a1a0a|white|none|3
+Achraf Hakimash|Speedy Mash|D|85|psg|c|mohawk|#111111|dark|earring|2
+Trent Alexander-Chip|Trent-ato|D|85|mad|p|curls|#1a0f08|sweet|none|12
+William Salt-iba|Salty Saliba|D|94|ars|s|crop|#111111|dark|none|2
+Kim Min-Jam|Jam Session|D|82|bay|p|fade|#111111|yukon|none|3
+Joshua Kim-Mash|Kimmash|D|84|bay|c|quiff|#5a3a1e|white|stache|6
+Theo Hernan-Dip|Theo-tato|D|85|mil|s|crop|#111111|red|earring|19
+Alphonso Davy-Fries|Fastest Fry|D|82|bay|p|mohawk|#111111|dark|eyeblack|19
+Marquin-Hash|Captain Spud|D|85|psg|p|bald|#111111|sweet|stache|5
+Eder Militato|Mili-Tato|D|84|mad|p|tuft|#111111|dark|scar|3
+Antonio Rudigher|Rud-Gherkin|D|83|mad|s|cap|#111111|dark|scar|22
+Joao Can-Salo|Can-Salo-Can|D|83|mci|p|long|#111111|yukon|none|27
+Josko Gvar-Dill|Dill Pickle|D|84|mci|c|mohawk|#5a3a1e|white|beard|24
+Denzel Dumfry-ess|Fry-ess|D|78|int|s|afro|#111111|dark|band|2
+Vitinha Fritinha|Little Fry|M|95|psg|p|quiff|#1a0f08|red|none|17
+Ousmane Dembelyam|Two-Footed Yam|F|97|psg|c|crop|#111111|dark|band|10
+Nuno Mendash|Mash Machine|D|97|psg|s|fade|#111111|yukon|scar|25
+Jules Koundip|Kounde-Dip|D|94|bar|p|long|#111111|dark|earring|23`.split('\n').map(row=>{
+  const [n,nick,pos,r,kit,j,h,hc,sk,acc,num]=row.split('|');
+  return mk(n.toLowerCase().replace(/[^a-z]/g,''),n,nick,pos,+r,kit,j,h,hc,sk,acc,num);
+});
+const ALL=CHARACTERS.concat(MG);
 
 /* ============================================================
    FIELD / PHYSICS CONSTANTS
@@ -864,7 +971,7 @@ function buildTournamentOpponents(){
   );
   const boss = bossCandidates[Math.floor(Math.random() * bossCandidates.length)];
   // Rounds 1-4: all other non-player, non-boss characters, shuffled
-  const pool = CHARACTERS.filter(c => c.id !== playerChar.id && c.id !== boss.id);
+  const pool = CHARACTERS.filter(c => c.id !== playerChar.id && c.id !== boss.id && !c.icon);
   for(let i = pool.length-1; i > 0; i--){
     const j = Math.floor(Math.random()*(i+1));
     [pool[i],pool[j]] = [pool[j],pool[i]];
@@ -1018,6 +1125,12 @@ function makeCharCard(char, i, onSelect, isSelected){
     op.textContent = 'EGO STRIKERS ⚡';
     card.appendChild(op);
   }
+  if (char.icon){
+    const ic = document.createElement('div');
+    ic.className = 'bl-overpowered';
+    ic.textContent = 'ICON 👑';
+    card.appendChild(ic);
+  }
   card.appendChild(statRow('SPD', char.statSpeed));
   card.appendChild(statRow('JMP', char.statJump));
   card.appendChild(statRow('KCK', char.statKick));
@@ -1148,8 +1261,8 @@ function initTitleScreen(){
    MANAGER MODE
 ============================================================ */
 const MANAGER = {
-  budget: 3000,
-  squad: [],   // array of character IDs
+  budget: 900,   // $ millions
+  squad: [null,null,null,null,null],   // 1-3-1 slots: DEF, LM, CM, RM, ST
   cupStarted: false,
   cup: null,
 };
@@ -1172,24 +1285,29 @@ const AI_CLUBS = [
   {name:'Starchy Benfica',flag:'🇵🇹', rating:73},
 ];
 
-function charRating(char){
-  const maxS=8.5, maxJ=20, maxK=21;
-  return Math.round((char.speed/maxS + char.jump/maxJ + char.kickPower/maxK)/3*100);
-}
+const SLOTS=[['DEF','D'],['LM','M'],['CM','M'],['RM','M'],['ST','F']];
+const POSN={D:'DEF',M:'MID',F:'FWD'};
+const COMPS={
+  wc:{name:'World Cup',icon:'🏆',prizes:[20,50,100,180,300]},
+  cl:{name:'Champions Chip League',icon:'⭐',prizes:[30,70,140,240,400]},
+  liga:{name:'La Liga Papa',icon:'🥇',prizes:[300,200,140,100,60,45,35,25]}
+};
+const filled=()=>MANAGER.squad.filter(Boolean);
+const charById=id=>ALL.find(c=>c.id===id);
+const el=(t,c,x)=>{const e=document.createElement(t); if(c) e.className=c; if(x!==undefined) e.textContent=x; return e;};
 
-function playerPrice(char){
-  const r = charRating(char);
-  return char.egoStrike ? Math.round(r*14) : Math.round(r*7);
+function charRating(c){
+  if (c.rating) return c.rating;
+  return Math.round((c.speed/8.5 + c.jump/20 + c.kickPower/21)/3*100);
 }
-
+function slotRating(c,i){ return charRating(c) + (c.pos===SLOTS[i][1] ? 3 : 0); }
+function playerPrice(c){ return Math.round(Math.pow(charRating(c)/100,5)*300*(c.egoStrike?1.3:1)); }
 function teamRating(){
-  if (!MANAGER.squad.length) return 0;
-  const chars = MANAGER.squad.map(id=>CHARACTERS.find(c=>c.id===id));
-  return Math.round(chars.reduce((s,c)=>s+charRating(c),0)/chars.length);
+  const r = MANAGER.squad.map((id,i)=>id?slotRating(charById(id),i):null).filter(x=>x!==null);
+  return r.length ? Math.round(r.reduce((a,b)=>a+b,0)/r.length) : 0;
 }
-
 function updateManagerBudgetDisplay(){
-  document.getElementById('mgBudget').textContent = MANAGER.budget;
+  document.getElementById('mgBudget').textContent = '$'+MANAGER.budget+'M';
 }
 
 function switchTab(name){
@@ -1201,94 +1319,108 @@ function switchTab(name){
   if (name==='cup') renderCupTab();
 }
 
+let selSlot=null;
+function futCard(c,i){
+  const card=el('div','fut'+(c?(c.icon?' icon':c.egoStrike?' ego':''):' empty')+(selSlot===i?' sel':''));
+  if(!c){
+    card.appendChild(el('div','slot-lbl',SLOTS[i][0]));
+    const p=el('div','',selSlot===null?'+':'⇄'); p.style.fontSize='30px'; card.appendChild(p);
+    return card;
+  }
+  card.appendChild(el('div','fr',slotRating(c,i)));
+  card.appendChild(el('div','fp',POSN[c.pos]));
+  if (c.pos===SLOTS[i][1]) card.appendChild(el('div','plus3','+3'));
+  card.appendChild(miniPotatoCanvas(c));
+  card.appendChild(el('div','fslot',SLOTS[i][0]+(i===2?' ★':'')));
+  card.appendChild(el('div','fn',c.name));
+  card.appendChild(el('div','fs','SPD '+c.statSpeed+' · JMP '+c.statJump+' · KCK '+c.statKick));
+  return card;
+}
+
 function renderSquad(){
   const grid = document.getElementById('mgSquadGrid');
-  grid.innerHTML='';
-  document.getElementById('mgSquadCount').textContent = MANAGER.squad.length;
-  document.getElementById('mgTeamRating').textContent = MANAGER.squad.length ? teamRating() : '-';
-  document.getElementById('mgSquadFull').classList.toggle('hidden', MANAGER.squad.length<5);
-  if (!MANAGER.squad.length){
-    grid.innerHTML='<div style="opacity:0.6;font-size:13px;grid-column:1/-1">No players yet — visit the Market!</div>';
-    return;
-  }
-  MANAGER.squad.forEach(id=>{
-    const char = CHARACTERS.find(c=>c.id===id);
-    const card = document.createElement('div');
-    card.className = 'mg-player-card'+(char.egoStrike?' ego':'');
-    const cv = miniPotatoCanvas(char);
-    cv.style.maxWidth='80px';
-    card.appendChild(cv);
-    const nm = document.createElement('div'); nm.className='mg-player-name'; nm.textContent=char.name; card.appendChild(nm);
-    const rt = document.createElement('div'); rt.className='mg-player-rating'; rt.textContent='⭐ '+charRating(char); card.appendChild(rt);
-    const sellPrice = Math.round(playerPrice(char)*0.6);
-    const pp = document.createElement('div'); pp.className='mg-player-price'; pp.textContent='Sell: 🪙'+sellPrice; card.appendChild(pp);
-    const btn = document.createElement('button'); btn.className='mg-player-btn sell'; btn.textContent='SELL';
-    btn.addEventListener('click',()=>{
-      MANAGER.squad = MANAGER.squad.filter(x=>x!==id);
-      MANAGER.budget += sellPrice;
-      updateManagerBudgetDisplay();
-      renderSquad(); renderMarket();
+  grid.className='mg-pitch'; grid.innerHTML='';
+  const n = filled().length;
+  document.getElementById('mgSquadCount').textContent = n;
+  document.getElementById('mgTeamRating').textContent = n ? teamRating() : '-';
+  document.getElementById('mgSquadFull').classList.toggle('hidden', n<5);
+  [[4],[1,2,3],[0]].forEach(row=>{           // ST on top, mids, DEF at the back
+    const r = el('div','pitch-row');
+    row.forEach(i=>{
+      const id = MANAGER.squad[i], c = id ? charById(id) : null;
+      const w = el('div','pitch-slot');
+      const card = futCard(c,i);
+      card.addEventListener('click',()=>{
+        if (selSlot===null){
+          if (c) selSlot=i;
+          else { document.getElementById('mgPosFilter').value=SLOTS[i][1]; switchTab('market'); return; }
+        } else if (selSlot===i) selSlot=null;
+        else { [MANAGER.squad[selSlot],MANAGER.squad[i]]=[MANAGER.squad[i],MANAGER.squad[selSlot]]; selSlot=null; }
+        renderSquad();
+      });
+      w.appendChild(card);
+      if (c){
+        const sp = Math.round(playerPrice(c)*0.6);
+        const sell = el('button','mg-player-btn sell','SELL $'+sp+'M');
+        sell.style.cssText='width:104px;margin-top:5px;font-size:11px;';
+        sell.addEventListener('click',()=>{ MANAGER.squad[i]=null; MANAGER.budget+=sp; selSlot=null; updateManagerBudgetDisplay(); renderSquad(); });
+        w.appendChild(sell);
+      }
+      r.appendChild(w);
     });
-    card.appendChild(btn);
-    grid.appendChild(card);
+    grid.appendChild(r);
   });
 }
 
 function renderMarket(){
-  const regular = CHARACTERS.filter(c=>!c.egoStrike);
-  const ego = CHARACTERS.filter(c=>c.egoStrike);
-  buildMarketGrid(document.getElementById('mgMarketGrid'), regular);
-  buildMarketGrid(document.getElementById('mgEgoMarketGrid'), ego);
+  const f = document.getElementById('mgPosFilter').value;
+  const list = ALL.filter(c=>!f||c.pos===f).sort((a,b)=>charRating(b)-charRating(a));
+  buildMarketGrid(document.getElementById('mgMarketGrid'), list.filter(c=>!c.egoStrike&&!c.icon));
+  buildMarketGrid(document.getElementById('mgEgoMarketGrid'), list.filter(c=>c.egoStrike));
+  buildMarketGrid(document.getElementById('mgIconMarketGrid'), list.filter(c=>c.icon));
 }
 
-function buildMarketGrid(el, chars){
-  el.innerHTML='';
-  chars.forEach(char=>{
-    const owned = MANAGER.squad.includes(char.id);
-    const price = playerPrice(char);
-    const card = document.createElement('div');
-    card.className = 'mg-player-card'+(char.egoStrike?' ego':'');
-    const cv = miniPotatoCanvas(char);
-    cv.style.maxWidth='80px';
-    card.appendChild(cv);
-    const nm = document.createElement('div'); nm.className='mg-player-name'; nm.textContent=char.name; card.appendChild(nm);
-    const rt = document.createElement('div'); rt.className='mg-player-rating'; rt.textContent='⭐ '+charRating(char); card.appendChild(rt);
-    const pp = document.createElement('div'); pp.className='mg-player-price'; pp.textContent='🪙 '+price; card.appendChild(pp);
-    const btn = document.createElement('button');
+function buildMarketGrid(elm, chars){
+  elm.innerHTML='';
+  chars.forEach(c=>{
+    const owned = MANAGER.squad.includes(c.id);
+    const price = playerPrice(c);
+    const card = el('div','mg-player-card'+(c.egoStrike?' ego':''));
+    const cv = miniPotatoCanvas(c); cv.style.maxWidth='80px'; card.appendChild(cv);
+    card.appendChild(el('div','mg-player-name',c.name));
+    card.appendChild(el('div','mg-player-rating',POSN[c.pos]+' ⭐ '+charRating(c)));
+    card.appendChild(el('div','mg-player-price','$'+price+'M'));
+    const btn = el('button');
     if (owned){ btn.className='mg-player-btn owned'; btn.textContent='IN SQUAD'; btn.disabled=true; }
     else {
       btn.className='mg-player-btn buy'; btn.textContent='BUY';
-      btn.disabled = MANAGER.budget < price || MANAGER.squad.length >= 5;
+      btn.disabled = MANAGER.budget < price || filled().length >= 5;
       btn.addEventListener('click',()=>{
-        if (MANAGER.budget < price || MANAGER.squad.length >= 5) return;
-        MANAGER.budget -= price;
-        MANAGER.squad.push(char.id);
-        updateManagerBudgetDisplay();
-        renderMarket(); renderSquad();
+        if (MANAGER.budget < price || filled().length >= 5) return;
+        let i = MANAGER.squad.findIndex((x,k)=>!x && SLOTS[k][1]===c.pos);
+        if (i<0) i = MANAGER.squad.indexOf(null);
+        MANAGER.budget -= price; MANAGER.squad[i] = c.id;
+        updateManagerBudgetDisplay(); renderMarket();
       });
     }
     card.appendChild(btn);
-    el.appendChild(card);
+    elm.appendChild(card);
   });
 }
 
-/* ---- World Cup ---- */
-function buildWorldCup(){
-  // 16 teams: user + 15 AI clubs
-  const userTeam = {name:'My Spuds', flag:'🥔', rating:teamRating(), isUser:true};
-  const allTeams = [userTeam, ...AI_CLUBS.map(c=>({...c}))];
-  // shuffle non-user
-  const shuffled = allTeams.slice(1).sort(()=>Math.random()-0.5);
-  const teams = [allTeams[0], ...shuffled];
-  // 4 groups of 4
-  const groups = [[],[],[],[]];
-  teams.forEach((t,i)=>groups[i%4].push({...t, pts:0, gf:0, ga:0}));
-  MANAGER.cup = {
-    phase:'group', groups,
-    groupResults:[], // {groupIdx, team1, team2, s1, s2}
-    matchQueue:[], currentMatchIdx:0,
-    knockout:null
-  };
+/* ---- Competitions (World Cup / Champions Chip League / La Liga Papa) ---- */
+const cmpT=(a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga)||b.gf-a.gf;
+function buildWorldCup(kind){
+  kind = kind||'wc';
+  const cfg = COMPS[kind], isL = kind==='liga';
+  const user = {name:'My Spuds', flag:'🥔', rating:teamRating(), isUser:true};
+  const rg = {wc:[100,120], cl:[90,110]}[kind];
+  const ai = AI_CLUBS.map(c=>({...c, rating: rg ? Math.round(rg[0]+(c.rating-70)/18*(rg[1]-rg[0])) : c.rating})).sort(()=>Math.random()-0.5);
+  const teams = [user, ...ai.slice(0, isL?7:15)];
+  const groups = isL ? [[]] : [[],[],[],[]];
+  teams.forEach((t,i)=>groups[i%groups.length].push({...t, pts:0, gf:0, ga:0}));
+  MANAGER.cup = {comp:kind, name:cfg.name, icon:cfg.icon, prizes:cfg.prizes, phase:'group', groups,
+    groupResults:[], matchQueue:[], currentMatchIdx:0, knockout:null};
   buildGroupMatches();
 }
 
@@ -1296,15 +1428,31 @@ function buildGroupMatches(){
   const cup = MANAGER.cup;
   cup.matchQueue=[];
   cup.currentMatchIdx=0;
+  if (cup.comp==='liga'){
+    const n = cup.groups[0].length, idx=[...Array(n).keys()];
+    for(let r=0;r<n-1;r++){
+      for(let i=0;i<n/2;i++) cup.matchQueue.push({gi:0, a:idx[i], b:idx[n-1-i], played:false, s1:null, s2:null});
+      idx.splice(1,0,idx.pop());
+    }
+    return;
+  }
   cup.groups.forEach((grp, gi)=>{
     for(let a=0;a<grp.length;a++) for(let b=a+1;b<grp.length;b++)
       cup.matchQueue.push({gi, a, b, played:false, s1:null, s2:null});
   });
 }
 
+function finishCup(result, prizeIdx){
+  const c = MANAGER.cup;
+  c.phase='finished'; c.result=result;
+  c.prizeAmt = c.prizes[Math.min(prizeIdx, c.prizes.length-1)];
+  MANAGER.budget += c.prizeAmt;
+  updateManagerBudgetDisplay();
+}
+
 function simulateScore(r1, r2){
   const avgGoals = 2.5;
-  const prob1 = r1/(r1+r2);
+  const prob1 = Math.pow(r1,6)/(Math.pow(r1,6)+Math.pow(r2,6));
   let g1=0,g2=0;
   for(let i=0;i<5;i++){
     if(Math.random()<prob1*(0.6+Math.random()*0.8)) g1++;
@@ -1330,12 +1478,9 @@ function getGroupQualifiers(){
 }
 
 function renderCupTab(){
-  if (!MANAGER.squad.length){
-    document.getElementById('mgStartCupBtn').disabled = true;
-    document.getElementById('mgGroupsPreview').innerHTML='<div style="opacity:0.6;font-size:13px;">Build a squad first in the Market!</div>';
-  } else {
-    document.getElementById('mgStartCupBtn').disabled = false;
-  }
+  const ok = filled().length>0;
+  ['mgStartCupBtn','mgStartCLBtn','mgStartLigaBtn'].forEach(id=>{ document.getElementById(id).disabled=!ok; });
+  document.getElementById('mgGroupsPreview').innerHTML = ok ? '' : '<div style="opacity:0.6;font-size:13px;">Build a squad first in the Market!</div>';
   if (!MANAGER.cup){ 
     document.getElementById('cupPreLaunch').classList.remove('hidden');
     document.getElementById('cupInProgress').classList.add('hidden');
@@ -1356,18 +1501,18 @@ function renderCupPhase(){
 }
 
 function renderGroupPhase(content){
-  document.getElementById('cupStageLabel').textContent='📋 GROUP STAGE';
+  document.getElementById('cupStageLabel').textContent=MANAGER.cup.icon+' '+MANAGER.cup.name.toUpperCase()+(MANAGER.cup.comp==='liga'?' — SEASON':' — GROUP STAGE');
   const cup = MANAGER.cup;
   // Group standings
   const standingsDiv = document.createElement('div');
   standingsDiv.className='cup-groups';
   cup.groups.forEach((grp,gi)=>{
     const gEl = document.createElement('div'); gEl.className='cup-group';
-    const title = document.createElement('h4'); title.textContent='GROUP '+'ABCD'[gi]; gEl.appendChild(title);
-    const sorted = [...grp].sort((a,b)=>b.pts-a.pts);
+    const title = document.createElement('h4'); title.textContent=cup.comp==='liga'?'TABLE':'GROUP '+'ABCD'[gi]; gEl.appendChild(title);
+    const sorted = [...grp].sort(cmpT);
     sorted.forEach((t,rank)=>{
       const row=document.createElement('div'); row.className='cup-group-team'+(t.isUser?' user':'');
-      row.innerHTML=t.flag+' '+t.name+'<span class="pts">'+t.pts+'</span>';
+      row.innerHTML=t.flag+' '+t.name+' <small style="opacity:0.75">⭐'+t.rating+'</small><span class="pts">'+t.pts+'</span>';
       gEl.appendChild(row);
     });
     standingsDiv.appendChild(gEl);
@@ -1378,14 +1523,14 @@ function renderGroupPhase(content){
   const pending = cup.matchQueue.filter(m=>!m.played);
   if(!pending.length){
     // All played — advance to knockout
-    const btn=document.createElement('button'); btn.className='start-btn'; btn.textContent='⚡ ADVANCE TO KNOCKOUT';
+    const btn=document.createElement('button'); btn.className='start-btn'; btn.textContent=cup.comp==='liga'?'🏁 FINISH SEASON':'⚡ ADVANCE TO KNOCKOUT';
     btn.addEventListener('click',()=>{
-      const qualifiers = getGroupQualifiers().flat();
-      if(!qualifiers.find(t=>t.isUser)){
-        content.innerHTML='<div class="cup-eliminated-msg">💀 Your team did not qualify from the group stage!</div>';
-        content.innerHTML+='<button class="secondary-btn" onclick="MANAGER.cup=null;renderCupTab()">Try Again</button>';
-        return;
+      if(cup.comp==='liga'){
+        cup.rank=[...cup.groups[0]].sort(cmpT).findIndex(t=>t.isUser);
+        finishCup('liga', cup.rank); renderCupPhase(); return;
       }
+      const qualifiers = getGroupQualifiers().flat();
+      if(!qualifiers.find(t=>t.isUser)){ finishCup('eliminated',0); renderCupPhase(); return; }
       startKnockout(qualifiers);
       renderCupPhase();
     });
@@ -1402,7 +1547,7 @@ function renderGroupPhase(content){
     const t1=grp[match.a], t2=grp[match.b];
     const isUser = t1.isUser||t2.isUser;
     const mDiv=document.createElement('div'); mDiv.className='cup-match'+(isUser?' user-match':'');
-    mDiv.innerHTML='<div class="match-teams">'+t1.flag+' '+t1.name+' <span style="color:#aaa">vs</span> '+t2.flag+' '+t2.name+'</div>';
+    mDiv.innerHTML='<div class="match-teams">'+t1.flag+' '+t1.name+' <b style="color:var(--gold)">⭐'+t1.rating+'</b> <span style="color:#aaa">vs</span> '+t2.flag+' '+t2.name+' <b style="color:var(--gold)">⭐'+t2.rating+'</b></div>';
     const btnDiv=document.createElement('div'); btnDiv.className='cup-match-btns';
     const simBtn=document.createElement('button'); simBtn.className='secondary-btn'; simBtn.textContent='⚡ Simulate';
     simBtn.addEventListener('click',()=>{
@@ -1467,7 +1612,7 @@ function renderKnockout(content){
   pending.forEach(m=>{
     const isUser=m.t1.isUser||m.t2.isUser;
     const div=document.createElement('div'); div.className='cup-match'+(isUser?' user-match':'');
-    div.innerHTML='<div class="match-teams">'+m.t1.flag+' '+m.t1.name+' <span style="color:#aaa">vs</span> '+m.t2.name+' '+m.t2.flag+'</div>';
+    div.innerHTML='<div class="match-teams">'+m.t1.flag+' '+m.t1.name+' <b style="color:var(--gold)">⭐'+m.t1.rating+'</b> <span style="color:#aaa">vs</span> '+m.t2.name+' <b style="color:var(--gold)">⭐'+m.t2.rating+'</b> '+m.t2.flag+'</div>';
     const btnDiv=document.createElement('div'); btnDiv.className='cup-match-btns';
     const simBtn=document.createElement('button'); simBtn.className='secondary-btn'; simBtn.textContent='⚡ Simulate';
     simBtn.addEventListener('click',()=>{
@@ -1491,7 +1636,7 @@ function checkKnockoutRound(){
   if(ko.matches.some(m=>!m.played)) return;
   const winners=ko.matches.map(m=>m.winner);
   if(!winners.find(t=>t.isUser) && ko.round!=='final'){
-    MANAGER.cup.phase='finished'; MANAGER.cup.result='eliminated'; return;
+    finishCup('eliminated', ko.round==='quarter'?1:2); return;
   }
   if(ko.round==='quarter'){
     ko.round='semi';
@@ -1504,23 +1649,20 @@ function checkKnockoutRound(){
     ko.matches=[{t1:winners[0],t2:winners[1],s1:null,s2:null,played:false}];
   } else if(ko.round==='final'){
     const champ=winners[0];
-    MANAGER.cup.phase='finished';
-    MANAGER.cup.result= champ.isUser ? 'won' : 'lost';
     MANAGER.cup.champion=champ;
+    finishCup(champ.isUser?'won':'lost', champ.isUser?4:3);
   }
 }
 
 function renderCupFinished(content){
-  document.getElementById('cupStageLabel').textContent='🏆 TOURNAMENT OVER';
-  const res=MANAGER.cup.result;
-  if(res==='won'){
-    content.innerHTML='<div style="text-align:center;padding:20px;"><div style="font-size:60px">🏆</div><div class="mg-stage-lbl" style="color:var(--gold)">WORLD CUP CHAMPIONS!</div><div style="opacity:0.8;font-size:14px;margin:8px 0">Your Spuds conquered all 16 teams!</div></div>';
-  } else if(res==='eliminated'){
-    content.innerHTML='<div style="text-align:center;padding:20px;"><div style="font-size:50px">💀</div><div class="mg-stage-lbl" style="color:#f88">ELIMINATED!</div><div style="opacity:0.8;font-size:13px;margin:6px 0">Better squad next time.</div></div>';
-  } else {
-    content.innerHTML='<div style="text-align:center;padding:20px;"><div style="font-size:50px">🥈</div><div class="mg-stage-lbl">SO CLOSE!</div><div style="opacity:0.8;font-size:13px;margin:6px 0">'+MANAGER.cup.champion.name+' won the Cup. Try again!</div></div>';
-  }
-  const btn=document.createElement('button'); btn.className='start-btn'; btn.style.marginTop='14px'; btn.textContent='🔄 NEW TOURNAMENT';
+  const c=MANAGER.cup, res=c.result;
+  document.getElementById('cupStageLabel').textContent=c.icon+' '+c.name.toUpperCase()+' — OVER';
+  const h = res==='won' ? ['🏆',c.name.toUpperCase()+' CHAMPIONS!','var(--gold)']
+    : res==='lost' ? ['🥈','RUNNERS-UP — '+(c.champion?c.champion.name:'')+' won','']
+    : res==='liga' ? [c.rank<1?'🏆':'📊', c.rank<1?'LEAGUE CHAMPIONS!':'FINISHED #'+(c.rank+1)+' OF '+c.groups[0].length,'var(--gold)']
+    : ['💀','ELIMINATED','#f88'];
+  content.innerHTML='<div style="text-align:center;padding:20px;"><div style="font-size:54px">'+h[0]+'</div><div class="mg-stage-lbl" style="color:'+h[2]+'">'+h[1]+'</div><div style="font-size:17px;margin:12px 0;color:var(--gold)">💰 Prize money: $'+c.prizeAmt+'M</div></div>';
+  const btn=el('button','start-btn','🔄 BACK TO COMPETITIONS'); btn.style.marginTop='14px';
   btn.addEventListener('click',()=>{ MANAGER.cup=null; renderCupTab(); });
   content.appendChild(btn);
 }
@@ -1528,25 +1670,59 @@ function renderCupFinished(content){
 let cupMatchRef=null;
 function launchCupMatch(matchObj, t1, t2){
   cupMatchRef={matchObj,t1,t2};
-  // pick a character from squad for player, random for AI
-  const squadChars=MANAGER.squad.map(id=>CHARACTERS.find(c=>c.id===id));
-  playerChar=squadChars[Math.floor(Math.random()*squadChars.length)];
-  // AI picks from all characters weighted by opposing team rating
-  const aiOptions=CHARACTERS.filter(c=>!MANAGER.squad.includes(c.id));
-  aiChar=aiOptions.length?aiOptions[Math.floor(Math.random()*aiOptions.length)]:CHARACTERS[1];
+  // you control the centre mid (CM); +3% stats if he's in his preferred position
+  const ci = MANAGER.squad[2] ? 2 : MANAGER.squad.findIndex(Boolean);
+  const base = charById(MANAGER.squad[ci]);
+  const b = base.pos===SLOTS[ci][1] ? 1.03 : 1;
+  playerChar = Object.assign({}, base, {speed:base.speed*b, jump:base.jump*b, kickPower:base.kickPower*b});
+  const opp = t1.isUser ? t2 : t1;
+  const cand = ALL.filter(c=>!MANAGER.squad.includes(c.id))
+    .sort((a,b)=>Math.abs(charRating(a)-opp.rating)-Math.abs(charRating(b)-opp.rating)).slice(0,6);
+  aiChar = cand[Math.floor(Math.random()*cand.length)];
   gameMode='quickmatch';
+  const me = t1.isUser ? t1 : t2;
+  document.getElementById('cupVsBar').textContent = '🥔 '+me.name+' ⭐'+me.rating+'   vs   '+opp.flag+' '+opp.name+' ⭐'+opp.rating;
   document.getElementById('managerScreen').classList.add('hidden');
   document.getElementById('gameScreen').classList.remove('hidden');
   document.getElementById('namePlayer').textContent=playerChar.name.toUpperCase();
   document.getElementById('nameAI').textContent=aiChar.name.toUpperCase();
   document.getElementById('tournamentBar').classList.add('hidden');
-  // Store original endMatch to restore, patch for cup
-  window._cupMatchActive=true;
   startMatch();
+}
+
+function endCupMatch(over){
+  const {matchObj:m,t1,t2}=cupMatchRef; cupMatchRef=null;
+  const u1=!!t1.isUser, s1=u1?score.player:score.ai, s2=u1?score.ai:score.player;
+  let note='';
+  if (m.gi!==undefined){ applyMatchResult(m,s1,s2); }
+  else {
+    m.s1=s1; m.s2=s2; m.played=true;
+    if (s1===s2){
+      const p1=Math.pow(t1.rating,6), p2=Math.pow(t2.rating,6);
+      m.winner = Math.random()<p1/(p1+p2) ? t1 : t2;
+      note='Level after 30s — '+m.winner.name+' win on penalties!';
+    } else m.winner = s1>s2 ? t1 : t2;
+    checkKnockoutRound();
+  }
+  const c=MANAGER.cup, won=score.player>score.ai, draw=score.player===score.ai;
+  over.innerHTML='<h2>'+(won?'YOU WIN! 🏆':draw?"IT'S A DRAW":'YOU LOSE 💀')+'</h2>'+
+    '<div class="finalScore">'+score.player+' &nbsp;-&nbsp; '+score.ai+'</div>'+
+    (note?'<div style="opacity:0.85;font-size:14px;margin:6px 0;">'+note+'</div>':'')+
+    (c.phase==='finished'?'<div style="color:var(--gold);font-size:16px;margin:8px 0;">💰 Prize money: $'+c.prizeAmt+'M</div>':'')+
+    '<div class="over-btns"><button class="start-btn" id="backMgBtn">BACK TO MANAGER</button></div>';
+  over.classList.remove('hidden');
+  document.getElementById('backMgBtn').addEventListener('click',()=>{
+    over.classList.add('hidden');
+    document.getElementById('gameScreen').classList.add('hidden');
+    document.getElementById('managerScreen').classList.remove('hidden');
+    updateManagerBudgetDisplay(); switchTab('cup');
+  });
 }
 
 function initManagerMode(){
   updateManagerBudgetDisplay();
+  if (initManagerMode.done){ switchTab('squad'); return; }
+  initManagerMode.done = true;
   document.querySelectorAll('.mg-tab').forEach(t=>{
     t.addEventListener('click',()=>switchTab(t.dataset.tab));
   });
@@ -1555,10 +1731,10 @@ function initManagerMode(){
     document.getElementById('titleScreen').classList.remove('hidden');
     window.scrollTo(0,0);
   });
-  document.getElementById('mgStartCupBtn').addEventListener('click',()=>{
-    buildWorldCup();
-    renderCupTab();
+  [['mgStartCupBtn','wc'],['mgStartCLBtn','cl'],['mgStartLigaBtn','liga']].forEach(([id,k])=>{
+    document.getElementById(id).addEventListener('click',()=>{ buildWorldCup(k); renderCupTab(); });
   });
+  document.getElementById('mgPosFilter').addEventListener('change',renderMarket);
   switchTab('squad');
 }
 
@@ -1710,6 +1886,33 @@ function potatoPath(r){
   this.closePath();
 }
 
+function hairNew(s,g,c,r,f){
+  const T=Math.PI*2;
+  g.fillStyle=c.hairColor;
+  if(s==='afro'){ g.beginPath(); g.arc(0,r*0.1,r*0.9,Math.PI,T); g.fill(); }
+  else if(s==='mohawk'){ g.beginPath(); g.moveTo(-r*0.16,r*0.12); g.quadraticCurveTo(-r*0.12,-r*0.75,0,-r*0.8); g.quadraticCurveTo(r*0.12,-r*0.75,r*0.16,r*0.12); g.fill(); }
+  else if(s==='bun'){ g.beginPath(); g.ellipse(0,r*0.12,r*0.7,r*0.3,0,Math.PI,T); g.fill(); g.beginPath(); g.arc(0,-r*0.3,r*0.24,0,T); g.fill(); }
+  else if(s==='long'){ g.beginPath(); g.ellipse(0,r*0.12,r*0.78,r*0.34,0,Math.PI,T); g.fill(); g.fillRect(-r*0.98,r*0.05,r*0.22,r*0.95); g.fillRect(r*0.76,r*0.05,r*0.22,r*0.95); }
+  else if(s==='crop'){ g.beginPath(); g.ellipse(0,r*0.12,r*0.74,r*0.3,0,Math.PI,T); g.fill(); }
+  else if(s==='cap'){ g.fillStyle=c.primary; g.beginPath(); g.ellipse(0,r*0.15,r*0.85,r*0.55,0,Math.PI,T); g.fill(); g.fillStyle=c.secondary; g.fillRect(f>0?r*0.1:-r*0.95,r*0.12,r*0.85,r*0.1); }
+  else if(s==='bald'){ g.fillStyle='rgba(255,255,255,0.35)'; g.beginPath(); g.ellipse(-r*0.25,-r*0.2,r*0.18,r*0.08,-0.5,0,T); g.fill(); }
+  else return false;
+  return true;
+}
+
+function drawAcc(g,c,fx,r){
+  const a=c.acc, T=Math.PI*2, hc=c.hairColor;
+  g.save();
+  if(a==='beard'){ g.fillStyle=hc; g.beginPath(); g.moveTo(fx-r*0.58,r*0.3); g.quadraticCurveTo(fx-r*0.5,r*0.62,fx,r*0.62); g.quadraticCurveTo(fx+r*0.5,r*0.62,fx+r*0.58,r*0.3); g.quadraticCurveTo(fx,r*0.46,fx-r*0.58,r*0.3); g.fill(); }
+  else if(a==='stache'){ g.fillStyle=hc; g.beginPath(); g.ellipse(fx,r*0.14,r*0.26,r*0.06,0,0,T); g.fill(); }
+  else if(a==='band'){ g.fillStyle=c.secondary; g.fillRect(-r*0.92,-r*0.68,r*1.84,r*0.15); g.fillStyle=c.primary; g.fillRect(-r*0.92,-r*0.68,r*0.5,r*0.15); }
+  else if(a==='eyeblack'){ g.fillStyle='rgba(20,20,20,0.8)'; [-1,1].forEach(s=>g.fillRect(fx+s*r*0.32-r*0.13,r*0.17,r*0.26,r*0.05)); }
+  else if(a==='earring'){ g.fillStyle='#ffd700'; g.beginPath(); g.arc(-r*0.88,r*0.16,r*0.07,0,T); g.fill(); }
+  else if(a==='freckles'){ g.fillStyle='rgba(110,60,25,0.7)'; [-1,1].forEach(s=>[[0.5,0.15],[0.42,0.28],[0.58,0.28]].forEach(p=>{ g.beginPath(); g.arc(fx+s*r*p[0],r*p[1],r*0.03,0,T); g.fill(); })); }
+  else if(a==='scar'){ g.strokeStyle='rgba(150,50,50,0.85)'; g.lineWidth=r*0.05; g.lineCap='round'; g.beginPath(); g.moveTo(fx+r*0.5,-r*0.2); g.lineTo(fx+r*0.62,r*0.15); g.stroke(); }
+  g.restore();
+}
+
 function drawPotatoCharacter(g, char, cx, cy, facing, kickPhase, isKicking, walkPhase, r){
   r = r || HEAD_R;
   g.save();
@@ -1717,9 +1920,10 @@ function drawPotatoCharacter(g, char, cx, cy, facing, kickPhase, isKicking, walk
 
   // body shading gradient
   const grad = g.createRadialGradient(-r*0.3,-r*0.4,r*0.2, 0,0, r*1.3);
-  grad.addColorStop(0, '#f2c98a');
-  grad.addColorStop(0.55, '#dba463');
-  grad.addColorStop(1, '#b97f3f');
+  const sk = char.skin || ['#f2c98a','#dba463','#b97f3f'];
+  grad.addColorStop(0, sk[0]);
+  grad.addColorStop(0.55, sk[1]);
+  grad.addColorStop(1, sk[2]);
 
   potatoPath.call(g, r);
   g.fillStyle = grad;
@@ -1803,7 +2007,9 @@ function drawPotatoCharacter(g, char, cx, cy, facing, kickPhase, isKicking, walk
   // hair / accessory
   g.save();
   g.translate(0, -r*0.85);
-  if (char.hairStyle === 'tuft'){
+  if (hairNew(char.hairStyle,g,char,r,facing)){
+    /* drawn by hairNew */
+  } else if (char.hairStyle === 'tuft'){
     g.fillStyle = char.hairColor;
     g.beginPath();
     g.moveTo(-r*0.35,0);
@@ -2050,6 +2256,7 @@ function drawPotatoCharacter(g, char, cx, cy, facing, kickPhase, isKicking, walk
     g.stroke();
   }
 
+  if (char.acc) drawAcc(g,char,fx,r);
   g.restore();
 }
 
@@ -2137,7 +2344,8 @@ function resetPositions(){
 
 function startMatch(){
   score.player = 0; score.ai = 0;
-  timeLeft = MATCH_SECONDS;
+  document.getElementById('cupVsBar').classList.toggle('hidden', !cupMatchRef);
+  timeLeft = cupMatchRef ? 30 : MATCH_SECONDS;   // manager matches are 30s
   resetPositions();
   updateHud();
   document.getElementById('gameOverScreen').classList.add('hidden');
@@ -2309,15 +2517,7 @@ function endMatch(){
   screenState = 'over';
   const over = document.getElementById('gameOverScreen');
   const playerWon = score.player > score.ai;
-  // Cup match resolution
-  if(window._cupMatchActive && cupMatchRef){
-    const m=cupMatchRef.matchObj;
-    m.s1=score.player; m.s2=score.ai; m.played=true;
-    m.winner=playerWon?cupMatchRef.t1:cupMatchRef.t2;
-    if(m.s1===m.s2) m.winner=Math.random()<0.5?cupMatchRef.t1:cupMatchRef.t2;
-    checkKnockoutRound && checkKnockoutRound();
-    cupMatchRef=null;
-  }
+  if (cupMatchRef){ endCupMatch(over); return; }
   const isDraw = score.player === score.ai;
 
   if (gameMode === 'tournament'){
