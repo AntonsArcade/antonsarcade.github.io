@@ -641,6 +641,7 @@
       <input id="mgTeamName" maxlength="18" placeholder="Team name" style="font-family:Fredoka,sans-serif;font-weight:600;font-size:14px;border-radius:10px;border:2px solid var(--gold-dark);padding:5px 8px;width:120px;background:#1a1030;color:#fff;">
       <div class="mg-budget-box">&#x1FA99; <span id="mgBudget">$900M</span></div>
       <button class="secondary-btn" id="mgSaveBtn" title="Save game">&#x1F4BE; SAVE</button>
+      <button class="secondary-btn" id="mgResetBtn" title="Reset progress" style="border-color:#e05a5a;color:#ffb0b0;">&#x1F5D1;&#xFE0F; RESET</button>
       <button class="secondary-btn" id="mgBackBtn">&#x2190; MENU</button>
     </div>
     <div class="mg-tabs">
@@ -1352,6 +1353,15 @@ function loadGame(){
     return true;
   }catch(e){ return false; }
 }
+function resetGame(){
+  try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
+  MANAGER.teamName='My Spuds'; MANAGER.budget=900;
+  MANAGER.squad=[null,null,null,null,null];
+  MANAGER.worldTwoUnlocked=false; MANAGER.cup=null; selSlot=null;
+  const ni=document.getElementById('mgTeamName'); if(ni) ni.value=MANAGER.teamName;
+  updateManagerBudgetDisplay();
+  switchTab('squad');
+}
 const filled=()=>MANAGER.squad.filter(Boolean);
 const charById=id=>ALL.find(c=>c.id===id);
 const el=(t,c,x)=>{const e=document.createElement(t); if(c) e.className=c; if(x!==undefined) e.textContent=x; return e;};
@@ -1811,6 +1821,17 @@ function initManagerMode(){
     const b=document.getElementById('mgSaveBtn');
     const old=b.textContent; b.textContent= ok?'\u2705 SAVED':'\u26A0\uFE0F FAILED';
     setTimeout(()=>b.textContent=old,1200);
+  });
+  const resetBtn = document.getElementById('mgResetBtn');
+  let resetArmed=false, resetTimer=null;
+  resetBtn.addEventListener('click',()=>{
+    if(!resetArmed){
+      resetArmed=true; resetBtn.textContent='\u26A0\uFE0F TAP TO CONFIRM';
+      resetTimer=setTimeout(()=>{ resetArmed=false; resetBtn.innerHTML='\uD83D\uDDD1\uFE0F RESET'; },3000);
+    } else {
+      clearTimeout(resetTimer); resetArmed=false; resetBtn.innerHTML='\uD83D\uDDD1\uFE0F RESET';
+      resetGame();
+    }
   });
   document.querySelectorAll('.mg-tab').forEach(t=>{
     t.addEventListener('click',()=>switchTab(t.dataset.tab));
