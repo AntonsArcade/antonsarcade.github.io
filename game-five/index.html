@@ -551,6 +551,12 @@
 .fut.icon{background:linear-gradient(160deg,#f6d774,#c99a2a 55%,#7a5510);color:#3a2604;border-color:#fff2b8;}
 .fut.ego{background:linear-gradient(160deg,#00c8ff,#0a4fa0 55%,#001a4d);color:#e6fbff;border-color:#8fe8ff;}
 .fut.sel{outline:3px solid #fff;transform:translateY(-5px);}
+.fut.rarity-frytties{background:linear-gradient(160deg,#c48aff,#6a1fb0 55%,#2b0a4d);color:#f6eaff;border-color:#e6cfff;}
+.fut.rarity-tots{background:linear-gradient(160deg,#ff6b8a,#c8102e 55%,#4d0512);color:#ffe8ec;border-color:#ffb8c4;}
+.rarity-badge{position:absolute;top:-7px;left:50%;transform:translateX(-50%);background:#111;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;white-space:nowrap;z-index:4;letter-spacing:.03em;}
+.mg-player-card.rarity-frytties{border-color:#c48aff;box-shadow:0 0 10px rgba(196,138,255,.35);}
+.mg-player-card.rarity-tots{border-color:#ff2d55;box-shadow:0 0 10px rgba(255,45,85,.35);}
+.mg-player-card{position:relative;}
 .fut.empty{background:rgba(255,255,255,.07);border:2px dashed #6f8fe0;color:#9fb6f0;display:flex;align-items:center;justify-content:center;flex-direction:column;}
 .fut .fr,.fut .fp,.fut .plus3,.fut .fslot{z-index:3;text-shadow:0 1px 3px rgba(0,0,0,.7);}
 .fut .fr{position:absolute;left:8px;top:6px;font-size:24px;font-weight:700;line-height:1;}
@@ -632,7 +638,9 @@
   <div id="managerScreen" class="screen hidden">
     <div class="mg-header">
       <h2 class="mg-title">&#x1F4BC; MANAGER MODE</h2>
+      <input id="mgTeamName" maxlength="18" placeholder="Team name" style="font-family:Fredoka,sans-serif;font-weight:600;font-size:14px;border-radius:10px;border:2px solid var(--gold-dark);padding:5px 8px;width:120px;background:#1a1030;color:#fff;">
       <div class="mg-budget-box">&#x1FA99; <span id="mgBudget">$900M</span></div>
+      <button class="secondary-btn" id="mgSaveBtn" title="Save game">&#x1F4BE; SAVE</button>
       <button class="secondary-btn" id="mgBackBtn">&#x2190; MENU</button>
     </div>
     <div class="mg-tabs">
@@ -666,6 +674,16 @@
           <h3 class="mg-section-lbl" style="color:#ffd700">&#x1F451; ICONS</h3>
           <div class="mg-market-grid" id="mgIconMarketGrid"></div>
         </div>
+        <div class="mg-market-group" id="mgFryttiesGroup">
+          <h3 class="mg-section-lbl" style="color:#c48aff">&#x267B;&#xFE0F; FRYTTIES</h3>
+          <div id="mgFryttiesLocked" class="hint">&#x1F512; Unlocks after winning the World Cup.</div>
+          <div class="mg-market-grid" id="mgFryttiesMarketGrid"></div>
+        </div>
+        <div class="mg-market-group" id="mgTotsGroup">
+          <h3 class="mg-section-lbl" style="color:#ff2d55">&#x1F4C8; TOTS</h3>
+          <div id="mgTotsLocked" class="hint">&#x1F512; Unlocks after winning the World Cup.</div>
+          <div class="mg-market-grid" id="mgTotsMarketGrid"></div>
+        </div>
       </div>
     </div>
     <!-- CUP TAB -->
@@ -677,6 +695,8 @@
           <button class="start-btn" id="mgStartCupBtn" disabled>&#x1F3C6; WORLD CUP &mdash; rivals &#x2B50;100-120 &mdash; win $300M</button>
           <button class="start-btn" id="mgStartCLBtn" disabled>&#x2B50; CHAMPIONS CHIP LEAGUE &mdash; rivals &#x2B50;90-110 &mdash; win $400M</button>
           <button class="start-btn" id="mgStartLigaBtn" disabled>&#x1F947; LA LIGA PAPA &mdash; rivals &#x2B50;70-90 &mdash; title wins $300M</button>
+          <button class="start-btn hidden" id="mgStartW2Btn" style="background:linear-gradient(135deg,#8a2be2,#2b0a4d);color:#fff;border-color:#c48aff;" disabled>&#x1F30D; WORLD TWO &mdash; rivals &#x2B50;130-150 &mdash; win $800M</button>
+          <div id="mgW2Locked" class="hint" style="color:#c48aff;">&#x1F512; Win the World Cup to unlock WORLD TWO and rare cards.</div>
         </div>
       </div>
       <div id="cupInProgress" class="hidden">
@@ -897,7 +917,23 @@ Jules Koundip|Kounde-Dip|D|94|bar|p|long|#111111|dark|earring|23`.split('\n').ma
   const [n,nick,pos,r,kit,j,h,hc,sk,acc,num]=row.split('|');
   return mk(n.toLowerCase().replace(/[^a-z]/g,''),n,nick,pos,+r,kit,j,h,hc,sk,acc,num);
 });
-const ALL=CHARACTERS.concat(MG);
+const SPECIAL=[
+  mk('fryttironi','Fryttironi','Throwback Legend','F',126,['#111111','#ffd700'],'c','curls','#1a0f08','dark','band',9,{special:'frytties',blurb:'A blast from three seasons ago, remastered and re-fried.'}),
+  mk('fryttivalo','Fryttivalo','Retro Rocket','M',122,['#8a2be2','#111111'],'s','fade','#2a1a0a','russet','none',6,{special:'frytties',blurb:'Old boots, new legs. The comeback nobody asked for but everyone wanted.'}),
+  mk('fryttidge','Fryttidge','Vintage Volley','D',119,['#111111','#c0c0c0'],'p','bald','#111111','sweet','stache',4,{special:'frytties',blurb:'Defends like it is still his testimonial season.'}),
+  mk('fryttimane','Fryttimané','Encore Edition','F',128,['#00c8ff','#111111'],'c','mohawk','#111111','purple','eyeblack',22,{special:'frytties',blurb:'Brought back for one more lap of the box.'}),
+  mk('fryttinho','Fryttinho','Flashback Flick','M',121,['#ffd700','#111111'],'s','long','#1a0f08','dark','earring',8,{special:'frytties',blurb:'Every trick he ever learned, still in his back pocket.'}),
+  mk('fryttoure','Fryttouré','Old Guard','D',125,['#111111','#e8c56a'],'p','fade','#111111','red','scar',5,{special:'frytties',blurb:'Never left. Just got rarer.'}),
+  mk('tudsmar','Tudsmar','Tuber of the Season','F',141,['#ff2d55','#111111'],'c','tuft','#1a0f08','dark','band',11,{special:'tots',blurb:'The best twelve months a potato has ever had.'}),
+  mk('tudsalah','Tudsalah','Season\'s Sensation','F',139,['#ff2d55','#c8102e'],'p','curls','#1a0f08','dark','beard',11,{special:'tots',blurb:'Every stat sheet this year has his name on it twice.'}),
+  mk('tudkante','Tudkanté','Ninety-Minute Engine','M',137,['#ff2d55','#034694'],'s','bald','#111111','dark','none',7,{special:'tots',blurb:'Covers every blade of grass, then covers it again.'}),
+  mk('tudruyff','Tudruyff','Total Tater Football','M',140,['#ff2d55','#f8d000'],'c','fade','#1a3d8f','yukon','none',14,{special:'tots',blurb:'Invented a system. The system was winning.'}),
+  mk('tudmani','Tudmani','Wall of the Year','D',136,['#ff2d55','#111111'],'p','crop','#111111','purple','earring',3,{special:'tots',blurb:'Conceded almost nothing. Apologized for none of it.'}),
+  mk('tudlaka','Tudlaka','Golden Glove Grade','D',138,['#ff2d55','#00c8ff'],'s','mohawk','#2a1a0a','sweet','stache',1,{special:'tots',blurb:'Not a keeper, just a defender who refuses to be beaten.'})
+];
+function cardRarity(c){ return c.icon?'icon':c.egoStrike?'ego':c.special?c.special:'gold'; }
+const RARITY_LABEL={icon:'ICON',ego:'EGO STRIKE',frytties:'FRYTTIES',tots:'TOTS',gold:''};
+const ALL=CHARACTERS.concat(MG).concat(SPECIAL);
 
 /* ============================================================
    FIELD / PHYSICS CONSTANTS
@@ -1263,6 +1299,8 @@ function initTitleScreen(){
 const MANAGER = {
   budget: 900,   // $ millions
   squad: [null,null,null,null,null],   // 1-3-1 slots: DEF, LM, CM, RM, ST
+  teamName: 'My Spuds',
+  worldTwoUnlocked: false,
   cupStarted: false,
   cup: null,
 };
@@ -1289,9 +1327,31 @@ const SLOTS=[['DEF','D'],['LM','M'],['CM','M'],['RM','M'],['ST','F']];
 const POSN={D:'DEF',M:'MID',F:'FWD'};
 const COMPS={
   wc:{name:'World Cup',icon:'🏆',prizes:[20,50,100,180,300]},
+  w2:{name:'World Two',icon:'🌍',prizes:[80,180,320,500,800]},
   cl:{name:'Champions Chip League',icon:'⭐',prizes:[30,70,140,240,400]},
   liga:{name:'La Liga Papa',icon:'🥇',prizes:[300,200,140,100,60,45,35,25]}
 };
+const SAVE_KEY='potatoSoccerSaveV1';
+function saveGame(){
+  try{
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      teamName: MANAGER.teamName, budget: MANAGER.budget, squad: MANAGER.squad, worldTwoUnlocked: MANAGER.worldTwoUnlocked
+    }));
+    return true;
+  }catch(e){ return false; }
+}
+function loadGame(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(!raw) return false;
+    const d=JSON.parse(raw);
+    MANAGER.teamName = d.teamName || MANAGER.teamName;
+    MANAGER.budget = typeof d.budget==='number' ? d.budget : MANAGER.budget;
+    MANAGER.squad = Array.isArray(d.squad) ? [d.squad[0]||null,d.squad[1]||null,d.squad[2]||null,d.squad[3]||null,d.squad[4]||null] : MANAGER.squad;
+    MANAGER.worldTwoUnlocked = !!d.worldTwoUnlocked;
+    return true;
+  }catch(e){ return false; }
+}
 const filled=()=>MANAGER.squad.filter(Boolean);
 const charById=id=>ALL.find(c=>c.id===id);
 const el=(t,c,x)=>{const e=document.createElement(t); if(c) e.className=c; if(x!==undefined) e.textContent=x; return e;};
@@ -1301,7 +1361,7 @@ function charRating(c){
   return Math.round((c.speed/8.5 + c.jump/20 + c.kickPower/21)/3*100);
 }
 function slotRating(c,i){ return charRating(c) + (c.pos===SLOTS[i][1] ? 3 : 0); }
-function playerPrice(c){ return Math.round(Math.pow(charRating(c)/100,5)*300*(c.egoStrike?1.3:1)); }
+function playerPrice(c){ const mult = c.egoStrike?1.3 : c.special==='tots'?1.6 : c.special==='frytties'?1.4 : 1; return Math.round(Math.pow(charRating(c)/100,5)*300*mult); }
 function teamRating(){
   const r = MANAGER.squad.map((id,i)=>id?slotRating(charById(id),i):null).filter(x=>x!==null);
   return r.length ? Math.round(r.reduce((a,b)=>a+b,0)/r.length) : 0;
@@ -1321,12 +1381,13 @@ function switchTab(name){
 
 let selSlot=null;
 function futCard(c,i){
-  const card=el('div','fut'+(c?(c.icon?' icon':c.egoStrike?' ego':''):' empty')+(selSlot===i?' sel':''));
+  const card=el('div','fut'+(c?' rarity-'+cardRarity(c):' empty')+(selSlot===i?' sel':''));
   if(!c){
     card.appendChild(el('div','slot-lbl',SLOTS[i][0]));
     const p=el('div','',selSlot===null?'+':'⇄'); p.style.fontSize='30px'; card.appendChild(p);
     return card;
   }
+  if(RARITY_LABEL[cardRarity(c)]) card.appendChild(el('div','rarity-badge sm',RARITY_LABEL[cardRarity(c)]));
   card.appendChild(el('div','fr',slotRating(c,i)));
   card.appendChild(el('div','fp',POSN[c.pos]));
   if (c.pos===SLOTS[i][1]) card.appendChild(el('div','plus3','+3'));
@@ -1378,6 +1439,15 @@ function renderMarket(){
   buildMarketGrid(document.getElementById('mgMarketGrid'), list.filter(c=>!c.egoStrike&&!c.icon));
   buildMarketGrid(document.getElementById('mgEgoMarketGrid'), list.filter(c=>c.egoStrike));
   buildMarketGrid(document.getElementById('mgIconMarketGrid'), list.filter(c=>c.icon));
+  const unlocked = MANAGER.worldTwoUnlocked;
+  document.getElementById('mgFryttiesLocked').classList.toggle('hidden', unlocked);
+  document.getElementById('mgTotsLocked').classList.toggle('hidden', unlocked);
+  document.getElementById('mgFryttiesMarketGrid').classList.toggle('hidden', !unlocked);
+  document.getElementById('mgTotsMarketGrid').classList.toggle('hidden', !unlocked);
+  if (unlocked){
+    buildMarketGrid(document.getElementById('mgFryttiesMarketGrid'), list.filter(c=>c.special==='frytties'));
+    buildMarketGrid(document.getElementById('mgTotsMarketGrid'), list.filter(c=>c.special==='tots'));
+  }
 }
 
 function buildMarketGrid(elm, chars){
@@ -1385,8 +1455,9 @@ function buildMarketGrid(elm, chars){
   chars.forEach(c=>{
     const owned = MANAGER.squad.includes(c.id);
     const price = playerPrice(c);
-    const card = el('div','mg-player-card'+(c.egoStrike?' ego':''));
+    const card = el('div','mg-player-card rarity-'+cardRarity(c));
     const cv = miniPotatoCanvas(c); cv.style.maxWidth='80px'; card.appendChild(cv);
+    if(RARITY_LABEL[cardRarity(c)]) card.appendChild(el('div','rarity-badge',RARITY_LABEL[cardRarity(c)]));
     card.appendChild(el('div','mg-player-name',c.name));
     card.appendChild(el('div','mg-player-rating',POSN[c.pos]+' ⭐ '+charRating(c)));
     card.appendChild(el('div','mg-player-price','$'+price+'M'));
@@ -1413,10 +1484,11 @@ const cmpT=(a,b)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga)||b.gf-a.gf;
 function buildWorldCup(kind){
   kind = kind||'wc';
   const cfg = COMPS[kind], isL = kind==='liga';
-  const user = {name:'My Spuds', flag:'🥔', rating:teamRating(), isUser:true};
-  const rg = {wc:[100,120], cl:[90,110]}[kind];
+  const user = {name:MANAGER.teamName||'My Spuds', flag:'🥔', rating:teamRating(), isUser:true};
+  const rg = {wc:[100,120], cl:[90,110], w2:[130,150]}[kind];
   const ai = AI_CLUBS.map(c=>({...c, rating: rg ? Math.round(rg[0]+(c.rating-70)/18*(rg[1]-rg[0])) : c.rating})).sort(()=>Math.random()-0.5);
   const teams = [user, ...ai.slice(0, isL?7:15)];
+  if (kind==='w2') teams.forEach((t,i)=>{ if(!t.isUser && i%3===0) t.name = t.name+' \uD83D\uDD25'; });
   const groups = isL ? [[]] : [[],[],[],[]];
   teams.forEach((t,i)=>groups[i%groups.length].push({...t, pts:0, gf:0, ga:0}));
   MANAGER.cup = {comp:kind, name:cfg.name, icon:cfg.icon, prizes:cfg.prizes, phase:'group', groups,
@@ -1447,7 +1519,9 @@ function finishCup(result, prizeIdx){
   c.phase='finished'; c.result=result;
   c.prizeAmt = c.prizes[Math.min(prizeIdx, c.prizes.length-1)];
   MANAGER.budget += c.prizeAmt;
+  if (c.comp==='wc' && result==='won' && !MANAGER.worldTwoUnlocked){ MANAGER.worldTwoUnlocked=true; c.unlockedW2=true; }
   updateManagerBudgetDisplay();
+  saveGame();
 }
 
 function simulateScore(r1, r2){
@@ -1478,9 +1552,13 @@ function getGroupQualifiers(){
 }
 
 function renderCupTab(){
-  const ok = filled().length>0;
+  const ok = filled().length>=5;
   ['mgStartCupBtn','mgStartCLBtn','mgStartLigaBtn'].forEach(id=>{ document.getElementById(id).disabled=!ok; });
-  document.getElementById('mgGroupsPreview').innerHTML = ok ? '' : '<div style="opacity:0.6;font-size:13px;">Build a squad first in the Market!</div>';
+  const w2btn = document.getElementById('mgStartW2Btn');
+  w2btn.disabled = !ok || !MANAGER.worldTwoUnlocked;
+  w2btn.classList.toggle('hidden', !MANAGER.worldTwoUnlocked);
+  document.getElementById('mgW2Locked').classList.toggle('hidden', MANAGER.worldTwoUnlocked);
+  document.getElementById('mgGroupsPreview').innerHTML = ok ? '' : '<div style="opacity:0.6;font-size:13px;">You need all 5 slots filled to compete!</div>';
   if (!MANAGER.cup){ 
     document.getElementById('cupPreLaunch').classList.remove('hidden');
     document.getElementById('cupInProgress').classList.add('hidden');
@@ -1661,7 +1739,7 @@ function renderCupFinished(content){
     : res==='lost' ? ['🥈','RUNNERS-UP — '+(c.champion?c.champion.name:'')+' won','']
     : res==='liga' ? [c.rank<1?'🏆':'📊', c.rank<1?'LEAGUE CHAMPIONS!':'FINISHED #'+(c.rank+1)+' OF '+c.groups[0].length,'var(--gold)']
     : ['💀','ELIMINATED','#f88'];
-  content.innerHTML='<div style="text-align:center;padding:20px;"><div style="font-size:54px">'+h[0]+'</div><div class="mg-stage-lbl" style="color:'+h[2]+'">'+h[1]+'</div><div style="font-size:17px;margin:12px 0;color:var(--gold)">💰 Prize money: $'+c.prizeAmt+'M</div></div>';
+  content.innerHTML='<div style="text-align:center;padding:20px;"><div style="font-size:54px">'+h[0]+'</div><div class="mg-stage-lbl" style="color:'+h[2]+'">'+h[1]+'</div><div style="font-size:17px;margin:12px 0;color:var(--gold)">💰 Prize money: $'+c.prizeAmt+'M</div>'+(c.unlockedW2?'<div style="font-size:15px;color:#c48aff;">🔓 WORLD TWO unlocked! Rare cards now in the Market.</div>':'')+'</div>';
   const btn=el('button','start-btn','🔄 BACK TO COMPETITIONS'); btn.style.marginTop='14px';
   btn.addEventListener('click',()=>{ MANAGER.cup=null; renderCupTab(); });
   content.appendChild(btn);
@@ -1720,9 +1798,20 @@ function endCupMatch(over){
 }
 
 function initManagerMode(){
+  if (!initManagerMode.done){ loadGame(); document.getElementById('mgTeamName') && (document.getElementById('mgTeamName').value=MANAGER.teamName); }
   updateManagerBudgetDisplay();
   if (initManagerMode.done){ switchTab('squad'); return; }
   initManagerMode.done = true;
+  loadGame();
+  const nameInput = document.getElementById('mgTeamName');
+  nameInput.value = MANAGER.teamName;
+  nameInput.addEventListener('change',()=>{ MANAGER.teamName = nameInput.value.trim()||'My Spuds'; nameInput.value=MANAGER.teamName; saveGame(); });
+  document.getElementById('mgSaveBtn').addEventListener('click',()=>{
+    const ok=saveGame();
+    const b=document.getElementById('mgSaveBtn');
+    const old=b.textContent; b.textContent= ok?'\u2705 SAVED':'\u26A0\uFE0F FAILED';
+    setTimeout(()=>b.textContent=old,1200);
+  });
   document.querySelectorAll('.mg-tab').forEach(t=>{
     t.addEventListener('click',()=>switchTab(t.dataset.tab));
   });
@@ -1731,7 +1820,7 @@ function initManagerMode(){
     document.getElementById('titleScreen').classList.remove('hidden');
     window.scrollTo(0,0);
   });
-  [['mgStartCupBtn','wc'],['mgStartCLBtn','cl'],['mgStartLigaBtn','liga']].forEach(([id,k])=>{
+  [['mgStartCupBtn','wc'],['mgStartCLBtn','cl'],['mgStartLigaBtn','liga'],['mgStartW2Btn','w2']].forEach(([id,k])=>{
     document.getElementById(id).addEventListener('click',()=>{ buildWorldCup(k); renderCupTab(); });
   });
   document.getElementById('mgPosFilter').addEventListener('change',renderMarket);
