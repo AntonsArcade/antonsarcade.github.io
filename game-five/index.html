@@ -488,7 +488,6 @@
     border:2px solid #523a23; border-radius:14px;
     padding:10px 8px; text-align:center; position:relative;
   }
-  .mg-player-card.ego{ border-color:#004090; background:linear-gradient(180deg,#001228,#000818); }
   .mg-player-card canvas{ max-width:80px; width:100%; display:block; margin:0 auto 4px; }
   .mg-player-name{ font-family:'Fredoka',sans-serif; font-size:clamp(11px,2.2vw,14px); color:var(--cream); margin:2px 0; }
   .mg-player-rating{
@@ -548,15 +547,63 @@
 .pitch-row{display:flex;justify-content:center;gap:12px;width:100%;}
 .pitch-slot{display:flex;flex-direction:column;align-items:center;}
 .fut{width:104px;height:150px;position:relative;border-radius:10px 10px 30px 30px;background:linear-gradient(160deg,#2a63d8,#12328f 55%,#0a1c5a);border:2px solid #e8c56a;box-shadow:0 4px 12px rgba(0,0,0,.55);color:#f6e7b0;text-align:center;cursor:pointer;overflow:hidden;font-family:Fredoka,sans-serif;}
-.fut.icon{background:linear-gradient(160deg,#f6d774,#c99a2a 55%,#7a5510);color:#3a2604;border-color:#fff2b8;}
-.fut.ego{background:linear-gradient(160deg,#00c8ff,#0a4fa0 55%,#001a4d);color:#e6fbff;border-color:#8fe8ff;}
 .fut.sel{outline:3px solid #fff;transform:translateY(-5px);}
 .fut.rarity-frytties{background:linear-gradient(160deg,#c48aff,#6a1fb0 55%,#2b0a4d);color:#f6eaff;border-color:#e6cfff;}
 .fut.rarity-tots{background:linear-gradient(160deg,#ff6b8a,#c8102e 55%,#4d0512);color:#ffe8ec;border-color:#ffb8c4;}
-.rarity-badge{position:absolute;top:-7px;left:50%;transform:translateX(-50%);background:#111;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;white-space:nowrap;z-index:4;letter-spacing:.03em;}
-.mg-player-card.rarity-frytties{border-color:#c48aff;box-shadow:0 0 10px rgba(196,138,255,.35);}
-.mg-player-card.rarity-tots{border-color:#ff2d55;box-shadow:0 0 10px rgba(255,45,85,.35);}
-.mg-player-card{position:relative;}
+@keyframes iconShimmer{0%,100%{box-shadow:0 0 8px rgba(255,224,140,.55),inset 0 0 18px rgba(255,255,255,.35);}50%{box-shadow:0 0 18px rgba(255,224,140,.9),inset 0 0 18px rgba(255,255,255,.5);}}
+@keyframes fireFlicker{0%,100%{box-shadow:0 0 10px rgba(255,90,30,.6);}50%{box-shadow:0 0 20px rgba(255,150,30,.95);}}
+@keyframes egoPulse{0%,100%{box-shadow:0 0 8px rgba(0,220,255,.55);}50%{box-shadow:0 0 18px rgba(0,220,255,.9);}}
+
+/* ---- ICON: FC26-style white/gold marble card ---- */
+.fut.rarity-icon, .mg-player-card.rarity-icon{
+  background:
+    repeating-linear-gradient(115deg, rgba(255,255,255,.10) 0 10px, rgba(0,0,0,.04) 10px 20px),
+    linear-gradient(160deg,#fdf6e3,#e9d9a8 45%,#c9ad68 78%,#a9863f);
+  color:#3a2604; border:2px solid #f7e7b0; animation:iconShimmer 2.6s ease-in-out infinite;
+}
+.fut.rarity-icon{ border-radius:12px 12px 34px 34px; }
+.fut.rarity-icon::before{ content:'\2605 ICON \2605'; position:absolute; left:0; right:0; bottom:20px; text-align:center; font-size:8px; font-weight:700; letter-spacing:.12em; color:#8a6a1a; }
+.fut.rarity-icon .fn{ color:#3a2604; font-weight:800; }
+.fut.rarity-icon .fs{ color:#6a4e18; }
+.mg-player-card.rarity-icon .mg-player-name{ color:#3a2604; font-weight:700; }
+.mg-player-card.rarity-icon .mg-player-price{ color:#7a5510; }
+.mg-player-card.rarity-icon .mg-player-rating{ background:#3a2604; color:#f7e7b0; }
+
+/* ---- EGO STRIKE: electric card ---- */
+.fut.rarity-ego, .mg-player-card.rarity-ego{
+  background:linear-gradient(160deg,#00e5ff,#0a4fa0 55%,#001a4d);
+  color:#e6fbff; border:2px solid #8fe8ff; animation:egoPulse 2.2s ease-in-out infinite;
+}
+.fut.rarity-ego .fn{ color:#e6fbff; }
+
+/* ---- FRYTTIES: fiery throwback card ---- */
+.fut.rarity-frytties, .mg-player-card.rarity-frytties{
+  background:
+    repeating-linear-gradient(135deg, rgba(255,255,255,.05) 0 8px, transparent 8px 16px),
+    linear-gradient(160deg,#ff8a3d,#c8102e 42%,#5a0a12 78%,#1a0206);
+  color:#ffe8d0; border:2px solid #ffb060; animation:fireFlicker 1.8s ease-in-out infinite;
+  overflow:hidden;
+}
+.fut.rarity-frytties::after, .mg-player-card.rarity-frytties::after{
+  content:'FRYTTIES'; position:absolute; top:14px; left:-34px; width:150px; text-align:center;
+  transform:rotate(-40deg); background:linear-gradient(90deg,#ff2d00,#ff9500); color:#fff;
+  font-size:9px; font-weight:800; letter-spacing:.08em; padding:2px 0; box-shadow:0 2px 6px rgba(0,0,0,.5); z-index:5;
+}
+.fut.rarity-frytties .fn, .fut.rarity-frytties .fs{ color:#ffe8d0; }
+.mg-player-card.rarity-frytties .mg-player-name{ color:#ffe8d0; }
+
+/* ---- TOTS ---- */
+.fut.rarity-tots, .mg-player-card.rarity-tots{
+  background:linear-gradient(160deg,#ff6b8a,#c8102e 55%,#4d0512);
+  color:#ffe8ec; border:2px solid #ffb8c4; box-shadow:0 0 12px rgba(255,45,85,.45);
+}
+
+.rarity-badge{position:absolute;top:-7px;left:50%;transform:translateX(-50%);background:#111;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;white-space:nowrap;z-index:6;letter-spacing:.03em;}
+.rarity-icon .rarity-badge{background:#3a2604;color:#f7e7b0;border:1px solid #f7e7b0;}
+.rarity-ego .rarity-badge{background:#001a4d;color:#e6fbff;border:1px solid #8fe8ff;}
+.rarity-frytties .rarity-badge{background:#ff2d00;color:#fff;}
+.rarity-tots .rarity-badge{background:#c8102e;color:#fff;}
+.mg-player-card{position:relative; overflow:hidden;}
 .fut.empty{background:rgba(255,255,255,.07);border:2px dashed #6f8fe0;color:#9fb6f0;display:flex;align-items:center;justify-content:center;flex-direction:column;}
 .fut .fr,.fut .fp,.fut .plus3,.fut .fslot{z-index:3;text-shadow:0 1px 3px rgba(0,0,0,.7);}
 .fut .fr{position:absolute;left:8px;top:6px;font-size:24px;font-weight:700;line-height:1;}
@@ -705,6 +752,18 @@
         <div id="cupContent"></div>
       </div>
     </div>
+  </div>
+
+  <!-- ===================== WORLD TWO SCREEN ===================== -->
+  <div id="worldTwoScreen" class="screen hidden">
+    <div class="mg-header" style="background:radial-gradient(circle at 30% 20%,#3a0a5c,#0a0316 70%);border-radius:16px;padding:10px 14px;border:2px solid #c48aff;">
+      <h2 class="mg-title" style="color:#e6cfff;text-shadow:0 0 10px #c48aff;">&#x1F30D; WORLD TWO</h2>
+      <div class="mg-budget-box" style="border-color:#c48aff;color:#e6cfff;">&#x1FA99; <span id="mgBudgetW2">$0M</span></div>
+      <button class="secondary-btn" id="w2BackBtn" style="border-color:#c48aff;color:#e6cfff;">&#x2190; BACK</button>
+    </div>
+    <div class="hint" style="color:#c48aff;margin:8px 0;">The hardest teams in the game. Rivals rated &#x2B50;130-150 across a 32-team bracket.</div>
+    <div id="cupStageLabelW2" class="mg-stage-lbl" style="color:#e6cfff;">GROUP STAGE</div>
+    <div id="cupContentW2"></div>
   </div>
 
   <!-- ===================== GAME SCREEN ===================== -->
@@ -1322,6 +1381,22 @@ const AI_CLUBS = [
   {name:'Yukon Roma',     flag:'🇮🇹', rating:71},
   {name:'Fingerling Lyon',flag:'🇫🇷', rating:76},
   {name:'Starchy Benfica',flag:'🇵🇹', rating:73},
+  {name:'Fryburg Sporting',flag:'🇵🇹', rating:78},
+  {name:'Waffle Wolves',   flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', rating:75},
+  {name:'Gnocchi Inter',   flag:'🇮🇹', rating:84},
+  {name:'Latke Leipzig',   flag:'🇩🇪', rating:81},
+  {name:'Rosti Rangers',   flag:'🏴󠁧󠁢󠁳󠁣󠁴󠁿', rating:74},
+  {name:'Tater Sevilla',   flag:'🇪🇸', rating:80},
+  {name:'Yam Valencia',    flag:'🇪🇸', rating:77},
+  {name:'Baked Boca',      flag:'🇦🇷', rating:82},
+  {name:'Frite Marseille', flag:'🇫🇷', rating:78},
+  {name:'Hasselback Feyenoord',flag:'🇳🇱', rating:76},
+  {name:'Crinkle Celtic',  flag:'🏴󠁧󠁢󠁳󠁣󠁴󠁿', rating:73},
+  {name:'Duchess Dynamo',  flag:'🇷🇺', rating:75},
+  {name:'Jacket Genk',     flag:'🇧🇪', rating:72},
+  {name:'Scallop Sporting',flag:'🇧🇷', rating:79},
+  {name:'Wedge Wanderers', flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', rating:71},
+  {name:'Colcannon City',  flag:'🇮🇪', rating:74},
 ];
 
 const SLOTS=[['DEF','D'],['LM','M'],['CM','M'],['RM','M'],['ST','F']];
@@ -1446,16 +1521,16 @@ function renderSquad(){
 function renderMarket(){
   const f = document.getElementById('mgPosFilter').value;
   const list = ALL.filter(c=>!f||c.pos===f).sort((a,b)=>charRating(b)-charRating(a));
-  buildMarketGrid(document.getElementById('mgMarketGrid'), list.filter(c=>!c.egoStrike&&!c.icon));
+  buildMarketGrid(document.getElementById('mgMarketGrid'), list.filter(c=>!c.egoStrike&&!c.icon&&!c.special));
   buildMarketGrid(document.getElementById('mgEgoMarketGrid'), list.filter(c=>c.egoStrike));
   buildMarketGrid(document.getElementById('mgIconMarketGrid'), list.filter(c=>c.icon));
+  document.getElementById('mgFryttiesLocked').classList.add('hidden');
+  document.getElementById('mgFryttiesMarketGrid').classList.remove('hidden');
+  buildMarketGrid(document.getElementById('mgFryttiesMarketGrid'), list.filter(c=>c.special==='frytties'));
   const unlocked = MANAGER.worldTwoUnlocked;
-  document.getElementById('mgFryttiesLocked').classList.toggle('hidden', unlocked);
   document.getElementById('mgTotsLocked').classList.toggle('hidden', unlocked);
-  document.getElementById('mgFryttiesMarketGrid').classList.toggle('hidden', !unlocked);
   document.getElementById('mgTotsMarketGrid').classList.toggle('hidden', !unlocked);
   if (unlocked){
-    buildMarketGrid(document.getElementById('mgFryttiesMarketGrid'), list.filter(c=>c.special==='frytties'));
     buildMarketGrid(document.getElementById('mgTotsMarketGrid'), list.filter(c=>c.special==='tots'));
   }
 }
@@ -1497,9 +1572,10 @@ function buildWorldCup(kind){
   const user = {name:MANAGER.teamName||'My Spuds', flag:'🥔', rating:teamRating(), isUser:true};
   const rg = {wc:[100,120], cl:[90,110], w2:[130,150]}[kind];
   const ai = AI_CLUBS.map(c=>({...c, rating: rg ? Math.round(rg[0]+(c.rating-70)/18*(rg[1]-rg[0])) : c.rating})).sort(()=>Math.random()-0.5);
-  const teams = [user, ...ai.slice(0, isL?7:15)];
-  if (kind==='w2') teams.forEach((t,i)=>{ if(!t.isUser && i%3===0) t.name = t.name+' \uD83D\uDD25'; });
-  const groups = isL ? [[]] : [[],[],[],[]];
+  const isW2 = kind==='w2';
+  const teams = [user, ...ai.slice(0, isL?7:isW2?31:15)];
+  if (isW2) teams.forEach((t,i)=>{ if(!t.isUser && i%3===0) t.name = t.name+' \uD83D\uDD25'; });
+  const groups = isL ? [[]] : isW2 ? [[],[],[],[],[],[],[],[]] : [[],[],[],[]];
   teams.forEach((t,i)=>groups[i%groups.length].push({...t, pts:0, gf:0, ga:0}));
   MANAGER.cup = {comp:kind, name:cfg.name, icon:cfg.icon, prizes:cfg.prizes, phase:'group', groups,
     groupResults:[], matchQueue:[], currentMatchIdx:0, knockout:null};
@@ -1561,15 +1637,25 @@ function getGroupQualifiers(){
   });
 }
 
+function startComp(kind){
+  if (MANAGER.cup && MANAGER.cup.phase!=='finished' && MANAGER.cup.comp!==kind){
+    if(!confirm('You have an unfinished '+MANAGER.cup.name+' in progress. Starting this will abandon it — continue?')) return false;
+  }
+  buildWorldCup(kind);
+  return true;
+}
 function renderCupTab(){
   const ok = filled().length>=5;
+  const w2Live = MANAGER.cup && MANAGER.cup.comp==='w2' && MANAGER.cup.phase!=='finished';
   ['mgStartCupBtn','mgStartCLBtn','mgStartLigaBtn'].forEach(id=>{ document.getElementById(id).disabled=!ok; });
   const w2btn = document.getElementById('mgStartW2Btn');
   w2btn.disabled = !ok || !MANAGER.worldTwoUnlocked;
+  w2btn.textContent = w2Live ? '\uD83C\uDF0D RESUME WORLD TWO \u2014 in progress' : '\uD83C\uDF0D WORLD TWO \u2014 rivals \u2B50130-150 \u2014 win $800M';
   w2btn.classList.toggle('hidden', !MANAGER.worldTwoUnlocked);
   document.getElementById('mgW2Locked').classList.toggle('hidden', MANAGER.worldTwoUnlocked);
   document.getElementById('mgGroupsPreview').innerHTML = ok ? '' : '<div style="opacity:0.6;font-size:13px;">You need all 5 slots filled to compete!</div>';
-  if (!MANAGER.cup){ 
+  const otherCupLive = MANAGER.cup && MANAGER.cup.comp!=='w2';
+  if (!otherCupLive){ 
     document.getElementById('cupPreLaunch').classList.remove('hidden');
     document.getElementById('cupInProgress').classList.add('hidden');
     return; 
@@ -1579,9 +1665,14 @@ function renderCupTab(){
   renderCupPhase();
 }
 
+function cupEls(){
+  const w2 = MANAGER.cup && MANAGER.cup.comp==='w2';
+  return { stage: document.getElementById(w2?'cupStageLabelW2':'cupStageLabel'),
+           content: document.getElementById(w2?'cupContentW2':'cupContent') };
+}
 function renderCupPhase(){
   const cup = MANAGER.cup;
-  const content = document.getElementById('cupContent');
+  const content = cupEls().content;
   content.innerHTML='';
   if(cup.phase==='group') renderGroupPhase(content);
   else if(cup.phase==='knockout') renderKnockout(content);
@@ -1589,14 +1680,14 @@ function renderCupPhase(){
 }
 
 function renderGroupPhase(content){
-  document.getElementById('cupStageLabel').textContent=MANAGER.cup.icon+' '+MANAGER.cup.name.toUpperCase()+(MANAGER.cup.comp==='liga'?' — SEASON':' — GROUP STAGE');
+  cupEls().stage.textContent=MANAGER.cup.icon+' '+MANAGER.cup.name.toUpperCase()+(MANAGER.cup.comp==='liga'?' — SEASON':' — GROUP STAGE');
   const cup = MANAGER.cup;
   // Group standings
   const standingsDiv = document.createElement('div');
   standingsDiv.className='cup-groups';
   cup.groups.forEach((grp,gi)=>{
     const gEl = document.createElement('div'); gEl.className='cup-group';
-    const title = document.createElement('h4'); title.textContent=cup.comp==='liga'?'TABLE':'GROUP '+'ABCD'[gi]; gEl.appendChild(title);
+    const title = document.createElement('h4'); title.textContent=cup.comp==='liga'?'TABLE':'GROUP '+'ABCDEFGH'[gi]; gEl.appendChild(title);
     const sorted = [...grp].sort(cmpT);
     sorted.forEach((t,rank)=>{
       const row=document.createElement('div'); row.className='cup-group-team'+(t.isUser?' user':'');
@@ -1665,27 +1756,26 @@ function renderGroupPhase(content){
   }
 }
 
+function knockoutLabel(n){
+  return n>=16?'r16':n>=8?'quarter':n>=4?'semi':'final';
+}
+function pairTeams(teams){
+  const n=teams.length, m=[];
+  for(let i=0;i<n/2;i++) m.push({t1:teams[i],t2:teams[n-1-i],s1:null,s2:null,played:false});
+  return m;
+}
 function startKnockout(teams){
-  // teams = 8 qualifiers. Pair them up for QF
+  // teams.length is a power of two: 16 (World Two) or 8 (everything else)
   const cup = MANAGER.cup;
   cup.phase='knockout';
-  cup.knockout={
-    round:'quarter', // quarter, semi, final
-    matches: [
-      {t1:teams[0],t2:teams[7],s1:null,s2:null,played:false},
-      {t1:teams[1],t2:teams[6],s1:null,s2:null,played:false},
-      {t1:teams[2],t2:teams[5],s1:null,s2:null,played:false},
-      {t1:teams[3],t2:teams[4],s1:null,s2:null,played:false},
-    ],
-    nextMatches:[]
-  };
+  cup.knockout={ round:knockoutLabel(teams.length), matches:pairTeams(teams) };
 }
 
 function renderKnockout(content){
   const cup=MANAGER.cup;
   const ko=cup.knockout;
-  const labels={quarter:'⚔️ QUARTER-FINALS',semi:'🥊 SEMI-FINALS',final:'🏆 FINAL'};
-  document.getElementById('cupStageLabel').textContent=labels[ko.round];
+  const labels={r16:'🔥 ROUND OF 16',quarter:'⚔️ QUARTER-FINALS',semi:'🥊 SEMI-FINALS',final:'🏆 FINAL'};
+  cupEls().stage.textContent=labels[ko.round];
 
   const pending=ko.matches.filter(m=>!m.played);
   const played=ko.matches.filter(m=>m.played);
@@ -1723,35 +1813,39 @@ function checkKnockoutRound(){
   const ko=MANAGER.cup.knockout;
   if(ko.matches.some(m=>!m.played)) return;
   const winners=ko.matches.map(m=>m.winner);
-  if(!winners.find(t=>t.isUser) && ko.round!=='final'){
-    finishCup('eliminated', ko.round==='quarter'?1:2); return;
-  }
-  if(ko.round==='quarter'){
-    ko.round='semi';
-    ko.matches=[
-      {t1:winners[0],t2:winners[1],s1:null,s2:null,played:false},
-      {t1:winners[2],t2:winners[3],s1:null,s2:null,played:false},
-    ];
-  } else if(ko.round==='semi'){
-    ko.round='final';
-    ko.matches=[{t1:winners[0],t2:winners[1],s1:null,s2:null,played:false}];
-  } else if(ko.round==='final'){
+  if(ko.round==='final'){
     const champ=winners[0];
     MANAGER.cup.champion=champ;
-    finishCup(champ.isUser?'won':'lost', champ.isUser?4:3);
+    const prizes=MANAGER.cup.prizes;
+    finishCup(champ.isUser?'won':'lost', champ.isUser?prizes.length-1:prizes.length-2);
+    return;
   }
+  if(!winners.find(t=>t.isUser)){
+    const elimIdx={r16:1,quarter:2,semi:3}[ko.round]||1;
+    finishCup('eliminated', elimIdx); return;
+  }
+  ko.round = knockoutLabel(winners.length/2);
+  ko.matches = pairTeams(winners);
 }
 
 function renderCupFinished(content){
   const c=MANAGER.cup, res=c.result;
-  document.getElementById('cupStageLabel').textContent=c.icon+' '+c.name.toUpperCase()+' — OVER';
+  cupEls().stage.textContent=c.icon+' '+c.name.toUpperCase()+' — OVER';
   const h = res==='won' ? ['🏆',c.name.toUpperCase()+' CHAMPIONS!','var(--gold)']
     : res==='lost' ? ['🥈','RUNNERS-UP — '+(c.champion?c.champion.name:'')+' won','']
     : res==='liga' ? [c.rank<1?'🏆':'📊', c.rank<1?'LEAGUE CHAMPIONS!':'FINISHED #'+(c.rank+1)+' OF '+c.groups[0].length,'var(--gold)']
     : ['💀','ELIMINATED','#f88'];
   content.innerHTML='<div style="text-align:center;padding:20px;"><div style="font-size:54px">'+h[0]+'</div><div class="mg-stage-lbl" style="color:'+h[2]+'">'+h[1]+'</div><div style="font-size:17px;margin:12px 0;color:var(--gold)">💰 Prize money: $'+c.prizeAmt+'M</div>'+(c.unlockedW2?'<div style="font-size:15px;color:#c48aff;">🔓 WORLD TWO unlocked! Rare cards now in the Market.</div>':'')+'</div>';
   const btn=el('button','start-btn','🔄 BACK TO COMPETITIONS'); btn.style.marginTop='14px';
-  btn.addEventListener('click',()=>{ MANAGER.cup=null; renderCupTab(); });
+  const wasW2 = c.comp==='w2';
+  btn.addEventListener('click',()=>{
+    MANAGER.cup=null;
+    if(wasW2){
+      document.getElementById('worldTwoScreen').classList.add('hidden');
+      document.getElementById('managerScreen').classList.remove('hidden');
+      switchTab('cup');
+    } else renderCupTab();
+  });
   content.appendChild(btn);
 }
 
@@ -1770,7 +1864,7 @@ function launchCupMatch(matchObj, t1, t2){
   gameMode='quickmatch';
   const me = t1.isUser ? t1 : t2;
   document.getElementById('cupVsBar').textContent = '🥔 '+me.name+' ⭐'+me.rating+'   vs   '+opp.flag+' '+opp.name+' ⭐'+opp.rating;
-  document.getElementById('managerScreen').classList.add('hidden');
+  document.getElementById(MANAGER.cup&&MANAGER.cup.comp==='w2'?'worldTwoScreen':'managerScreen').classList.add('hidden');
   document.getElementById('gameScreen').classList.remove('hidden');
   document.getElementById('namePlayer').textContent=playerChar.name.toUpperCase();
   document.getElementById('nameAI').textContent=aiChar.name.toUpperCase();
@@ -1802,8 +1896,14 @@ function endCupMatch(over){
   document.getElementById('backMgBtn').addEventListener('click',()=>{
     over.classList.add('hidden');
     document.getElementById('gameScreen').classList.add('hidden');
-    document.getElementById('managerScreen').classList.remove('hidden');
-    updateManagerBudgetDisplay(); switchTab('cup');
+    if (c.comp==='w2'){
+      document.getElementById('worldTwoScreen').classList.remove('hidden');
+      document.getElementById('mgBudgetW2').textContent = '$'+MANAGER.budget+'M';
+      renderCupPhase();
+    } else {
+      document.getElementById('managerScreen').classList.remove('hidden');
+      updateManagerBudgetDisplay(); switchTab('cup');
+    }
   });
 }
 
@@ -1841,8 +1941,22 @@ function initManagerMode(){
     document.getElementById('titleScreen').classList.remove('hidden');
     window.scrollTo(0,0);
   });
-  [['mgStartCupBtn','wc'],['mgStartCLBtn','cl'],['mgStartLigaBtn','liga'],['mgStartW2Btn','w2']].forEach(([id,k])=>{
-    document.getElementById(id).addEventListener('click',()=>{ buildWorldCup(k); renderCupTab(); });
+  [['mgStartCupBtn','wc'],['mgStartCLBtn','cl'],['mgStartLigaBtn','liga']].forEach(([id,k])=>{
+    document.getElementById(id).addEventListener('click',()=>{ if(startComp(k)) renderCupTab(); });
+  });
+  document.getElementById('mgStartW2Btn').addEventListener('click',()=>{
+    const resume = MANAGER.cup && MANAGER.cup.comp==='w2' && MANAGER.cup.phase!=='finished';
+    if (!resume && !startComp('w2')) return;
+    document.getElementById('managerScreen').classList.add('hidden');
+    document.getElementById('worldTwoScreen').classList.remove('hidden');
+    document.getElementById('mgBudgetW2').textContent = '$'+MANAGER.budget+'M';
+    document.getElementById('cupContentW2').innerHTML='';
+    renderCupPhase();
+  });
+  document.getElementById('w2BackBtn').addEventListener('click',()=>{
+    document.getElementById('worldTwoScreen').classList.add('hidden');
+    document.getElementById('managerScreen').classList.remove('hidden');
+    switchTab('cup');
   });
   document.getElementById('mgPosFilter').addEventListener('change',renderMarket);
   switchTab('squad');
