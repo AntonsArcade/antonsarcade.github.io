@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Neil the Seal Clicker</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .game-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      max-width: 950px;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      backdrop-filter: blur(10px);
+    }
+
+    .main-section {
+      flex: 1;
+      min-width: 280px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .stat-box {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 15px 25px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      width: 100%;
+    }
+
+    .stat-box h2 {
+      margin: 0;
+      font-size: 2.2rem;
+      color: #ffda79;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    /* --- CLICK STAGE --- */
+    #click-stage {
+      width: 100%;
+      height: 200px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* --- CARTOONY 3D LYING-DOWN NEIL --- */
+    .neil-body {
+      position: relative;
+      width: 180px;
+      height: 90px;
+      background: linear-gradient(180deg, #8a9ba8 0%, #4a5a6a 100%);
+      border-radius: 50px 80px 40px 40px;
+      box-shadow: 
+        inset -5px -10px 15px rgba(0,0,0,0.4),
+        inset 5px 5px 10px rgba(255,255,255,0.4),
+        0 15px 20px rgba(0,0,0,0.4);
+      transition: transform 0.08s ease-out;
+    }
+
+    /* Head */
+    .neil-head {
+      position: absolute;
+      left: -20px;
+      top: 10px;
+      width: 75px;
+      height: 65px;
+      background: linear-gradient(180deg, #9ab0bf 0%, #5a6b7c 100%);
+      border-radius: 50%;
+      box-shadow: inset 3px 3px 5px rgba(255,255,255,0.3);
+    }
+
+    /* Eyes */
+    .neil-eye {
+      position: absolute;
+      left: 18px;
+      top: 20px;
+      width: 12px;
+      height: 12px;
+      background: #111;
+      border-radius: 50%;
+    }
+    .neil-eye::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 4px;
+      height: 4px;
+      background: #fff;
+      border-radius: 50%;
+    }
+
+    /* Snout & Nose */
+    .neil-snout {
+      position: absolute;
+      left: 5px;
+      top: 30px;
+      width: 25px;
+      height: 20px;
+      background: #3a4856;
+      border-radius: 12px;
+    }
+    .neil-nose {
+      position: absolute;
+      left: 8px;
+      top: 32px;
+      width: 10px;
+      height: 7px;
+      background: #111;
+      border-radius: 50%;
+    }
+
+    /* Front Flipper */
+    .neil-flipper {
+      position: absolute;
+      bottom: -10px;
+      left: 50px;
+      width: 45px;
+      height: 25px;
+      background: #3a4856;
+      border-radius: 20px;
+      transform: rotate(-15deg);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+
+    /* Tail Fin */
+    .neil-tail {
+      position: absolute;
+      right: -20px;
+      bottom: 20px;
+      width: 35px;
+      height: 18px;
+      background: #4a5a6a;
+      border-radius: 10px 30px 30px 10px;
+      transform: rotate(10deg);
+    }
+
+    /* Squish animation when clicking */
+    #click-stage:active .neil-body {
+      transform: scaleY(0.6) scaleX(1.15) translateY(20px);
+    }
+
+    /* Floating Text */
+    .floating-text {
+      position: fixed;
+      color: #ffda79;
+      font-weight: bold;
+      font-size: 1.8rem;
+      pointer-events: none;
+      animation: floatUp 0.8s ease-out forwards;
+      text-shadow: 0 2px 4px rgba(0,0,0,1);
+      z-index: 100;
+    }
+
+    @keyframes floatUp {
+      0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-80px) scale(1.3);
+      }
+    }
+
+    /* Upgrades Shop */
+    .shop-section {
+      flex: 1.2;
+      min-width: 300px;
+      max-height: 500px;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+
+    .shop-section h3 {
+      margin-top: 15px;
+      margin-bottom: 10px;
+      font-size: 1.3rem;
+      border-bottom: 2px solid rgba(255,255,255,0.2);
+      padding-bottom: 5px;
+      color: #ffda79;
+    }
+
+    .shop-section h3:first-of-type {
+      margin-top: 0;
+    }
+
+    .upgrade-card {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .upgrade-card:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .upgrade-card.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .upgrade-info h4 {
+      margin: 0 0 4px;
+      font-size: 1rem;
+    }
+
+    .upgrade-info p {
+      margin: 0;
+      font-size: 0.85rem;
+      opacity: 0.8;
+    }
+
+    .upgrade-cost {
+      font-weight: bold;
+      color: #ffda79;
+      font-size: 1.05rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="game-container">
+    <div class="main-section">
+      <h1>🦭 Neil the Seal</h1>
+      <div class="stat-box">
+        <h2 id="damage-total">$0</h2>
+        <p>Total Damage Bill</p>
+      </div>
+      <p style="margin: 2px 0;"><b>+$<span id="cpc">1</span></b> per click</p>
+      <p style="margin: 2px 0;"><span id="dps">0</span> $ / sec passive damage</p>
+      
+      <div id="click-stage">
+        <div class="neil-body">
+          <div class="neil-head">
+            <div class="neil-eye"></div>
+            <div class="neil-snout"></div>
+            <div class="neil-nose"></div>
+          </div>
+          <div class="neil-flipper"></div>
+          <div class="neil-tail"></div>
+        </div>
+      </div>
+
+      <p style="margin-top: -5px;"><i>Click lying Neil to cause suburban chaos!</i></p>
+    </div>
+
+    <div class="shop-section">
+      <h3>💥 Click Power Upgrades</h3>
+      <div id="click-shop-list"></div>
+
+      <h3>🏙️ Passive Chaos Upgrades</h3>
+      <div id="passive-shop-list"></div>
+    </div>
+  </div>
+
+  <script>
+    let damageBill = 0;
+    let damagePerClick = 1;
+    let damagePerSecond = 0;
+
+    // Click Upgrades
+    const clickUpgrades = [
+      { id: 101, name: "Thicker Blubber", cost: 20, addCpc: 1, count: 0 },
+      { id: 102, name: "Heavy Weight Slap", cost: 200, addCpc: 5, count: 0 },
+      { id: 103, name: "Mega Chonk Roll", cost: 1500, addCpc: 25, count: 0 },
+      { id: 104, name: "Titanium Flippers", cost: 10000, addCpc: 120, count: 0 }
+    ];
+
+    // Passive Upgrades
+    const passiveUpgrades = [
+      { id: 1, name: "Traffic Cone Knockover", cost: 15, dps: 1, count: 0 },
+      { id: 2, name: "Squish Suburban Fence", cost: 100, dps: 8, count: 0 },
+      { id: 3, name: "Nap on Car Hood", cost: 1100, dps: 45, count: 0 },
+      { id: 4, name: "Block Tasmania Highway", cost: 12000, dps: 260, count: 0 },
+      { id: 5, name: "Heavy Excavator Standoff", cost: 130000, dps: 1400, count: 0 }
+    ];
+
+    const damageDisplay = document.getElementById('damage-total');
+    const dpsDisplay = document.getElementById('dps');
+    const cpcDisplay = document.getElementById('cpc');
+    const clickStage = document.getElementById('click-stage');
+    const clickShopList = document.getElementById('click-shop-list');
+    const passiveShopList = document.getElementById('passive-shop-list');
+
+    clickStage.addEventListener('click', (e) => {
+      damageBill += damagePerClick;
+      createFloatingText(e.clientX, e.clientY);
+      updateUI();
+    });
+
+    function createFloatingText(x, y) {
+      const text = document.createElement('div');
+      text.className = 'floating-text';
+      text.innerText = `+$${damagePerClick}`;
+
+      text.style.left = `${x}px`;
+      text.style.top = `${y}px`;
+
+      document.body.appendChild(text);
+
+      setTimeout(() => {
+        text.remove();
+      }, 800);
+    }
+
+    function renderShop() {
+      // Render Click Upgrades
+      clickShopList.innerHTML = '';
+      clickUpgrades.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = `upgrade-card ${damageBill < item.cost ? 'disabled' : ''}`;
+        card.onclick = damageBill >= item.cost ? () => buyClickUpgrade(index) : null;
+
+        card.innerHTML = `
+          <div class="upgrade-info">
+            <h4>${item.name} (${item.count})</h4>
+            <p>+$${item.addCpc} per click</p>
+          </div>
+          <div class="upgrade-cost">$${Math.floor(item.cost).toLocaleString()}</div>
+        `;
+        clickShopList.appendChild(card);
+      });
+
+      // Render Passive Upgrades
+      passiveShopList.innerHTML = '';
+      passiveUpgrades.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = `upgrade-card ${damageBill < item.cost ? 'disabled' : ''}`;
+        card.onclick = damageBill >= item.cost ? () => buyPassiveUpgrade(index) : null;
+
+        card.innerHTML = `
+          <div class="upgrade-info">
+            <h4>${item.name} (${item.count})</h4>
+            <p>+$${item.dps}/sec passive</p>
+          </div>
+          <div class="upgrade-cost">$${Math.floor(item.cost).toLocaleString()}</div>
+        `;
+        passiveShopList.appendChild(card);
+      });
+    }
+
+    function buyClickUpgrade(index) {
+      const item = clickUpgrades[index];
+      if (damageBill >= item.cost) {
+        damageBill -= item.cost;
+        item.count++;
+        damagePerClick += item.addCpc;
+        item.cost = Math.floor(item.cost * 1.2); 
+        updateUI();
+      }
+    }
+
+    function buyPassiveUpgrade(index) {
+      const item = passiveUpgrades[index];
+      if (damageBill >= item.cost) {
+        damageBill -= item.cost;
+        item.count++;
+        damagePerSecond += item.dps;
+        item.cost = Math.floor(item.cost * 1.15); 
+        updateUI();
+      }
+    }
+
+    function updateUI() {
+      damageDisplay.innerText = `$${Math.floor(damageBill).toLocaleString()}`;
+      dpsDisplay.innerText = damagePerSecond.toLocaleString();
+      cpcDisplay.innerText = damagePerClick.toLocaleString();
+      renderShop();
+    }
+
+    setInterval(() => {
+      damageBill += damagePerSecond / 10;
+      updateUI();
+    }, 100);
+
+    updateUI();
+  </script>
+</body>
+</html>
