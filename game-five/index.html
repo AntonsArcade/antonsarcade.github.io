@@ -598,11 +598,21 @@
   color:#ffe8ec; border:2px solid #ffb8c4; box-shadow:0 0 12px rgba(255,45,85,.45);
 }
 
+/* ---- GOAT: the single hardest card in the game ---- */
+@keyframes goatAura{0%,100%{box-shadow:0 0 16px rgba(255,215,0,.65),0 0 34px rgba(165,0,68,.4);}50%{box-shadow:0 0 30px rgba(255,215,0,1),0 0 50px rgba(201,162,39,.7);}}
+.fut.rarity-goat, .mg-player-card.rarity-goat{
+  background:linear-gradient(160deg,#1a1a1a,#000 55%,#1a1a1a);
+  color:#ffd700; border:3px solid #ffd700; animation:goatAura 2.4s ease-in-out infinite;
+}
+.fut.rarity-goat .fn, .fut.rarity-goat .fs{ color:#ffd700; font-weight:800; }
+.mg-player-card.rarity-goat .mg-player-name{ color:#ffd700; font-weight:800; }
+
 .rarity-badge{position:absolute;top:-7px;left:50%;transform:translateX(-50%);background:#111;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;white-space:nowrap;z-index:6;letter-spacing:.03em;}
 .rarity-icon .rarity-badge{background:#3a2604;color:#f7e7b0;border:1px solid #f7e7b0;}
 .rarity-ego .rarity-badge{background:#001a4d;color:#e6fbff;border:1px solid #8fe8ff;}
 .rarity-frytties .rarity-badge{background:#ff2d00;color:#fff;}
 .rarity-tots .rarity-badge{background:#c8102e;color:#fff;}
+.rarity-goat .rarity-badge{background:#000;color:#ffd700;border:1px solid #ffd700;}
 .mg-player-card{position:relative; overflow:hidden;}
 .fut.empty{background:rgba(255,255,255,.07);border:2px dashed #6f8fe0;color:#9fb6f0;display:flex;align-items:center;justify-content:center;flex-direction:column;}
 .fut .fr,.fut .fp,.fut .plus3,.fut .fslot{z-index:3;text-shadow:0 1px 3px rgba(0,0,0,.7);}
@@ -694,6 +704,7 @@
     <div class="mg-tabs">
       <button class="mg-tab active" data-tab="squad">&#x1F465; SQUAD</button>
       <button class="mg-tab" data-tab="market">&#x1F6D2; MARKET</button>
+      <button class="mg-tab" data-tab="packs">&#x1F381; PACKS</button>
       <button class="mg-tab" data-tab="cup">&#x1F3C6; COMPETE</button>
     </div>
     <!-- SQUAD TAB -->
@@ -705,6 +716,11 @@
       </div>
       <div class="mg-squad-grid" id="mgSquadGrid"></div>
       <div class="hint" style="margin-top:8px;">Formation 1-3-1. Tap a card, then tap another slot to swap. Tap an empty slot to shop for that position. Your CENTRE mid (CM ★) is who you control on PLAY. Own position = +3.</div>
+      <div id="mgBenchSection" class="hidden" style="margin-top:14px;">
+        <h3 class="mg-section-lbl" style="color:#8fe8ff">&#x1F4E6; BENCH (from packs)</h3>
+        <div class="hint" style="margin-bottom:6px;">Tap a bench card, then tap a squad slot to swap them in.</div>
+        <div class="mg-market-grid" id="mgBenchGrid"></div>
+      </div>
     </div>
     <!-- MARKET TAB -->
     <div class="mg-panel hidden" id="tab-market">
@@ -732,7 +748,18 @@
           <div id="mgTotsLocked" class="hint">&#x1F512; Unlocks after winning the World Cup.</div>
           <div class="mg-market-grid" id="mgTotsMarketGrid"></div>
         </div>
+        <div class="mg-market-group" id="mgGoatGroup">
+          <h3 class="mg-section-lbl" style="color:#ffd700">&#x1F451; THE G.O.A.T</h3>
+          <div id="mgGoatLocked" class="hint">&#x1F512; Unlocks after winning WORLD TWO. Astronomically rare.</div>
+          <div class="mg-market-grid" id="mgGoatMarketGrid"></div>
+        </div>
       </div>
+    </div>
+    <!-- PACKS TAB -->
+    <div class="mg-panel hidden" id="tab-packs">
+      <div class="hint" style="margin-bottom:10px;">Open packs for a random player in that world's rating range. The top end of every pack is rare &mdash; some pulls are near impossible.</div>
+      <div class="mg-market-grid" id="mgPacksGrid"></div>
+      <div id="packReveal" class="hidden" style="margin-top:16px;text-align:center;padding:18px;border-radius:14px;background:rgba(0,0,0,.35);border:2px solid var(--gold);"></div>
     </div>
     <!-- CUP TAB -->
     <div class="mg-panel hidden" id="tab-cup">
@@ -745,6 +772,18 @@
           <button class="start-btn" id="mgStartLigaBtn" disabled>&#x1F947; LA LIGA PAPA &mdash; rivals &#x2B50;70-90 &mdash; title wins $300M</button>
           <button class="start-btn hidden" id="mgStartW2Btn" style="background:linear-gradient(135deg,#8a2be2,#2b0a4d);color:#fff;border-color:#c48aff;" disabled>&#x1F30D; WORLD TWO &mdash; rivals &#x2B50;130-150 &mdash; win $800M</button>
           <div id="mgW2Locked" class="hint" style="color:#c48aff;">&#x1F512; Win the World Cup to unlock WORLD TWO and rare cards.</div>
+          <button class="start-btn hidden" id="mgStartW3Btn" style="background:linear-gradient(135deg,#ff8a3d,#5a1a00);color:#fff;border-color:#ffb060;" disabled>&#x1F680; WORLD CUP 2.0 &mdash; rivals &#x2B50;180-210 &mdash; win $4B</button>
+          <button class="start-btn hidden" id="mgStartGoatBtn" style="background:linear-gradient(135deg,#1a1a1a,#000);color:#ffd700;border-color:#ffd700;" disabled>&#x1F3C1; GOAT CUP &mdash; rivals &#x2B50;230-250 &mdash; win $8B</button>
+          <div id="mgW3Locked" class="hint" style="color:#ff8a3d;">&#x1F512; Win WORLD TWO to unlock WORLD THREE: World Cup 2.0 and the GOAT Cup.</div>
+          <button class="start-btn" id="mgFriendlyBtn" style="background:linear-gradient(135deg,#2a9d5c,#0a3d1f);color:#fff;border-color:#6fe8a0;" disabled>&#x1F91D; FRIENDLIES &mdash; pick your rivals</button>
+        </div>
+        <div id="friendliesPanel" class="hidden" style="margin-top:14px;padding:14px;border-radius:14px;background:rgba(0,0,0,.3);border:2px solid #6fe8a0;">
+          <h3 class="mg-section-lbl" style="color:#6fe8a0;">&#x1F91D; FRIENDLIES</h3>
+          <div class="hint">Pick your rivals' rating. Win pays in full &mdash; losing still pays a quarter.</div>
+          <div id="friendlyRatingButtons" style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;"></div>
+          <div id="friendlyRewardLine" style="color:var(--gold);font-family:Fredoka,sans-serif;margin-bottom:10px;"></div>
+          <button class="start-btn" id="friendlyPlayBtn">&#x25B6; PLAY FRIENDLY</button>
+          <button class="secondary-btn" id="friendlyCloseBtn" style="margin-top:8px;">Close</button>
         </div>
       </div>
       <div id="cupInProgress" class="hidden">
@@ -764,6 +803,18 @@
     <div class="hint" style="color:#c48aff;margin:8px 0;">The hardest teams in the game. Rivals rated &#x2B50;130-150 across a 32-team bracket.</div>
     <div id="cupStageLabelW2" class="mg-stage-lbl" style="color:#e6cfff;">GROUP STAGE</div>
     <div id="cupContentW2"></div>
+  </div>
+
+  <!-- ===================== WORLD THREE SCREEN ===================== -->
+  <div id="worldThreeScreen" class="screen hidden">
+    <div class="mg-header" style="background:radial-gradient(circle at 30% 20%,#5a1a00,#0a0300 70%);border-radius:16px;padding:10px 14px;border:2px solid #ffb060;">
+      <h2 class="mg-title" style="color:#ffd8ad;text-shadow:0 0 10px #ff8a3d;">&#x1F680; WORLD THREE</h2>
+      <div class="mg-budget-box" style="border-color:#ffb060;color:#ffd8ad;">&#x1FA99; <span id="mgBudgetW3">$0M</span></div>
+      <button class="secondary-btn" id="w3BackBtn" style="border-color:#ffb060;color:#ffd8ad;">&#x2190; BACK</button>
+    </div>
+    <div class="hint" style="color:#ffb060;margin:8px 0;">Legendary difficulty. The GOAT Cup fields rivals rated &#x2B50;230-250.</div>
+    <div id="cupStageLabelW3" class="mg-stage-lbl" style="color:#ffd8ad;">GROUP STAGE</div>
+    <div id="cupContentW3"></div>
   </div>
 
   <!-- ===================== GAME SCREEN ===================== -->
@@ -922,7 +973,12 @@ CHARACTERS.push(
   mk('zitater','Zinedine Zi-Tuber','The Maestro','M',114,['#fdfdfd','#1a3d8f'],'s','bald','#111111','russet','beard',5,{icon:true,blurb:'Elegance, spin moves, and a very stern headbutt.'}),
   mk('maldimash','Paolo Maldimash','Il Capitano Mash','D',115,'mil','s','fade','#2a1a0a','russet','none',3,{icon:true,blurb:'Twenty-five years, one club, zero tackles missed. The wall of Milan.'}),
   mk('primepessi','Prime Pessi','Barca Era Spud','F',130,'bar','s','tuft','#5a3a1e','russet','freckles',10,{icon:true,blurb:'Peak Barcelona. Untouchable. Physics filed a complaint.'}),
-  mk('primepotadaldo','Prime Potadaldo','Madrid Era Yukon','F',129,'mad','p','quiff','#3a2a16','yukon','earring',7,{icon:true,blurb:'Peak Madrid. Leaps like a launched tater tot.'})
+  mk('primepotadaldo','Prime Potadaldo','Madrid Era Yukon','F',129,'mad','p','quiff','#3a2a16','yukon','earring',7,{icon:true,blurb:'Peak Madrid. Leaps like a launched tater tot.'}),
+  mk('carlobs','Roberto Carlobs','The Free-Kick Cannon','D',113,'mad','p','curls','#1a0f08','dark','none',3,{icon:true,blurb:'Hit a free kick so hard the ball boy flinched from the bench.'}),
+  mk('r9tato','R9-Tato','The Phenomenon','F',120,['#f8d000','#009c3b'],'c','fade','#111111','dark','none',9,{icon:true,blurb:'Stepovers so quick defenders needed a minute to process it.'}),
+  mk('puskatato','Puska-tato','The Galloping Spud','F',110,['#c8102e','#ffffff'],'p','bald','#111111','sweet','none',10,{icon:true,blurb:'Scored for fun, mostly with the wrong foot on purpose.'}),
+  mk('beckentuber','Beckentuber','Der Kaiser Kartoffel','D',112,['#fdfdfd','#111111'],'s','fade','#5a3a1e','white','none',5,{icon:true,blurb:'Invented sweeping up from the back, then strolled forward and scored.'}),
+  mk('garrinchip','Garrinchip','Little Bird','F',111,['#f8d000','#009c3b'],'c','curls','#1a0f08','dark','none',7,{icon:true,blurb:'Bent legs, straight-up unplayable on his day.'})
 );
 /* Manager-mode-only players: name|nickname|pos|rating|kit|jersey|hair|hairColor|skin|accessory|number */
 const MG=`Mo Spudah|The Egyptian Fry|F|89|liv|p|curls|#1a0f08|dark|beard|11
@@ -973,6 +1029,23 @@ Denzel Dumfry-ess|Fry-ess|D|78|int|s|afro|#111111|dark|band|2
 Vitinha Fritinha|Little Fry|M|95|psg|p|quiff|#1a0f08|red|none|17
 Ousmane Dembelyam|Two-Footed Yam|F|97|psg|c|crop|#111111|dark|band|10
 Nuno Mendash|Mash Machine|D|97|psg|s|fade|#111111|yukon|scar|25
+Jude Bellingmash|Golden Boy Gravy|M|93|mad|p|curls|#1a0f08|sweet|none|5
+Mason Mountash|Baked Mountain|M|81|mci|p|fade|#5a3a1e|dark|freckles|19
+Moises Caisedip|The Wall Pass|M|84|che|p|bald|#111111|russet|none|25
+Frenkie de Jicama|Jicama Turn|M|86|bar|s|crop|#c9a25a|white|none|21
+Dominik Szobotato|Box-to-Box Boil|M|83|bay|c|quiff|#d8c090|white|eyeblack|39
+Ryan Gravytz|Golden Spoon|M|85|mun|p|mohawk|#111111|dark|band|7
+Warren Zaire-Mash|Baked Bomber|M|82|mci|s|afro|#111111|dark|none|80
+Pablo Gavito|Pint-Sized Prodigy|M|85|bar|s|crop|#1a0f08|red|freckles|30
+Marco Verrotti|Il Gufo Spud|M|84|bay|p|bald|#111111|purple|earring|6
+Nicolo Barellaki|Il Motore|M|83|int|s|curls|#2a1a0a|russet|scar|23
+Sandro Tonalito|Tuscan Tonali|M|84|nap|p|fade|#111111|dark|none|8
+Jamal Mush-arif|Pivot Point|M|82|lev|s|quiff|#2a1a0a|sweet|band|34
+Mikel Merinito|Box Crasher|M|83|ars|p|crop|#1a0f08|yukon|none|23
+Fabian Rueztato|Swiss Spud|M|82|mil|s|bald|#111111|white|none|8
+Ismael Bennacedip|Algerian Engine|M|81|mci|p|afro|#111111|dark|freckles|97
+Nico Williamash|Winger Wonder|M|87|atm|s|curls|#1a0f08|dark|none|11
+Lamine Yamalito|Little Prodigy Jr|M|85|bar|s|afro|#1a0f08|sweet|freckles|27
 Jules Koundip|Kounde-Dip|D|94|bar|p|long|#111111|dark|earring|23`.split('\n').map(row=>{
   const [n,nick,pos,r,kit,j,h,hc,sk,acc,num]=row.split('|');
   return mk(n.toLowerCase().replace(/[^a-z]/g,''),n,nick,pos,+r,kit,j,h,hc,sk,acc,num);
@@ -989,11 +1062,89 @@ const SPECIAL=[
   mk('tudkante','Tudkanté','Ninety-Minute Engine','M',137,['#ff2d55','#034694'],'s','bald','#111111','dark','none',7,{special:'tots',blurb:'Covers every blade of grass, then covers it again.'}),
   mk('tudruyff','Tudruyff','Total Tater Football','M',140,['#ff2d55','#f8d000'],'c','fade','#1a3d8f','yukon','none',14,{special:'tots',blurb:'Invented a system. The system was winning.'}),
   mk('tudmani','Tudmani','Wall of the Year','D',136,['#ff2d55','#111111'],'p','crop','#111111','purple','earring',3,{special:'tots',blurb:'Conceded almost nothing. Apologized for none of it.'}),
-  mk('tudlaka','Tudlaka','Golden Glove Grade','D',138,['#ff2d55','#00c8ff'],'s','mohawk','#2a1a0a','sweet','stache',1,{special:'tots',blurb:'Not a keeper, just a defender who refuses to be beaten.'})
+  mk('tudlaka','Tudlaka','Golden Glove Grade','D',138,['#ff2d55','#00c8ff'],'s','mohawk','#2a1a0a','sweet','stache',1,{special:'tots',blurb:'Not a keeper, just a defender who refuses to be beaten.'}),
+  mk('fryttmane','Fryttmané','Sadio\'s Second Act','F',124,['#c8102e','#111111'],'p','crop','#111111','dark','none',19,{special:'frytties',blurb:'Still has the burst that made him a problem.'}),
+  mk('fryttesta','Fryttesta','Header Hall of Famer','D',120,['#111111','#c0c0c0'],'s','bald','#111111','purple','scar',4,{special:'frytties',blurb:'Wins every header he is even vaguely near.'}),
+  mk('frytinelli','Frytinelli','One Last Spin','M',123,['#0a3d8f','#ffd700'],'c','long','#2a1a0a','red','band',21,{special:'frytties',blurb:'The trivela never left his boot, just left the league for a bit.'}),
+  mk('fryttson','Frytt-son','Forever Young','F',127,['#132257','#ffffff'],'p','fade','#111111','sweet','eyeblack',7,{special:'frytties',blurb:'Age is just a nickname for most goals in the squad.'}),
+  mk('fryttaka','Fryttaka','Vintage Volley II','M',122,['#dc052d','#ffffff'],'s','quiff','#5a3a1e','yukon','none',25,{special:'frytties',blurb:'A midfield engine that never quite ran out of fuel.'}),
+  mk('fryttigo','Fryttigo','Testimonial Tour','D',121,['#a50044','#004d98'],'p','crop','#111111','dark','earring',15,{special:'frytties',blurb:'One more lap of the back line, same calm as ever.'}),
+  mk('tudbappe','Tudbappé','Season for the Ages','F',143,['#ff2d55','#111111'],'c','mohawk','#111111','dark','band',7,{special:'tots',blurb:'Broke the scoring charts and most ankles in his path.'}),
+  mk('tudsane','Tudsané','Wing Wizard of the Year','M',138,['#ff2d55','#6cabdd'],'s','afro','#111111','dark','none',11,{special:'tots',blurb:'Every cross this season found the back of the net.'}),
+  mk('tudkimmich','Tudkimmich','Metronome Supreme','M',139,['#ff2d55','#dc052d'],'p','fade','#2a1a0a','white','none',6,{special:'tots',blurb:'Completed more passes than the rest of the league combined, probably.'}),
+  mk('tudrudiger','Tudrüdiger','Iron Wall Edition','D',137,['#ff2d55','#111111'],'s','bald','#111111','dark','scar',2,{special:'tots',blurb:'Tackled so hard the scoreboard flinched.'}),
+  mk('tudbruyne','Tudbruyne','Vision of the Season','M',140,['#ff2d55','#6cabdd'],'c','quiff','#c9702a','white','freckles',17,{special:'tots',blurb:'Assists on tap, pure vision from midfield.'}),
+  mk('tudneuer','Tudneuer','Sweeper of the Year','D',139,['#ff2d55','#dc052d'],'p','crop','#111111','white','none',1,{special:'tots',blurb:'A defender who plays like he owns the whole pitch.'})
+];
+const GOAT_CARD = [
+  mk('thegoat','The G.O.A.T','Half Pessi, Half Potadaldo','F',300,['#a50044','#c9a227'],'p','none','#d8c9a0','dark','none',0,{special:'goat',blurb:'Left boot peak Barcelona. Right boot peak Madrid. The head is not even potato anymore.'})
+];
+/* Pack-exclusive tiers: never sold in the Market, only pulled from packs */
+const LEGENDS = [
+  mk('legendvolt','Legend Voltato','World 2 Pack Exclusive','F',188,['#00c8ff','#111111'],'c','mohawk','#111111','dark','band',99,{special:'legend',blurb:'Pack-exclusive. Clocked running the length of the pitch twice before anyone blinked.'}),
+  mk('legendrock','Legend Rocktuber','World 2 Pack Exclusive','D',172,['#111111','#ffd700'],'p','bald','#111111','purple','scar',99,{special:'legend',blurb:'Pack-exclusive. Has not lost a header since the server reset.'}),
+  mk('legendflux','Legend Fluxmash','World 2 Pack Exclusive','M',179,['#8a2be2','#fff'],'s','fade','#2a1a0a','sweet','none',99,{special:'legend',blurb:'Pack-exclusive. Sees three passes ahead and takes the fourth one anyway.'}),
+  mk('legendnova','Legend Novapotato','World 2 Pack Exclusive','F',184,['#ff2d55','#111111'],'c','afro','#111111','red','eyeblack',99,{special:'legend',blurb:'Pack-exclusive. Shoots like the net owes him money.'}),
+  mk('legendquake','Legend Quaketato','World 2 Pack Exclusive','D',166,['#004d98','#a50044'],'p','crop','#111111','yukon','earring',99,{special:'legend',blurb:'Pack-exclusive. Tackles so hard it registers on nearby seismographs.'}),
+  mk('legendember','Legend Embertato','World 2 Pack Exclusive','M',175,['#ff8a3d','#111111'],'s','long','#1a0f08','dark','band',99,{special:'legend',blurb:'Pack-exclusive. Never stops running, never stops scheming.'})
+];
+const ELITE = [
+  mk('elitedawn','Elite Dawntato','World 3 Pack Common','F',208,['#2b0a4d','#c48aff'],'c','fade','#111111','dark','band',0,{special:'elite',blurb:'Pack-exclusive. The baseline for World Three — and it is still terrifying.'}),
+  mk('elitedusk','Elite Dusktuber','World 3 Pack Common','D',212,['#0a1c5a','#8fe8ff'],'p','bald','#111111','purple','scar',0,{special:'elite',blurb:'Pack-exclusive. Nobody gets past this one twice.'}),
+  mk('elitegale','Elite Galemash','World 3 Pack Common','M',205,['#1a3d8f','#fff'],'s','mohawk','#2a1a0a','sweet','none',0,{special:'elite',blurb:'Pack-exclusive. Covers ground like the pitch owes him rent.'}),
+  mk('eliteblaze','Elite Blazepud','World 3 Pack Common','F',216,['#2b0a4d','#ff8a3d'],'c','afro','#111111','red','eyeblack',0,{special:'elite',blurb:'Pack-exclusive. Finishes chances other players would not even attempt.'}),
+  mk('elitegrit','Elite Gritato','World 3 Pack Common','D',201,['#111','#c48aff'],'p','crop','#111111','yukon','earring',0,{special:'elite',blurb:'Pack-exclusive. The floor of World Three is still a wall.'}),
+  mk('elitespark','Elite Sparktuber','World 3 Pack Common','M',219,['#0a1c5a','#ffd700'],'s','long','#1a0f08','dark','band',0,{special:'elite',blurb:'Pack-exclusive. Pulls the strings like he invented the position.'}),
+  mk('elitefrost','Elite Frostspud','World 3 Pack Common','F',210,['#00c8ff','#0a1c5a'],'c','bald','#111111','white','none',0,{special:'elite',blurb:'Pack-exclusive. Cold finishing, colder celebrations.'}),
+  mk('elitetitan','Elite Titantato','World 3 Pack Common','D',214,['#2b0a4d','#111'],'p','fade','#111111','purple','stache',0,{special:'elite',blurb:'Pack-exclusive. Built like a wall, moves like a winger.'}),
+  mk('eliteecho','Elite Echotuber','World 3 Pack Common','M',203,['#1a3d8f','#c48aff'],'s','curls','#2a1a0a','sweet','none',0,{special:'elite',blurb:'Pack-exclusive. Every pass lands exactly where it needs to.'}),
+  mk('elitevertex','Elite Vertexspud','World 3 Pack Common','F',221,['#2b0a4d','#00c8ff'],'c','quiff','#5a3a1e','yukon','band',0,{special:'elite',blurb:'Pack-exclusive. The peak of the baseline — the last stop before mythic.'})
+];
+const MYTHIC = [
+  mk('mythiczero','Mythic Zero-Tato','World 3 Pack Exclusive','F',244,['#000','#ffd700'],'c','none','#d8c9a0','purple','none',0,{special:'mythic',blurb:'Pack-exclusive. Ultra-rare. Scored before the whistle finished blowing.'}),
+  mk('mythicvoid','Mythic Voidspud','World 3 Pack Exclusive','D',228,['#1a0a2e','#c48aff'],'p','bald','#111111','dark','scar',0,{special:'mythic',blurb:'Pack-exclusive. Ultra-rare. Nothing gets past this wall, literally nothing.'}),
+  mk('mythicstorm','Mythic Stormtato','World 3 Pack Exclusive','M',236,['#0a1c5a','#00c8ff'],'s','mohawk','#111111','sweet','band',0,{special:'mythic',blurb:'Pack-exclusive. Ultra-rare. Midfield belongs to him and him alone.'}),
+  mk('mythicember','Mythic Emberlord','World 3 Pack Exclusive','F',240,['#ff2d00','#000'],'c','afro','#111111','red','eyeblack',0,{special:'mythic',blurb:'Pack-exclusive. Ultra-rare. Every shot is basically a formality.'}),
+  mk('mythicglacier','Mythic Glaciatato','World 3 Pack Exclusive','D',225,['#00e5ff','#fff'],'p','crop','#111111','white','none',0,{special:'mythic',blurb:'Pack-exclusive. Ultra-rare. Cold, calm, and utterly unbeatable.'}),
+  mk('mythiceclipse','Mythic Eclipsotato','World 3 Pack Exclusive','M',248,['#111','#ffd700'],'s','long','#1a0f08','purple','none',0,{special:'mythic',blurb:'Pack-exclusive. The rarest pull in the game outside the G.O.A.T himself.'})
 ];
 function cardRarity(c){ return c.icon?'icon':c.egoStrike?'ego':c.special?c.special:'gold'; }
-const RARITY_LABEL={icon:'ICON',ego:'EGO STRIKE',frytties:'FRYTTIES',tots:'TOTS',gold:''};
-const ALL=CHARACTERS.concat(MG).concat(SPECIAL);
+const RARITY_LABEL={icon:'ICON',ego:'EGO STRIKE',frytties:'FRYTTIES',tots:'TOTS',legend:'LEGEND',mythic:'MYTHIC',goat:'G.O.A.T',gold:''};
+const ALL=CHARACTERS.concat(MG).concat(SPECIAL).concat(GOAT_CARD).concat(LEGENDS).concat(ELITE).concat(MYTHIC);
+
+const PACKS = {
+  w1:{label:'World 1 Pack', min:90, max:140, cost:700},
+  w2:{label:'World 2 Pack', min:140, max:190, cost:2000},
+  w3:{label:'World 3 Pack', min:200, max:250, cost:8000}
+};
+function weightedPackPick(kind){
+  const cfg = PACKS[kind];
+  const pool = ALL.filter(c=>c.special!=='goat' && charRating(c)>=cfg.min && charRating(c)<=cfg.max);
+  const span = Math.max(1, cfg.max-cfg.min);
+  const weighted = pool.map(c=>{
+    let w;
+    if (c.special==='mythic') w = 0.35;        // near impossible, always
+    else if (c.special==='legend') w = 1.1;    // rare, always
+    else {
+      const pct = (charRating(c)-cfg.min)/span;
+      w = pct<0.6 ? 14 : pct<0.85 ? 4 : 1.5;
+    }
+    return {c,w};
+  });
+  const total = weighted.reduce((a,x)=>a+x.w,0);
+  let roll = Math.random()*total;
+  for (const x of weighted){ roll -= x.w; if (roll<=0) return x.c; }
+  return weighted[weighted.length-1].c;
+}
+function openPack(kind){
+  const cfg = PACKS[kind];
+  if (MANAGER.budget < cfg.cost) return null;
+  MANAGER.budget -= cfg.cost;
+  const pulled = weightedPackPick(kind);
+  MANAGER.bench.push(pulled.id);
+  saveGame();
+  return pulled;
+}
 
 /* ============================================================
    FIELD / PHYSICS CONSTANTS
@@ -1361,6 +1512,8 @@ const MANAGER = {
   squad: [null,null,null,null,null],   // 1-3-1 slots: DEF, LM, CM, RM, ST
   teamName: 'My Spuds',
   worldTwoUnlocked: false,
+  worldThreeUnlocked: false,
+  bench: [],
   cupStarted: false,
   cup: null,
 };
@@ -1402,16 +1555,26 @@ const AI_CLUBS = [
 const SLOTS=[['DEF','D'],['LM','M'],['CM','M'],['RM','M'],['ST','F']];
 const POSN={D:'DEF',M:'MID',F:'FWD'};
 const COMPS={
+  w3cup:{name:'World Cup 2.0',icon:'\uD83D\uDE80',prizes:[200,500,1000,2000,4000]},
+  goat:{name:'GOAT Cup',icon:'\uD83C\uDFC1',prizes:[500,1500,3000,5000,8000]},
   wc:{name:'World Cup',icon:'🏆',prizes:[20,50,100,180,300]},
   w2:{name:'World Two',icon:'🌍',prizes:[80,180,320,500,800]},
   cl:{name:'Champions Chip League',icon:'⭐',prizes:[30,70,140,240,400]},
   liga:{name:'La Liga Papa',icon:'🥇',prizes:[300,200,140,100,60,45,35,25]}
 };
 const SAVE_KEY='potatoSoccerSaveV1';
+function fmtM(n){
+  n = Math.round(n);
+  if (Math.abs(n) >= 1000){
+    const b = n/1000;
+    return '$'+(Number.isInteger(b)?b:b.toFixed(2).replace(/0$/,'').replace(/\.$/,''))+'B';
+  }
+  return '$'+n+'M';
+}
 function saveGame(){
   try{
     localStorage.setItem(SAVE_KEY, JSON.stringify({
-      teamName: MANAGER.teamName, budget: MANAGER.budget, squad: MANAGER.squad, worldTwoUnlocked: MANAGER.worldTwoUnlocked
+      teamName: MANAGER.teamName, budget: MANAGER.budget, squad: MANAGER.squad, worldTwoUnlocked: MANAGER.worldTwoUnlocked, worldThreeUnlocked: MANAGER.worldThreeUnlocked, bench: MANAGER.bench
     }));
     return true;
   }catch(e){ return false; }
@@ -1425,6 +1588,8 @@ function loadGame(){
     MANAGER.budget = typeof d.budget==='number' ? d.budget : MANAGER.budget;
     MANAGER.squad = Array.isArray(d.squad) ? [d.squad[0]||null,d.squad[1]||null,d.squad[2]||null,d.squad[3]||null,d.squad[4]||null] : MANAGER.squad;
     MANAGER.worldTwoUnlocked = !!d.worldTwoUnlocked;
+    MANAGER.worldThreeUnlocked = !!d.worldThreeUnlocked;
+    MANAGER.bench = Array.isArray(d.bench) ? d.bench : [];
     return true;
   }catch(e){ return false; }
 }
@@ -1432,7 +1597,7 @@ function resetGame(){
   try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
   MANAGER.teamName='My Spuds'; MANAGER.budget=900;
   MANAGER.squad=[null,null,null,null,null];
-  MANAGER.worldTwoUnlocked=false; MANAGER.cup=null; selSlot=null;
+  MANAGER.worldTwoUnlocked=false; MANAGER.worldThreeUnlocked=false; MANAGER.cup=null; MANAGER.bench=[]; selSlot=null; selBench=null;
   const ni=document.getElementById('mgTeamName'); if(ni) ni.value=MANAGER.teamName;
   updateManagerBudgetDisplay();
   switchTab('squad');
@@ -1446,13 +1611,17 @@ function charRating(c){
   return Math.round((c.speed/8.5 + c.jump/20 + c.kickPower/21)/3*100);
 }
 function slotRating(c,i){ return charRating(c) + (c.pos===SLOTS[i][1] ? 3 : 0); }
-function playerPrice(c){ const mult = c.egoStrike?1.3 : c.special==='tots'?1.6 : c.special==='frytties'?1.4 : 1; return Math.round(Math.pow(charRating(c)/100,5)*300*mult); }
+function playerPrice(c){
+  if (c.special==='goat') return 30000;
+  const mult = c.egoStrike?1.3 : c.special==='tots'?1.6 : c.special==='frytties'?1.4 : 1;
+  return Math.round(Math.pow(charRating(c)/100,5)*300*mult);
+}
 function teamRating(){
   const r = MANAGER.squad.map((id,i)=>id?slotRating(charById(id),i):null).filter(x=>x!==null);
   return r.length ? Math.round(r.reduce((a,b)=>a+b,0)/r.length) : 0;
 }
 function updateManagerBudgetDisplay(){
-  document.getElementById('mgBudget').textContent = '$'+MANAGER.budget+'M';
+  document.getElementById('mgBudget').textContent = fmtM(MANAGER.budget);
 }
 
 function switchTab(name){
@@ -1461,10 +1630,50 @@ function switchTab(name){
   document.getElementById('tab-'+name).classList.remove('hidden');
   if (name==='squad') renderSquad();
   if (name==='market') renderMarket();
+  if (name==='packs') renderPacksTab();
   if (name==='cup') renderCupTab();
 }
 
+function renderPacksTab(){
+  document.getElementById('packReveal').classList.add('hidden');
+  const grid = document.getElementById('mgPacksGrid');
+  grid.innerHTML='';
+  Object.entries(PACKS).forEach(([kind,cfg])=>{
+    const card = el('div','mg-player-card');
+    card.style.cssText='padding:16px 10px;';
+    card.appendChild(el('div','mg-player-name',cfg.label));
+    card.appendChild(el('div','mg-player-rating','\u2B50 '+cfg.min+'-'+cfg.max+' rated'));
+    card.appendChild(el('div','mg-player-price',fmtM(cfg.cost)));
+    const btn = el('button','mg-player-btn buy','OPEN PACK');
+    btn.disabled = MANAGER.budget < cfg.cost;
+    btn.addEventListener('click',()=>{
+      const pulled = openPack(kind);
+      updateManagerBudgetDisplay();
+      renderPacksTab();
+      if (!pulled) return;
+      const rv = document.getElementById('packReveal');
+      rv.classList.remove('hidden');
+      rv.innerHTML='';
+      const label = el('div','',''); label.style.cssText='color:var(--gold);font-family:Fredoka,sans-serif;margin-bottom:8px;font-size:15px;';
+      label.textContent = RARITY_LABEL[cardRarity(pulled)] ? 'You pulled a '+RARITY_LABEL[cardRarity(pulled)]+' card!' : 'You pulled:';
+      rv.appendChild(label);
+      const pc = el('div','mg-player-card rarity-'+cardRarity(pulled));
+      pc.style.cssText='max-width:160px;margin:0 auto;';
+      const cv = miniPotatoCanvas(pulled); cv.style.maxWidth='90px'; pc.appendChild(cv);
+      if (RARITY_LABEL[cardRarity(pulled)]) pc.appendChild(el('div','rarity-badge',RARITY_LABEL[cardRarity(pulled)]));
+      pc.appendChild(el('div','mg-player-name',pulled.name));
+      pc.appendChild(el('div','mg-player-rating',POSN[pulled.pos]+' \u2B50 '+charRating(pulled)));
+      rv.appendChild(pc);
+      const note = el('div','hint','Added to your bench \u2014 go to Squad to equip.'); note.style.marginTop='10px';
+      rv.appendChild(note);
+    });
+    card.appendChild(btn);
+    grid.appendChild(card);
+  });
+}
+
 let selSlot=null;
+let selBench=null;
 function futCard(c,i){
   const card=el('div','fut'+(c?' rarity-'+cardRarity(c):' empty')+(selSlot===i?' sel':''));
   if(!c){
@@ -1497,6 +1706,15 @@ function renderSquad(){
       const w = el('div','pitch-slot');
       const card = futCard(c,i);
       card.addEventListener('click',()=>{
+        if (selBench!==null){
+          const benchId = MANAGER.bench[selBench];
+          const prevOccupant = MANAGER.squad[i];
+          MANAGER.squad[i] = benchId;
+          MANAGER.bench.splice(selBench,1);
+          if (prevOccupant) MANAGER.bench.push(prevOccupant);
+          selBench=null; selSlot=null; saveGame(); renderSquad();
+          return;
+        }
         if (selSlot===null){
           if (c) selSlot=i;
           else { document.getElementById('mgPosFilter').value=SLOTS[i][1]; switchTab('market'); return; }
@@ -1507,7 +1725,7 @@ function renderSquad(){
       w.appendChild(card);
       if (c){
         const sp = Math.round(playerPrice(c)*0.6);
-        const sell = el('button','mg-player-btn sell','SELL $'+sp+'M');
+        const sell = el('button','mg-player-btn sell','SELL '+fmtM(sp));
         sell.style.cssText='width:104px;margin-top:5px;font-size:11px;';
         sell.addEventListener('click',()=>{ MANAGER.squad[i]=null; MANAGER.budget+=sp; selSlot=null; updateManagerBudgetDisplay(); renderSquad(); });
         w.appendChild(sell);
@@ -1515,6 +1733,26 @@ function renderSquad(){
       r.appendChild(w);
     });
     grid.appendChild(r);
+  });
+  renderBench();
+}
+
+function renderBench(){
+  const sec = document.getElementById('mgBenchSection');
+  const grid = document.getElementById('mgBenchGrid');
+  sec.classList.toggle('hidden', MANAGER.bench.length===0);
+  if (MANAGER.bench.length===0) return;
+  grid.innerHTML='';
+  MANAGER.bench.forEach((id,bi)=>{
+    const c = charById(id);
+    const card = el('div','mg-player-card rarity-'+cardRarity(c)+(selBench===bi?' sel':''));
+    if (selBench===bi) card.style.outline='3px solid #fff';
+    const cv = miniPotatoCanvas(c); cv.style.maxWidth='80px'; card.appendChild(cv);
+    if (RARITY_LABEL[cardRarity(c)]) card.appendChild(el('div','rarity-badge',RARITY_LABEL[cardRarity(c)]));
+    card.appendChild(el('div','mg-player-name',c.name));
+    card.appendChild(el('div','mg-player-rating',POSN[c.pos]+' \u2B50 '+charRating(c)));
+    card.addEventListener('click',()=>{ selBench = selBench===bi ? null : bi; selSlot=null; renderSquad(); });
+    grid.appendChild(card);
   });
 }
 
@@ -1533,6 +1771,12 @@ function renderMarket(){
   if (unlocked){
     buildMarketGrid(document.getElementById('mgTotsMarketGrid'), list.filter(c=>c.special==='tots'));
   }
+  const goatUnlocked = MANAGER.worldThreeUnlocked;
+  document.getElementById('mgGoatLocked').classList.toggle('hidden', goatUnlocked);
+  document.getElementById('mgGoatMarketGrid').classList.toggle('hidden', !goatUnlocked);
+  if (goatUnlocked){
+    buildMarketGrid(document.getElementById('mgGoatMarketGrid'), list.filter(c=>c.special==='goat'));
+  }
 }
 
 function buildMarketGrid(elm, chars){
@@ -1545,7 +1789,7 @@ function buildMarketGrid(elm, chars){
     if(RARITY_LABEL[cardRarity(c)]) card.appendChild(el('div','rarity-badge',RARITY_LABEL[cardRarity(c)]));
     card.appendChild(el('div','mg-player-name',c.name));
     card.appendChild(el('div','mg-player-rating',POSN[c.pos]+' ⭐ '+charRating(c)));
-    card.appendChild(el('div','mg-player-price','$'+price+'M'));
+    card.appendChild(el('div','mg-player-price',fmtM(price)));
     const btn = el('button');
     if (owned){ btn.className='mg-player-btn owned'; btn.textContent='IN SQUAD'; btn.disabled=true; }
     else {
@@ -1570,12 +1814,12 @@ function buildWorldCup(kind){
   kind = kind||'wc';
   const cfg = COMPS[kind], isL = kind==='liga';
   const user = {name:MANAGER.teamName||'My Spuds', flag:'🥔', rating:teamRating(), isUser:true};
-  const rg = {wc:[100,120], cl:[90,110], w2:[130,150]}[kind];
+  const rg = {wc:[100,120], cl:[90,110], w2:[130,150], w3cup:[180,210], goat:[230,250]}[kind];
   const ai = AI_CLUBS.map(c=>({...c, rating: rg ? Math.round(rg[0]+(c.rating-70)/18*(rg[1]-rg[0])) : c.rating})).sort(()=>Math.random()-0.5);
-  const isW2 = kind==='w2';
-  const teams = [user, ...ai.slice(0, isL?7:isW2?31:15)];
-  if (isW2) teams.forEach((t,i)=>{ if(!t.isUser && i%3===0) t.name = t.name+' \uD83D\uDD25'; });
-  const groups = isL ? [[]] : isW2 ? [[],[],[],[],[],[],[],[]] : [[],[],[],[]];
+  const isBig = kind==='w2'||kind==='w3cup'||kind==='goat';
+  const teams = [user, ...ai.slice(0, isL?7:isBig?31:15)];
+  if (isBig) teams.forEach((t,i)=>{ if(!t.isUser && i%3===0) t.name = t.name+' \uD83D\uDD25'; });
+  const groups = isL ? [[]] : isBig ? [[],[],[],[],[],[],[],[]] : [[],[],[],[]];
   teams.forEach((t,i)=>groups[i%groups.length].push({...t, pts:0, gf:0, ga:0}));
   MANAGER.cup = {comp:kind, name:cfg.name, icon:cfg.icon, prizes:cfg.prizes, phase:'group', groups,
     groupResults:[], matchQueue:[], currentMatchIdx:0, knockout:null};
@@ -1606,6 +1850,7 @@ function finishCup(result, prizeIdx){
   c.prizeAmt = c.prizes[Math.min(prizeIdx, c.prizes.length-1)];
   MANAGER.budget += c.prizeAmt;
   if (c.comp==='wc' && result==='won' && !MANAGER.worldTwoUnlocked){ MANAGER.worldTwoUnlocked=true; c.unlockedW2=true; }
+  if (c.comp==='w2' && result==='won' && !MANAGER.worldThreeUnlocked){ MANAGER.worldThreeUnlocked=true; c.unlockedW3=true; }
   updateManagerBudgetDisplay();
   saveGame();
 }
@@ -1646,15 +1891,25 @@ function startComp(kind){
 }
 function renderCupTab(){
   const ok = filled().length>=5;
-  const w2Live = MANAGER.cup && MANAGER.cup.comp==='w2' && MANAGER.cup.phase!=='finished';
+  const liveComp = MANAGER.cup && MANAGER.cup.phase!=='finished' ? MANAGER.cup.comp : null;
   ['mgStartCupBtn','mgStartCLBtn','mgStartLigaBtn'].forEach(id=>{ document.getElementById(id).disabled=!ok; });
   const w2btn = document.getElementById('mgStartW2Btn');
   w2btn.disabled = !ok || !MANAGER.worldTwoUnlocked;
-  w2btn.textContent = w2Live ? '\uD83C\uDF0D RESUME WORLD TWO \u2014 in progress' : '\uD83C\uDF0D WORLD TWO \u2014 rivals \u2B50130-150 \u2014 win $800M';
+  w2btn.textContent = liveComp==='w2' ? '\uD83C\uDF0D RESUME WORLD TWO \u2014 in progress' : '\uD83C\uDF0D WORLD TWO \u2014 rivals \u2B50130-150 \u2014 win $800M';
   w2btn.classList.toggle('hidden', !MANAGER.worldTwoUnlocked);
   document.getElementById('mgW2Locked').classList.toggle('hidden', MANAGER.worldTwoUnlocked);
+  const w3btn = document.getElementById('mgStartW3Btn');
+  w3btn.disabled = !ok || !MANAGER.worldThreeUnlocked;
+  w3btn.textContent = liveComp==='w3cup' ? '\uD83D\uDE80 RESUME WORLD CUP 2.0 \u2014 in progress' : '\uD83D\uDE80 WORLD CUP 2.0 \u2014 rivals \u2B50180-210 \u2014 win $4B';
+  w3btn.classList.toggle('hidden', !MANAGER.worldThreeUnlocked);
+  const goatbtn = document.getElementById('mgStartGoatBtn');
+  goatbtn.disabled = !ok || !MANAGER.worldThreeUnlocked;
+  goatbtn.textContent = liveComp==='goat' ? '\uD83C\uDFC1 RESUME GOAT CUP \u2014 in progress' : '\uD83C\uDFC1 GOAT CUP \u2014 rivals \u2B50230-250 \u2014 win $8B';
+  goatbtn.classList.toggle('hidden', !MANAGER.worldThreeUnlocked);
+  document.getElementById('mgW3Locked').classList.toggle('hidden', MANAGER.worldThreeUnlocked);
   document.getElementById('mgGroupsPreview').innerHTML = ok ? '' : '<div style="opacity:0.6;font-size:13px;">You need all 5 slots filled to compete!</div>';
-  const otherCupLive = MANAGER.cup && MANAGER.cup.comp!=='w2';
+  document.getElementById('mgFriendlyBtn').disabled = !ok;
+  const otherCupLive = MANAGER.cup && !screenForComp(MANAGER.cup.comp);
   if (!otherCupLive){ 
     document.getElementById('cupPreLaunch').classList.remove('hidden');
     document.getElementById('cupInProgress').classList.add('hidden');
@@ -1665,10 +1920,16 @@ function renderCupTab(){
   renderCupPhase();
 }
 
+function screenForComp(comp){
+  if (comp==='w2') return 'worldTwoScreen';
+  if (comp==='w3cup'||comp==='goat') return 'worldThreeScreen';
+  return null;
+}
 function cupEls(){
-  const w2 = MANAGER.cup && MANAGER.cup.comp==='w2';
-  return { stage: document.getElementById(w2?'cupStageLabelW2':'cupStageLabel'),
-           content: document.getElementById(w2?'cupContentW2':'cupContent') };
+  const comp = MANAGER.cup && MANAGER.cup.comp;
+  if (comp==='w2') return { stage: document.getElementById('cupStageLabelW2'), content: document.getElementById('cupContentW2') };
+  if (comp==='w3cup'||comp==='goat') return { stage: document.getElementById('cupStageLabelW3'), content: document.getElementById('cupContentW3') };
+  return { stage: document.getElementById('cupStageLabel'), content: document.getElementById('cupContent') };
 }
 function renderCupPhase(){
   const cup = MANAGER.cup;
@@ -1835,13 +2096,13 @@ function renderCupFinished(content){
     : res==='lost' ? ['🥈','RUNNERS-UP — '+(c.champion?c.champion.name:'')+' won','']
     : res==='liga' ? [c.rank<1?'🏆':'📊', c.rank<1?'LEAGUE CHAMPIONS!':'FINISHED #'+(c.rank+1)+' OF '+c.groups[0].length,'var(--gold)']
     : ['💀','ELIMINATED','#f88'];
-  content.innerHTML='<div style="text-align:center;padding:20px;"><div style="font-size:54px">'+h[0]+'</div><div class="mg-stage-lbl" style="color:'+h[2]+'">'+h[1]+'</div><div style="font-size:17px;margin:12px 0;color:var(--gold)">💰 Prize money: $'+c.prizeAmt+'M</div>'+(c.unlockedW2?'<div style="font-size:15px;color:#c48aff;">🔓 WORLD TWO unlocked! Rare cards now in the Market.</div>':'')+'</div>';
+  content.innerHTML='<div style="text-align:center;padding:20px;"><div style="font-size:54px">'+h[0]+'</div><div class="mg-stage-lbl" style="color:'+h[2]+'">'+h[1]+'</div><div style="font-size:17px;margin:12px 0;color:var(--gold)">💰 Prize money: '+fmtM(c.prizeAmt)+'</div>'+(c.unlockedW2?'<div style="font-size:15px;color:#c48aff;">🔓 WORLD TWO unlocked! Rare cards now in the Market.</div>':'')+(c.unlockedW3?'<div style="font-size:15px;color:#ff8a3d;">🔓 WORLD THREE unlocked! Even rarer cards now in the Market.</div>':'')+'</div>';
   const btn=el('button','start-btn','🔄 BACK TO COMPETITIONS'); btn.style.marginTop='14px';
-  const wasW2 = c.comp==='w2';
+  const originScreen = screenForComp(c.comp);
   btn.addEventListener('click',()=>{
     MANAGER.cup=null;
-    if(wasW2){
-      document.getElementById('worldTwoScreen').classList.add('hidden');
+    if(originScreen){
+      document.getElementById(originScreen).classList.add('hidden');
       document.getElementById('managerScreen').classList.remove('hidden');
       switchTab('cup');
     } else renderCupTab();
@@ -1864,12 +2125,54 @@ function launchCupMatch(matchObj, t1, t2){
   gameMode='quickmatch';
   const me = t1.isUser ? t1 : t2;
   document.getElementById('cupVsBar').textContent = '🥔 '+me.name+' ⭐'+me.rating+'   vs   '+opp.flag+' '+opp.name+' ⭐'+opp.rating;
-  document.getElementById(MANAGER.cup&&MANAGER.cup.comp==='w2'?'worldTwoScreen':'managerScreen').classList.add('hidden');
+  document.getElementById(screenForComp(MANAGER.cup&&MANAGER.cup.comp)||'managerScreen').classList.add('hidden');
   document.getElementById('gameScreen').classList.remove('hidden');
   document.getElementById('namePlayer').textContent=playerChar.name.toUpperCase();
   document.getElementById('nameAI').textContent=aiChar.name.toUpperCase();
   document.getElementById('tournamentBar').classList.add('hidden');
   startMatch();
+}
+
+const FRIENDLY_RATINGS = [100,125,150,175,200,225,250];
+function friendlyReward(rating){
+  const pct = (rating-100)/(250-100);
+  return Math.round(200 + pct*(3000-200));
+}
+let friendlyCtx=null;
+function launchFriendly(rating){
+  friendlyCtx = { rating, reward: friendlyReward(rating) };
+  const cand = ALL.filter(c=>!MANAGER.squad.includes(c.id))
+    .sort((a,b)=>Math.abs(charRating(a)-rating)-Math.abs(charRating(b)-rating)).slice(0,6);
+  aiChar = cand[Math.floor(Math.random()*cand.length)];
+  const ci = MANAGER.squad[2] ? 2 : MANAGER.squad.findIndex(Boolean);
+  const base = charById(MANAGER.squad[ci]);
+  const b = base.pos===SLOTS[ci][1] ? 1.03 : 1;
+  playerChar = Object.assign({}, base, {speed:base.speed*b, jump:base.jump*b, kickPower:base.kickPower*b});
+  gameMode='quickmatch';
+  document.getElementById('cupVsBar').textContent = '\uD83E\uDD54 '+MANAGER.teamName+' \u2B50'+teamRating()+'   vs   Friendly XI \u2B50'+rating;
+  document.getElementById('managerScreen').classList.add('hidden');
+  document.getElementById('gameScreen').classList.remove('hidden');
+  document.getElementById('namePlayer').textContent=playerChar.name.toUpperCase();
+  document.getElementById('nameAI').textContent=aiChar.name.toUpperCase();
+  document.getElementById('tournamentBar').classList.add('hidden');
+  startMatch();
+}
+function endFriendly(over){
+  const ctx=friendlyCtx; friendlyCtx=null;
+  const won = score.player>score.ai, draw = score.player===score.ai;
+  const pay = won ? ctx.reward : Math.round(ctx.reward/4);
+  MANAGER.budget += pay; saveGame();
+  over.innerHTML='<h2>'+(won?'YOU WIN! \uD83C\uDFC6':draw?"IT'S A DRAW":'YOU LOSE \uD83D\uDC80')+'</h2>'+
+    '<div class="finalScore">'+score.player+' &nbsp;-&nbsp; '+score.ai+'</div>'+
+    '<div style="color:var(--gold);font-size:16px;margin:8px 0;">\uD83D\uDCB0 '+(won?'Full payout: ':'Consolation (1/4 pay): ')+fmtM(pay)+'</div>'+
+    '<div class="over-btns"><button class="start-btn" id="backMgBtn">BACK TO MANAGER</button></div>';
+  over.classList.remove('hidden');
+  document.getElementById('backMgBtn').addEventListener('click',()=>{
+    over.classList.add('hidden');
+    document.getElementById('gameScreen').classList.add('hidden');
+    document.getElementById('managerScreen').classList.remove('hidden');
+    updateManagerBudgetDisplay(); switchTab('cup');
+  });
 }
 
 function endCupMatch(over){
@@ -1890,15 +2193,17 @@ function endCupMatch(over){
   over.innerHTML='<h2>'+(won?'YOU WIN! 🏆':draw?"IT'S A DRAW":'YOU LOSE 💀')+'</h2>'+
     '<div class="finalScore">'+score.player+' &nbsp;-&nbsp; '+score.ai+'</div>'+
     (note?'<div style="opacity:0.85;font-size:14px;margin:6px 0;">'+note+'</div>':'')+
-    (c.phase==='finished'?'<div style="color:var(--gold);font-size:16px;margin:8px 0;">💰 Prize money: $'+c.prizeAmt+'M</div>':'')+
+    (c.phase==='finished'?'<div style="color:var(--gold);font-size:16px;margin:8px 0;">💰 Prize money: '+fmtM(c.prizeAmt)+'</div>':'')+
     '<div class="over-btns"><button class="start-btn" id="backMgBtn">BACK TO MANAGER</button></div>';
   over.classList.remove('hidden');
   document.getElementById('backMgBtn').addEventListener('click',()=>{
     over.classList.add('hidden');
     document.getElementById('gameScreen').classList.add('hidden');
-    if (c.comp==='w2'){
-      document.getElementById('worldTwoScreen').classList.remove('hidden');
-      document.getElementById('mgBudgetW2').textContent = '$'+MANAGER.budget+'M';
+    const scr = screenForComp(c.comp);
+    if (scr){
+      document.getElementById(scr).classList.remove('hidden');
+      const budEl = document.getElementById(scr==='worldTwoScreen'?'mgBudgetW2':'mgBudgetW3');
+      if (budEl) budEl.textContent = fmtM(MANAGER.budget);
       renderCupPhase();
     } else {
       document.getElementById('managerScreen').classList.remove('hidden');
@@ -1944,19 +2249,50 @@ function initManagerMode(){
   [['mgStartCupBtn','wc'],['mgStartCLBtn','cl'],['mgStartLigaBtn','liga']].forEach(([id,k])=>{
     document.getElementById(id).addEventListener('click',()=>{ if(startComp(k)) renderCupTab(); });
   });
-  document.getElementById('mgStartW2Btn').addEventListener('click',()=>{
-    const resume = MANAGER.cup && MANAGER.cup.comp==='w2' && MANAGER.cup.phase!=='finished';
-    if (!resume && !startComp('w2')) return;
-    document.getElementById('managerScreen').classList.add('hidden');
-    document.getElementById('worldTwoScreen').classList.remove('hidden');
-    document.getElementById('mgBudgetW2').textContent = '$'+MANAGER.budget+'M';
-    document.getElementById('cupContentW2').innerHTML='';
-    renderCupPhase();
+  function wireSpecialComp(btnId, backBtnId, screenId, stageId, contentId, budgetId, kind){
+    document.getElementById(btnId).addEventListener('click',()=>{
+      const resume = MANAGER.cup && MANAGER.cup.comp===kind && MANAGER.cup.phase!=='finished';
+      if (!resume && !startComp(kind)) return;
+      document.getElementById('managerScreen').classList.add('hidden');
+      document.getElementById(screenId).classList.remove('hidden');
+      document.getElementById(budgetId).textContent = fmtM(MANAGER.budget);
+      document.getElementById(contentId).innerHTML='';
+      renderCupPhase();
+    });
+    document.getElementById(backBtnId).addEventListener('click',()=>{
+      document.getElementById(screenId).classList.add('hidden');
+      document.getElementById('managerScreen').classList.remove('hidden');
+      switchTab('cup');
+    });
+  }
+  wireSpecialComp('mgStartW2Btn','w2BackBtn','worldTwoScreen','cupStageLabelW2','cupContentW2','mgBudgetW2','w2');
+  wireSpecialComp('mgStartW3Btn','w3BackBtn','worldThreeScreen','cupStageLabelW3','cupContentW3','mgBudgetW3','w3cup');
+  wireSpecialComp('mgStartGoatBtn','w3BackBtn','worldThreeScreen','cupStageLabelW3','cupContentW3','mgBudgetW3','goat');
+
+  let selFriendlyRating = 150;
+  function renderFriendlyButtons(){
+    const wrap = document.getElementById('friendlyRatingButtons');
+    wrap.innerHTML='';
+    FRIENDLY_RATINGS.forEach(r=>{
+      const b = document.createElement('button');
+      b.className = 'mg-player-btn '+(r===selFriendlyRating?'owned':'buy');
+      b.textContent = '\u2B50'+r;
+      b.style.cssText='width:auto;padding:6px 10px;';
+      b.addEventListener('click',()=>{ selFriendlyRating=r; renderFriendlyButtons(); });
+      wrap.appendChild(b);
+    });
+    document.getElementById('friendlyRewardLine').textContent =
+      'Win: '+fmtM(friendlyReward(selFriendlyRating))+'   \u2022   Lose: '+fmtM(Math.round(friendlyReward(selFriendlyRating)/4));
+  }
+  document.getElementById('mgFriendlyBtn').addEventListener('click',()=>{
+    document.getElementById('friendliesPanel').classList.remove('hidden');
+    renderFriendlyButtons();
   });
-  document.getElementById('w2BackBtn').addEventListener('click',()=>{
-    document.getElementById('worldTwoScreen').classList.add('hidden');
-    document.getElementById('managerScreen').classList.remove('hidden');
-    switchTab('cup');
+  document.getElementById('friendlyCloseBtn').addEventListener('click',()=>{
+    document.getElementById('friendliesPanel').classList.add('hidden');
+  });
+  document.getElementById('friendlyPlayBtn').addEventListener('click',()=>{
+    launchFriendly(selFriendlyRating);
   });
   document.getElementById('mgPosFilter').addEventListener('change',renderMarket);
   switchTab('squad');
@@ -2137,8 +2473,73 @@ function drawAcc(g,c,fx,r){
   g.restore();
 }
 
+function drawGoatCard(g, char, r){
+  g.save();
+  // split-jersey potato body: left = prime Pessi (Barca), right = prime Potadaldo (Madrid)
+  potatoPath.call(g, r);
+  g.save(); g.clip();
+  g.fillStyle = '#a50044';
+  g.fillRect(-r*1.3, -r*1.3, r*1.3, r*2.8);
+  g.fillStyle = '#f5f0e0';
+  g.fillRect(0, -r*1.3, r*1.3, r*2.8);
+  g.fillStyle = '#004d98';
+  g.fillRect(-r*1.05, r*0.08, r*0.16, r*0.85);
+  g.fillStyle = '#c9a227';
+  g.beginPath(); g.arc(r*0.55, r*0.4, r*0.12, 0, Math.PI*2); g.fill();
+  g.fillStyle = '#ffd700';
+  g.fillRect(-r*0.035, -r*1.3, r*0.07, r*2.8);
+  g.restore();
+  g.lineWidth = 2.5; g.strokeStyle = '#8a5a2c';
+  potatoPath.call(g, r); g.stroke();
+
+  // GOAT number badge
+  g.fillStyle = '#ffd700';
+  g.beginPath(); g.arc(0, r*0.7, r*0.36, 0, Math.PI*2); g.fill();
+  g.fillStyle = '#1a1208';
+  g.font = '800 '+Math.round(r*0.24)+'px Fredoka, sans-serif';
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText('G.O.A.T', 0, r*0.72);
+
+  // ---- goat head, replacing the usual potato head/face ----
+  g.save();
+  g.translate(0, -r*0.92);
+  g.fillStyle = '#e8dcc0';
+  g.beginPath(); g.ellipse(-r*0.72, r*0.08, r*0.19, r*0.42, -0.5, 0, Math.PI*2); g.fill();
+  g.beginPath(); g.ellipse(r*0.72, r*0.08, r*0.19, r*0.42, 0.5, 0, Math.PI*2); g.fill();
+  g.fillStyle = '#d8c9a0';
+  g.beginPath();
+  g.moveTo(-r*0.3, -r*0.48); g.quadraticCurveTo(-r*0.58,-r*1.05,-r*0.2,-r*1.28);
+  g.quadraticCurveTo(-r*0.36,-r*0.9,-r*0.1,-r*0.48); g.closePath(); g.fill();
+  g.beginPath();
+  g.moveTo(r*0.3, -r*0.48); g.quadraticCurveTo(r*0.58,-r*1.05,r*0.2,-r*1.28);
+  g.quadraticCurveTo(r*0.36,-r*0.9,r*0.1,-r*0.48); g.closePath(); g.fill();
+  const hg = g.createRadialGradient(-r*0.2,-r*0.3,r*0.1, 0,0,r*0.95);
+  hg.addColorStop(0,'#fbf3df'); hg.addColorStop(1,'#d8c9a0');
+  g.fillStyle = hg;
+  g.beginPath(); g.ellipse(0,0,r*0.78,r*0.72,0,0,Math.PI*2); g.fill();
+  g.lineWidth = 2; g.strokeStyle = '#a99666'; g.stroke();
+  g.fillStyle = '#efe6d0';
+  g.beginPath(); g.ellipse(0, r*0.42, r*0.42, r*0.3, 0, 0, Math.PI*2); g.fill();
+  g.fillStyle = '#4a3a20';
+  g.beginPath(); g.ellipse(-r*0.14, r*0.44, r*0.05, r*0.08, 0, 0, Math.PI*2); g.fill();
+  g.beginPath(); g.ellipse(r*0.14, r*0.44, r*0.05, r*0.08, 0, 0, Math.PI*2); g.fill();
+  g.fillStyle = '#f0e020';
+  [-1,1].forEach(s=>{ g.beginPath(); g.ellipse(s*r*0.34,-r*0.08,r*0.17,r*0.14,0,0,Math.PI*2); g.fill(); });
+  g.fillStyle = '#1a1a1a';
+  [-1,1].forEach(s=>{ g.fillRect(s*r*0.34-r*0.16, -r*0.1, r*0.32, r*0.045); });
+  g.fillStyle = '#d8c9a0';
+  g.beginPath();
+  g.moveTo(-r*0.12,r*0.64); g.lineTo(r*0.12,r*0.64); g.lineTo(0,r*0.98); g.closePath(); g.fill();
+  g.restore();
+
+  g.restore();
+}
+
 function drawPotatoCharacter(g, char, cx, cy, facing, kickPhase, isKicking, walkPhase, r){
   r = r || HEAD_R;
+  if (char.id==='thegoat'){
+    g.save(); g.translate(cx, cy); drawGoatCard(g, char, r); g.restore(); return;
+  }
   g.save();
   g.translate(cx, cy);
 
@@ -2568,8 +2969,8 @@ function resetPositions(){
 
 function startMatch(){
   score.player = 0; score.ai = 0;
-  document.getElementById('cupVsBar').classList.toggle('hidden', !cupMatchRef);
-  timeLeft = cupMatchRef ? 30 : MATCH_SECONDS;   // manager matches are 30s
+  document.getElementById('cupVsBar').classList.toggle('hidden', !(cupMatchRef||friendlyCtx));
+  timeLeft = (cupMatchRef||friendlyCtx) ? 30 : MATCH_SECONDS;   // manager matches are 30s
   resetPositions();
   updateHud();
   document.getElementById('gameOverScreen').classList.add('hidden');
@@ -2742,6 +3143,7 @@ function endMatch(){
   const over = document.getElementById('gameOverScreen');
   const playerWon = score.player > score.ai;
   if (cupMatchRef){ endCupMatch(over); return; }
+  if (friendlyCtx){ endFriendly(over); return; }
   const isDraw = score.player === score.ai;
 
   if (gameMode === 'tournament'){
