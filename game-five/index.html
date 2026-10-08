@@ -706,6 +706,7 @@
       <button class="mg-tab" data-tab="market">&#x1F6D2; MARKET</button>
       <button class="mg-tab" data-tab="packs">&#x1F381; PACKS</button>
       <button class="mg-tab" data-tab="cup">&#x1F3C6; COMPETE</button>
+      <button class="mg-tab" data-tab="career">&#x1F3C5; CAREER</button>
     </div>
     <!-- SQUAD TAB -->
     <div class="mg-panel" id="tab-squad">
@@ -758,8 +759,17 @@
     <!-- PACKS TAB -->
     <div class="mg-panel hidden" id="tab-packs">
       <div class="hint" style="margin-bottom:10px;">Open packs for a random player in that world's rating range. The top end of every pack is rare &mdash; some pulls are near impossible.</div>
+      <div id="dailyPackBox" style="margin-bottom:16px;padding:12px;border-radius:14px;border:2px solid #7dff7d;background:rgba(125,255,125,.08);text-align:center;">
+        <div style="font-weight:700;color:#7dff7d;">&#x1F381; FREE DAILY PACK</div>
+        <div class="hint" id="dailyPackHint">A free World 1 Pack, once every real-world day.</div>
+        <button class="start-btn" id="dailyPackBtn" style="margin-top:8px;background:linear-gradient(135deg,#2bb84a,#0a4d1a);border-color:#7dff7d;">CLAIM FREE PACK</button>
+      </div>
       <div class="mg-market-grid" id="mgPacksGrid"></div>
       <div id="packReveal" class="hidden" style="margin-top:16px;text-align:center;padding:18px;border-radius:14px;background:rgba(0,0,0,.35);border:2px solid var(--gold);"></div>
+    </div>
+    <!-- CAREER TAB -->
+    <div class="mg-panel hidden" id="tab-career">
+      <div id="careerContent"></div>
     </div>
     <!-- CUP TAB -->
     <div class="mg-panel hidden" id="tab-cup">
@@ -1142,8 +1152,10 @@ function openPack(kind){
   MANAGER.budget -= cfg.cost;
   const pulled = weightedPackPick(kind);
   MANAGER.bench.push(pulled.id);
+  if (pulled.special==='mythic') MANAGER.stats.mythicPulled = true;
+  const unlocked = checkAchievements();
   saveGame();
-  return pulled;
+  return { pulled, unlocked };
 }
 
 /* ============================================================
@@ -1516,7 +1528,60 @@ const MANAGER = {
   bench: [],
   cupStarted: false,
   cup: null,
+  stats: { matches:0, wins:0, goals:0, streak:0, bestStreak:0, mythicPulled:false,
+           trophies:{ wc:0, cl:0, liga:0, w2:0, w3cup:0, goat:0 } },
+  achievements: [],
+  lastDailyPack: null,
 };
+
+const RARITY_RANK = { gold:0, ego:1, frytties:2, tots:3, icon:4, elite:5, legend:6, mythic:7, goat:8 };
+const ACHIEVEMENTS = [
+  {id:'first_win',    name:'First Blood',       desc:'Win your first match.',                                          reward:100,  test:s=>s.wins>=1},
+  {id:'world_beater', name:'World Beater',      desc:'Win the World Cup.',                                             reward:200,  test:s=>s.trophies.wc>0},
+  {id:'treble',       name:'Treble Winner',     desc:'Win the World Cup, Champions Chip League and La Liga Papa.',     reward:500,  test:s=>s.trophies.wc>0&&s.trophies.cl>0&&s.trophies.liga>0},
+  {id:'two_worlds',   name:'Two Worlds',        desc:'Win World Two.',                                                 reward:500,  test:s=>s.trophies.w2>0},
+  {id:'goat_champion',name:'Living Legend',     desc:'Win the GOAT Cup — the hardest competition in the game.',        reward:1000, test:s=>s.trophies.goat>0},
+  {id:'mythic_pull',  name:'Jackpot',           desc:'Pull a MYTHIC card from a pack.',                                reward:200,  test:s=>s.mythicPulled},
+  {id:'streak5',      name:'Unstoppable',       desc:'Win 5 matches in a row.',                                        reward:300,  test:s=>s.bestStreak>=5},
+  {id:'streak10',     name:'Dynasty',           desc:'Win 10 matches in a row.',                                       reward:600,  test:s=>s.bestStreak>=10},
+  {id:'goal20',       name:'Goal Machine',      desc:'Score 20 goals across all matches.',                             reward:150,  test:s=>s.goals>=20},
+  {id:'goal50',       name:'Golden Boot',       desc:'Score 50 goals across all matches.',                             reward:400,  test:s=>s.goals>=50},
+  {id:'goat_owner',   name:'The GOAT Himself',  desc:'Own The G.O.A.T card.',                                          reward:0,    test:s=>s.goatOwned},
+  {id:'legend_squad', name:'Legendary Lineup',  desc:'Field 5 LEGEND-tier-or-better players at once.',                 reward:400,  test:s=>s.legendSquad},
+];
+function achievementSnapshot(){
+  const s = MANAGER.stats;
+  return {
+    wins:s.wins, trophies:s.trophies, bestStreak:s.bestStreak, goals:s.goals, mythicPulled:s.mythicPulled,
+    goatOwned: MANAGER.squad.includes('thegoat') || MANAGER.bench.includes('thegoat'),
+    legendSquad: filled().length===5 && MANAGER.squad.every(id=>id && RARITY_RANK[cardRarity(charById(id))]>=6)
+  };
+}
+function checkAchievements(){
+  const snap = achievementSnapshot();
+  const unlocked = [];
+  ACHIEVEMENTS.forEach(a=>{
+    if (!MANAGER.achievements.includes(a.id) && a.test(snap)){
+      MANAGER.achievements.push(a.id);
+      MANAGER.budget += a.reward;
+      unlocked.push(a);
+    }
+  });
+  if (unlocked.length) saveGame();
+  return unlocked;
+}
+function recordMatchResult(won, goalsFor){
+  const s = MANAGER.stats;
+  s.matches++; s.goals += goalsFor;
+  if (won){ s.wins++; s.streak++; s.bestStreak = Math.max(s.bestStreak, s.streak); }
+  else { s.streak = 0; }
+}
+function achievementBanner(unlocked){
+  if (!unlocked.length) return '';
+  return '<div style="margin-top:10px;padding:10px;border-radius:10px;background:rgba(255,215,0,.12);border:1px solid var(--gold);">'+
+    unlocked.map(a=>'<div style="color:var(--gold);font-size:14px;">\uD83C\uDFC5 Achievement unlocked: <b>'+a.name+'</b>'+(a.reward?' (+'+fmtM(a.reward)+')':'')+'</div>').join('')+
+    '</div>';
+}
 
 const AI_CLUBS = [
   {name:'Spud United',    flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', rating:74},
@@ -1574,7 +1639,8 @@ function fmtM(n){
 function saveGame(){
   try{
     localStorage.setItem(SAVE_KEY, JSON.stringify({
-      teamName: MANAGER.teamName, budget: MANAGER.budget, squad: MANAGER.squad, worldTwoUnlocked: MANAGER.worldTwoUnlocked, worldThreeUnlocked: MANAGER.worldThreeUnlocked, bench: MANAGER.bench
+      teamName: MANAGER.teamName, budget: MANAGER.budget, squad: MANAGER.squad, worldTwoUnlocked: MANAGER.worldTwoUnlocked, worldThreeUnlocked: MANAGER.worldThreeUnlocked, bench: MANAGER.bench,
+      stats: MANAGER.stats, achievements: MANAGER.achievements, lastDailyPack: MANAGER.lastDailyPack
     }));
     return true;
   }catch(e){ return false; }
@@ -1590,6 +1656,9 @@ function loadGame(){
     MANAGER.worldTwoUnlocked = !!d.worldTwoUnlocked;
     MANAGER.worldThreeUnlocked = !!d.worldThreeUnlocked;
     MANAGER.bench = Array.isArray(d.bench) ? d.bench : [];
+    if (d.stats) MANAGER.stats = Object.assign({matches:0,wins:0,goals:0,streak:0,bestStreak:0,mythicPulled:false,trophies:{wc:0,cl:0,liga:0,w2:0,w3cup:0,goat:0}}, d.stats, {trophies:Object.assign({wc:0,cl:0,liga:0,w2:0,w3cup:0,goat:0}, d.stats.trophies||{})});
+    MANAGER.achievements = Array.isArray(d.achievements) ? d.achievements : [];
+    MANAGER.lastDailyPack = d.lastDailyPack || null;
     return true;
   }catch(e){ return false; }
 }
@@ -1598,6 +1667,8 @@ function resetGame(){
   MANAGER.teamName='My Spuds'; MANAGER.budget=900;
   MANAGER.squad=[null,null,null,null,null];
   MANAGER.worldTwoUnlocked=false; MANAGER.worldThreeUnlocked=false; MANAGER.cup=null; MANAGER.bench=[]; selSlot=null; selBench=null;
+  MANAGER.stats={ matches:0, wins:0, goals:0, streak:0, bestStreak:0, mythicPulled:false, trophies:{wc:0,cl:0,liga:0,w2:0,w3cup:0,goat:0} };
+  MANAGER.achievements=[]; MANAGER.lastDailyPack=null;
   const ni=document.getElementById('mgTeamName'); if(ni) ni.value=MANAGER.teamName;
   updateManagerBudgetDisplay();
   switchTab('squad');
@@ -1632,10 +1703,60 @@ function switchTab(name){
   if (name==='market') renderMarket();
   if (name==='packs') renderPacksTab();
   if (name==='cup') renderCupTab();
+  if (name==='career') renderCareerTab();
 }
 
+function renderCareerTab(){
+  checkAchievements();
+  const s = MANAGER.stats;
+  const el2 = (t,c,x)=>{const e=document.createElement(t); if(c) e.className=c; if(x!==undefined) e.innerHTML=x; return e;};
+  const wrap = document.getElementById('careerContent');
+  wrap.innerHTML='';
+  const statsBox = el2('div','', `
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px;">
+      <div class="mg-player-card" style="padding:10px;"><div class="mg-player-rating" style="display:block;">${s.matches}</div><div class="hint">Matches played</div></div>
+      <div class="mg-player-card" style="padding:10px;"><div class="mg-player-rating" style="display:block;">${s.wins}</div><div class="hint">Wins</div></div>
+      <div class="mg-player-card" style="padding:10px;"><div class="mg-player-rating" style="display:block;">${s.goals}</div><div class="hint">Goals scored</div></div>
+      <div class="mg-player-card" style="padding:10px;"><div class="mg-player-rating" style="display:block;">${s.bestStreak}</div><div class="hint">Best win streak</div></div>
+    </div>
+    <h3 class="mg-section-lbl" style="color:var(--gold)">\uD83C\uDFC6 Trophy Cabinet</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
+      <div class="mg-player-card" style="padding:8px;"><div class="mg-player-rating" style="display:block;">${s.trophies.wc}</div><div class="hint">World Cup</div></div>
+      <div class="mg-player-card" style="padding:8px;"><div class="mg-player-rating" style="display:block;">${s.trophies.cl}</div><div class="hint">Champions Chip</div></div>
+      <div class="mg-player-card" style="padding:8px;"><div class="mg-player-rating" style="display:block;">${s.trophies.liga}</div><div class="hint">La Liga Papa</div></div>
+      <div class="mg-player-card" style="padding:8px;border-color:#c48aff;"><div class="mg-player-rating" style="display:block;background:#2b0a4d;color:#e6cfff;">${s.trophies.w2}</div><div class="hint">World Two</div></div>
+      <div class="mg-player-card" style="padding:8px;border-color:#ffb060;"><div class="mg-player-rating" style="display:block;background:#5a1a00;color:#ffd8ad;">${s.trophies.w3cup}</div><div class="hint">World Cup 2.0</div></div>
+      <div class="mg-player-card" style="padding:8px;border-color:#ffd700;"><div class="mg-player-rating" style="display:block;background:#000;color:#ffd700;">${s.trophies.goat}</div><div class="hint">GOAT Cup</div></div>
+    </div>
+  `);
+  wrap.appendChild(statsBox);
+  const h = el2('h3','mg-section-lbl','\uD83C\uDFC5 Achievements ('+MANAGER.achievements.length+'/'+ACHIEVEMENTS.length+')');
+  h.style.color='var(--gold)';
+  wrap.appendChild(h);
+  const list = el2('div');
+  ACHIEVEMENTS.forEach(a=>{
+    const got = MANAGER.achievements.includes(a.id);
+    const row = el2('div','mg-player-card', '');
+    row.style.cssText='display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:8px;text-align:left;'+(got?'border-color:var(--gold);':'opacity:0.55;');
+    const icon = el2('div','','\uD83C\uDFC5'); icon.style.fontSize='22px';
+    const txt = el2('div');
+    txt.innerHTML = '<div style="font-weight:700;color:'+(got?'var(--gold)':'var(--cream)')+';">'+a.name+(got?' \u2713':'')+'</div><div class="hint">'+a.desc+(a.reward?' (+'+fmtM(a.reward)+')':'')+'</div>';
+    row.appendChild(icon); row.appendChild(txt);
+    list.appendChild(row);
+  });
+  wrap.appendChild(list);
+}
+
+function todayStr(){ return new Date().toDateString(); }
 function renderPacksTab(){
   document.getElementById('packReveal').classList.add('hidden');
+  const dBtn = document.getElementById('dailyPackBtn');
+  const claimedToday = MANAGER.lastDailyPack === todayStr();
+  dBtn.disabled = claimedToday;
+  dBtn.textContent = claimedToday ? 'COME BACK TOMORROW' : 'CLAIM FREE PACK';
+  document.getElementById('dailyPackHint').textContent = claimedToday
+    ? 'Already claimed today \u2014 check back tomorrow for another.'
+    : 'A free World 1 Pack, once every real-world day.';
   const grid = document.getElementById('mgPacksGrid');
   grid.innerHTML='';
   Object.entries(PACKS).forEach(([kind,cfg])=>{
@@ -1647,10 +1768,11 @@ function renderPacksTab(){
     const btn = el('button','mg-player-btn buy','OPEN PACK');
     btn.disabled = MANAGER.budget < cfg.cost;
     btn.addEventListener('click',()=>{
-      const pulled = openPack(kind);
+      const result = openPack(kind);
       updateManagerBudgetDisplay();
       renderPacksTab();
-      if (!pulled) return;
+      if (!result) return;
+      const pulled = result.pulled, unlockedAch = result.unlocked;
       const rv = document.getElementById('packReveal');
       rv.classList.remove('hidden');
       rv.innerHTML='';
@@ -1666,6 +1788,10 @@ function renderPacksTab(){
       rv.appendChild(pc);
       const note = el('div','hint','Added to your bench \u2014 go to Squad to equip.'); note.style.marginTop='10px';
       rv.appendChild(note);
+      if (unlockedAch.length){
+        const banner = el('div'); banner.innerHTML = achievementBanner(unlockedAch);
+        rv.appendChild(banner);
+      }
     });
     card.appendChild(btn);
     grid.appendChild(card);
@@ -1693,6 +1819,7 @@ function futCard(c,i){
 }
 
 function renderSquad(){
+  checkAchievements();
   const grid = document.getElementById('mgSquadGrid');
   grid.className='mg-pitch'; grid.innerHTML='';
   const n = filled().length;
@@ -1849,8 +1976,10 @@ function finishCup(result, prizeIdx){
   c.phase='finished'; c.result=result;
   c.prizeAmt = c.prizes[Math.min(prizeIdx, c.prizes.length-1)];
   MANAGER.budget += c.prizeAmt;
+  if (result==='won' && MANAGER.stats.trophies[c.comp]!==undefined) MANAGER.stats.trophies[c.comp]++;
   if (c.comp==='wc' && result==='won' && !MANAGER.worldTwoUnlocked){ MANAGER.worldTwoUnlocked=true; c.unlockedW2=true; }
   if (c.comp==='w2' && result==='won' && !MANAGER.worldThreeUnlocked){ MANAGER.worldThreeUnlocked=true; c.unlockedW3=true; }
+  c.newAchievements = checkAchievements();
   updateManagerBudgetDisplay();
   saveGame();
 }
@@ -2161,10 +2290,14 @@ function endFriendly(over){
   const ctx=friendlyCtx; friendlyCtx=null;
   const won = score.player>score.ai, draw = score.player===score.ai;
   const pay = won ? ctx.reward : Math.round(ctx.reward/4);
-  MANAGER.budget += pay; saveGame();
+  MANAGER.budget += pay;
+  recordMatchResult(won, score.player);
+  const unlocked = checkAchievements();
+  saveGame();
   over.innerHTML='<h2>'+(won?'YOU WIN! \uD83C\uDFC6':draw?"IT'S A DRAW":'YOU LOSE \uD83D\uDC80')+'</h2>'+
     '<div class="finalScore">'+score.player+' &nbsp;-&nbsp; '+score.ai+'</div>'+
     '<div style="color:var(--gold);font-size:16px;margin:8px 0;">\uD83D\uDCB0 '+(won?'Full payout: ':'Consolation (1/4 pay): ')+fmtM(pay)+'</div>'+
+    achievementBanner(unlocked)+
     '<div class="over-btns"><button class="start-btn" id="backMgBtn">BACK TO MANAGER</button></div>';
   over.classList.remove('hidden');
   document.getElementById('backMgBtn').addEventListener('click',()=>{
@@ -2190,10 +2323,15 @@ function endCupMatch(over){
     checkKnockoutRound();
   }
   const c=MANAGER.cup, won=score.player>score.ai, draw=score.player===score.ai;
+  recordMatchResult(won, score.player);
+  let unlocked = checkAchievements();
+  if (c.phase==='finished' && c.newAchievements) unlocked = unlocked.concat(c.newAchievements.filter(a=>!unlocked.includes(a)));
+  saveGame();
   over.innerHTML='<h2>'+(won?'YOU WIN! 🏆':draw?"IT'S A DRAW":'YOU LOSE 💀')+'</h2>'+
     '<div class="finalScore">'+score.player+' &nbsp;-&nbsp; '+score.ai+'</div>'+
     (note?'<div style="opacity:0.85;font-size:14px;margin:6px 0;">'+note+'</div>':'')+
     (c.phase==='finished'?'<div style="color:var(--gold);font-size:16px;margin:8px 0;">💰 Prize money: '+fmtM(c.prizeAmt)+'</div>':'')+
+    achievementBanner(unlocked)+
     '<div class="over-btns"><button class="start-btn" id="backMgBtn">BACK TO MANAGER</button></div>';
   over.classList.remove('hidden');
   document.getElementById('backMgBtn').addEventListener('click',()=>{
@@ -2237,6 +2375,30 @@ function initManagerMode(){
       clearTimeout(resetTimer); resetArmed=false; resetBtn.innerHTML='\uD83D\uDDD1\uFE0F RESET';
       resetGame();
     }
+  });
+  document.getElementById('dailyPackBtn').addEventListener('click',()=>{
+    if (MANAGER.lastDailyPack === todayStr()) return;
+    MANAGER.lastDailyPack = todayStr();
+    const pulled = weightedPackPick('w1');
+    MANAGER.bench.push(pulled.id);
+    const unlocked = checkAchievements();
+    saveGame();
+    updateManagerBudgetDisplay();
+    renderPacksTab();
+    const rv = document.getElementById('packReveal');
+    rv.classList.remove('hidden'); rv.innerHTML='';
+    const label = el('div','','\uD83C\uDF81 Daily pull:'); label.style.cssText='color:#7dff7d;font-family:Fredoka,sans-serif;margin-bottom:8px;font-size:15px;';
+    rv.appendChild(label);
+    const pc = el('div','mg-player-card rarity-'+cardRarity(pulled));
+    pc.style.cssText='max-width:160px;margin:0 auto;';
+    const cv = miniPotatoCanvas(pulled); cv.style.maxWidth='90px'; pc.appendChild(cv);
+    if (RARITY_LABEL[cardRarity(pulled)]) pc.appendChild(el('div','rarity-badge',RARITY_LABEL[cardRarity(pulled)]));
+    pc.appendChild(el('div','mg-player-name',pulled.name));
+    pc.appendChild(el('div','mg-player-rating',POSN[pulled.pos]+' \u2B50 '+charRating(pulled)));
+    rv.appendChild(pc);
+    const note = el('div','hint','Added to your bench \u2014 go to Squad to equip.'); note.style.marginTop='10px';
+    rv.appendChild(note);
+    if (unlocked.length){ const banner=el('div'); banner.innerHTML=achievementBanner(unlocked); rv.appendChild(banner); }
   });
   document.querySelectorAll('.mg-tab').forEach(t=>{
     t.addEventListener('click',()=>switchTab(t.dataset.tab));
