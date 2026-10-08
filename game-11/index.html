@@ -1,0 +1,147 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Getaway Heist 3D</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{margin:0;background:#120d09;color:#f3e6d0;font-family:system-ui,sans-serif}
+#w{position:relative;width:800px;max-width:100%;margin:0 auto}
+canvas{width:100%;display:block;background:#d9b66f}
+#ui{position:absolute;inset:0;background:rgba(18,13,9,.95);overflow:auto;padding:14px;text-align:center}
+h1{color:#ffb020;margin:6px 0;letter-spacing:3px}h2,h3{margin:8px 0}.s{opacity:.8;font-size:14px}
+.g{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:8px 0}
+button{background:#2b2118;color:#f3e6d0;border:2px solid #ffb020;border-radius:8px;padding:9px 12px;font-size:14px;cursor:pointer;min-width:130px}
+button:hover:not(:disabled){background:#ffb020;color:#120d09}button:disabled{opacity:.4;cursor:default}
+small{opacity:.8}.bar{height:18px;background:#333;border-radius:9px;margin:10px auto;max-width:300px;overflow:hidden}.bar i{display:block;height:100%;background:#ffb020;width:0}
+#hud,#msg{position:absolute;left:8px;right:8px;pointer-events:none;font:bold 14px system-ui;text-shadow:0 0 4px #000,0 0 4px #000;color:#fff}#hud{top:6px;right:180px}#mm{position:absolute;top:8px;right:8px;width:160px;border:2px solid #fff;border-radius:4px;pointer-events:none}#msg{bottom:14px;text-align:center;font-size:22px}</style><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script></head><body><div id="w"><canvas id="c" width="800" height="500"></canvas><canvas id="c2" width="800" height="500" style="display:none"></canvas><canvas id="mm" width="160" height="110"></canvas><div id="hud"></div><div id="msg"></div><div id="ui"></div></div>
+<script>
+const $=id=>document.getElementById(id),cv=$('c');if(typeof THREE=='undefined'){document.body.innerHTML='<p style="padding:20px;font:18px sans-serif">The 3D library could not load. Check your internet connection (or that cdnjs.cloudflare.com is not blocked) and reload.</p>';throw new Error('no THREE')}
+const CARS=[{id:'starter',n:'Beater',p:0,spd:5.2,col:'#c33'},{id:'muscle',n:'Muscle Car',p:50000,spd:6.2,col:'#36c'},{id:'super',n:'Supercar',p:250000,spd:7.2,col:'#fc0'},{id:'hyper',n:'Hypercar',p:1000000,spd:8.4,col:'#0fc'}];
+const LV=[{n:'Corner Bank',w:1600,h:1100,cops:2,pay:25000,rank:0},{n:'Desert Bank',w:2600,h:1800,cops:3,pay:60000,rank:1},{n:'City Vault',w:3200,h:2200,cops:5,pay:150000,rank:2}];
+const RK=['Street Crook','Thug','Trigger Finger','Mastermind','World Wide Legend'],RT=[0,30000,100000,300000,1000000];
+let S=null;try{S=JSON.parse(localStorage.getItem('gh2')||'null')}catch(e){}
+S=S||{money:5000,earned:0,cars:['starter'],car:'starter',up:{spd:0,hnd:0,arm:0},it:{tnt:0,ptnt:0,nitro:0,gun:0,trk:0}};
+const save=()=>{try{localStorage.setItem('gh2',JSON.stringify(S))}catch(e){}};
+const rank=()=>{let r=0;RT.forEach((t,i)=>{if(S.earned>=t)r=i});return r};
+const $$=n=>'$'+Math.round(n).toLocaleString();
+let mode='menu',L,G,K={},jt=null,jp=0,fr=0;
+const show=h=>{$('ui').innerHTML=h;$('ui').style.display='block'},hide=()=>{$('ui').style.display='none'};
+
+function menu(){mode='menu';fr=0;save();clearInterval(jt);
+ let h=`<h1>GETAWAY HEIST</h1><p class=s>${$$(S.money)} &middot; Rank: ${RK[rank()]}</p><div class=g>`;
+ h+=`<button onclick="freeRide()" style="font-size:20px;padding:14px 30px">Free Ride</button> <button onclick="vw()">View: ${V3?'3D':'2D'}</button>`;
+ h+=`</div><div class=g><button onclick="shop()">Shop</button><button onclick="bm()">Black Market</button></div><p class=s>Arrows/WASD move &middot; Space nitro &middot; E get out/in car &middot; hold E at vault to crack it &middot; T TNT &middot; F shoot cops</p><p class=s>Hit Free Ride and drive into a Level building. Park at the bank door, get out, walk in, crack the vault and grab the money, then escape to the green hideout. You only have 2 lives: cops catch you twice and you are busted!</p>`;show(h)}
+
+function shop(m=''){mode='menu';let h=`<h2>SHOP</h2><p class=s>${$$(S.money)} ${m}</p><div class=g>`;
+ [['tnt','TNT',10000],['ptnt','Premium TNT',15000],['nitro','Nitro charge',3000],['gun','Ammo x10',2000]].forEach(([k,n,p])=>h+=`<button onclick="buy('${k}',${p})">${n} (${S.it[k]})<br><small>${$$(p)}</small></button>`);
+ h+=`<button ${S.it.trk?'disabled':''} onclick="buy('trk',5000)">Tracker${S.it.trk?' (owned)':''}<br><small>$5,000</small></button></div><h3>Car upgrades</h3><div class=g>`;
+ [['spd','Engine'],['hnd','Handling'],['arm','Armor']].forEach(([k,n])=>{const p=8000*(S.up[k]+1)**2,mx=S.up[k]>=5;h+=`<button ${mx?'disabled':''} onclick="buyUp('${k}',${p})">${n} ${S.up[k]}/5<br><small>${mx?'MAX':$$(p)}</small></button>`});
+ h+=`</div><h3>Cars</h3><div class=g>`;
+ CARS.forEach(c=>{const o=S.cars.includes(c.id);h+=`<button onclick="car('${c.id}')">${c.n}${S.car==c.id?' (driving)':''}<br><small>${o?'Owned - drive it':$$(c.p)}</small></button>`});
+ show(h+`</div><button onclick="back()">Back</button>`)}
+function back(){fr?freeRide():menu()}
+function buy(k,p){if(S.money<p)return shop('Not enough money!');S.money-=p;if(k=='trk')S.it.trk=1;else S.it[k]+=k=='gun'?10:1;save();shop()}
+function buyUp(k,p){if(S.money<p)return shop('Not enough money!');S.money-=p;S.up[k]++;save();shop()}
+function car(id){const c=CARS.find(c=>c.id==id);if(!S.cars.includes(id)){if(S.money<c.p)return shop('Not enough money!');S.money-=c.p;S.cars.push(id)}S.car=id;save();shop()}
+function bm(m=''){mode='menu';let h=`<h2>BLACK MARKET</h2><p class=s>${$$(S.money)} ${m}<br>Sell spare cars for 70% of their value.</p><div class=g>`;
+ const sp=S.cars.filter(id=>id!='starter'&&id!=S.car);
+ if(!sp.length)h+=`<p class=s>You have no spare cars to sell.</p>`;
+ sp.forEach(id=>{const c=CARS.find(c=>c.id==id);h+=`<button onclick="sell('${id}')">Sell ${c.n}<br><small>${$$(c.p*.7)}</small></button>`});
+ show(h+`</div><button onclick="back()">Back</button>`)}
+function sell(id){const c=CARS.find(c=>c.id==id);S.cars=S.cars.filter(x=>x!=id);S.money+=c.p*.7;save();bm('Sold!')}
+
+function win(){mode='end';const g=G.loot+G.bounty,r0=rank();S.money+=g;S.earned+=g;save();
+ show(`<h1>YOU ESCAPED!</h1><p>Loot ${$$(G.loot)} + bounty ${$$(G.bounty)}</p><h2>+${$$(g)}</h2>${rank()>r0?`<p style="color:#ffb020">RANK UP: ${RK[rank()]}!</p>`:''}<div class=g><button onclick="freeRide()">Back to Free Ride</button></div>`)}
+function busted(){mode='end';const l=Math.floor(S.money*.3);S.money-=l;save();show(`<h1 style="color:#e44">BUSTED!</h1><p>You lost ${$$(l)} and got sent to jail.</p><div class=g><button onclick="jail(0,1)">Go to Jail</button></div>`)}
+function jail(n,init){if(init){mode='jail';jp=0;clearInterval(jt);jt=setInterval(()=>{jp=Math.max(0,jp-1.2);ui()},100)}jp+=n;ui();if(jp>=100){clearInterval(jt);freeRide()}}
+function ui(){if(mode!='jail')return;show(`<h1>JAIL</h1><p>Mash SPACE (or tap the button) to break out!</p><div class="bar"><i style="width:${Math.min(100,jp)}%"></i></div><div class=g><button onclick="jail(8)">Dig!</button><button ${S.money<5000?'disabled':''} onclick="S.money-=5000;jp=100;jail(0)">Pay bail $5,000</button></div>`)}
+
+
+const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(65,1.6,.1,500),rd=new THREE.WebGLRenderer({canvas:cv,antialias:true});
+function rs(){const w=$('w').clientWidth;rd.setSize(w,w*.625,false)}rs();addEventListener('resize',rs);
+const cl=(v,a,b)=>Math.max(a,Math.min(b,v)),mat=c=>new THREE.MeshLambertMaterial({color:c}),inR=(q,b)=>q.x>b.x&&q.x<b.x+b.w&&q.z>b.z&&q.z<b.z+b.h;
+function box(w,h,d,c,x,y,z,add=true){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(c));m.position.set(x,y,z);if(add)sc.add(m);return m}
+function lbl(t,x,y,z,s=1){const c=document.createElement('canvas');c.width=512;c.height=96;const g=c.getContext('2d');g.fillStyle='rgba(0,0,0,.6)';g.fillRect(0,0,512,96);g.fillStyle='#fff';g.font='bold 44px sans-serif';g.textAlign='center';g.fillText(t,256,66);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c)}));sp.position.set(x,y,z);sp.scale.set(16*s,3*s,1);sc.add(sp)}
+function reset(){while(sc.children.length)sc.remove(sc.children[0]);sc.background=new THREE.Color(0x87ceeb);sc.fog=new THREE.Fog(0x87ceeb,80,320);sc.add(new THREE.HemisphereLight(0xffffff,0x998866,.9));const d=new THREE.DirectionalLight(0xffffff,.6);d.position.set(50,100,30);sc.add(d)}
+function mkCar(col,cop){const g=new THREE.Group(),b=box(3.6,.9,1.9,cop?0xffffff:col,0,.8,0,false),c=box(1.7,.75,1.6,cop?0x2244aa:0x99ccff,-.2,1.6,0,false);g.add(b,c);
+ [[1.2,.9],[1.2,-.9],[-1.2,.9],[-1.2,-.9]].forEach(([x,z])=>{const w=new THREE.Mesh(new THREE.CylinderGeometry(.45,.45,.4,10),mat(0x111111));w.rotation.x=Math.PI/2;w.position.set(x,.45,z);g.add(w)});
+ g.userData.cab=c;if(cop){const l=box(.5,.3,1.2,0xff2222,-.2,2.1,0,false);g.add(l);g.userData.l=l}return g}
+function world(w,h,seed){DEC=[];let sd=seed;const r=()=>(sd=sd*16807%2147483647)/2147483647;
+ const g=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat(0xd9b66f));g.rotation.x=-Math.PI/2;g.position.set(w/2,0,h/2);sc.add(g);
+ for(let n=0;n<w*h/600;n++){const x=r()*w,z=r()*h;if(r()<.4){DEC.push({x,z,c:1});const c=new THREE.Mesh(new THREE.CylinderGeometry(.4,.5,3+r()*2,6),mat(0x3a7d3a));c.position.set(x,1.8,z);sc.add(c)}else{DEC.push({x,z,s:1.5});box(1+r()*2,.8+r(),1+r()*2,0xb8985a,x,.4,z)}}}
+function newG(w,h,px,pz,seed){reset();world(w,h,seed);const c=CARS.find(c=>c.id==S.car),fm=new THREE.Group(),bd=new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,1.4,8),mat(0x000000)),hd=new THREE.Mesh(new THREE.SphereGeometry(.45,8,6),mat(0x000000));bd.position.y=.7;hd.position.y=1.6;fm.add(bd,hd);fm.visible=false;
+ G={p:{x:px,z:pz,a:-.6,v:0},foot:{x:px,z:pz,a:0},onFoot:false,lives:2,inv:0,cops:[],loot:0,bounty:0,rob:0,open:0,bags:0,prog:0,mult:1,t:0,nit:0,cd:0,hits:0,msg:'',mt:0,shots:[],places:[],walls:[],free:0,cm:mkCar(c.col),fm};sc.add(G.cm,fm)}
+const say=t=>{G.msg=t;G.mt=200},blk=(x,z,r)=>G.walls.some(w=>x+r>w.x&&x-r<w.x+w.w&&z+r>w.z&&z-r<w.z+w.h),dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
+function bank(b){const W=[],add=(x,z,w,d)=>{box(w,6,d,0xcfc7b0,x+w/2,3,z+d/2);W.push({x,z,w,h:d})};
+ add(b.x,b.z,b.w,1);add(b.x,b.z,1,b.h);add(b.x+b.w-1,b.z,1,b.h);const gx=b.x+(b.w-7)/2;add(b.x,b.z+b.h-1,gx-b.x,1);add(gx+7,b.z+b.h-1,b.x+b.w-gx-7,1);
+ box(b.w,.2,b.h,0x777777,b.x+b.w/2,.1,b.z+b.h/2);const vx=b.x+b.w/2;G.vault={x:vx,z:b.z+3.5};G.door={x:vx,z:b.z+b.h};
+ G.vm=box(7,5,1.2,0xcc2222,vx,2.5,b.z+1.6);G.bm=[];for(let i=0;i<3;i++){const m=new THREE.Mesh(new THREE.SphereGeometry(.8,10,8),mat(0xffd700));m.position.set(vx-4+i*4,.9,b.z+b.h/2);m.visible=false;sc.add(m);G.bm.push(m)}
+ lbl('BANK',vx,8,b.z+b.h);return W}
+function freeRide(){hide();mode='free';fr=0;clearInterval(jt);L={w:480,h:320,cops:0,pay:0};newG(480,320,240,160,4242);G.free=1;G.p.a=0;
+ const mk=(x,z,col,label,sub,go)=>{G.places.push({x,z,w:17,h:12,go,label,sub,col});box(17,7,12,col,x+8.5,3.5,z+6);lbl(label,x+8.5,10,z+6);if(sub)lbl(sub,x+8.5,13.5,z+6,.7)};
+ [[80,50],[220,30],[360,60]].forEach(([x,z],i)=>mk(x,z,rank()<LV[i].rank?0x999999:0xffcc33,'LEVEL '+(i+1),LV[i].n,()=>{if(rank()<LV[i].rank){say('Locked! Need rank: '+RK[LV[i].rank]);G.p.v=-.25}else start(i)}));
+ mk(50,230,0x4fc3f7,'SHOP','',()=>{fr=1;shop()});mk(390,240,0xb388ff,'BLACK MARKET','',()=>{fr=1;bm()});say('Free ride! Drive into a building to enter it.')}
+function start(i){hide();mode='play';const l=LV[i],w=l.w/5,h=l.h/5;L={w,h,cops:l.cops,pay:l.pay};newG(w,h,25,h-20,1000+i);
+ G.bank={x:w-45,z:12,w:26,h:18};G.home={x:10,z:h-30,w:17,h:17};box(17,.2,17,0x4caf50,18.5,.1,h-21.5);lbl('HIDEOUT',18.5,6,h-21.5);G.walls=bank(G.bank);say('Drive to the bank!')}
+function spawn(){const o={x:0,z:0,a:0,dis:0};let n=0;do{o.x=Math.random()*L.w;o.z=Math.random()*L.h}while(dist(o,G.bank)<70&&n++<30);o.m=mkCar(0,1);sc.add(o.m);G.cops.push(o)}
+function openV(m,b){G.open=1;G.mult=m;G.bounty+=b;G.vm.material.color.set(0x22aa22);G.vm.position.x+=6;G.bm.forEach(x=>x.visible=true);say('Vault open! Grab the money bags!')}
+function line(a,b,c){const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(a.x,1.8,a.z),new THREE.Vector3(b.x,1.8,b.z)]),new THREE.LineBasicMaterial({color:c}));sc.add(l);G.shots.push({l,t:6,a:{x:a.x,z:a.z},b:{x:b.x,z:b.z},c})}
+document.addEventListener('keydown',e=>{const k=e.key.length==1?e.key.toLowerCase():e.key;K[k]=1;if(e.repeat)return;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key))e.preventDefault();
+ if(mode=='jail'&&k==' ')jail(8);if(k=='Escape'&&mode=='free')return menu();if(mode!='play'&&mode!='free')return;const p=G.p,f=G.foot;
+ if(k==' '&&!G.onFoot&&S.it.nitro>0&&G.nit<=0){S.it.nitro--;G.nit=150}if(G.free)return;
+ if(k=='e'){if(G.onFoot){if(dist(f,p)<10)G.onFoot=false;else say('Walk back to your car to get in!')}else if(dist(p,G.door)<22&&!G.rob){G.onFoot=true;f.x=p.x+Math.cos(p.a+1.57)*3;f.z=p.z+Math.sin(p.a+1.57)*3;f.a=Math.atan2(G.door.z-f.z,G.door.x-f.x);say('Walk into the bank!')}else if(!G.rob)say('Park closer to the bank door.')}
+ if(k=='t'&&G.onFoot&&G.rob&&!G.open&&dist(f,G.vault)<6){if(S.it.ptnt>0){S.it.ptnt--;openV(2,25000)}else if(S.it.tnt>0){S.it.tnt--;openV(1.5,15000)}else say('No TNT! Buy some in the shop.')}
+ if(k=='f'&&G.cd<=0&&G.rob){if(S.it.gun<=0)return say('No ammo!');const s=G.onFoot?f:p;let b=null,bd=30;G.cops.forEach(o=>{const d=dist(o,s);if(o.dis<=0&&d<bd){bd=d;b=o}});
+  if(b){S.it.gun--;b.dis=300;b.broken=1;b.m.userData.cab.material.color.set(0x111122);G.bounty+=5000;G.cd=25;line(s,b,0xffff00);say('Window shot out!')}}});
+document.addEventListener('keyup',e=>{K[e.key.length==1?e.key.toLowerCase():e.key]=0});
+function upd(){const p=G.p,f=G.foot,c=CARS.find(c=>c.id==S.car),mx=c.spd*(1+.08*S.up.spd)*(G.nit>0?1.6:1)/10;G.t++;G.cd--;G.nit--;G.mt--;G.inv--;
+ const fw=(K.ArrowUp||K.w)?1:(K.ArrowDown||K.s)?-1:0,tn=((K.ArrowRight||K.d)?1:0)-((K.ArrowLeft||K.a)?1:0);
+ if(G.onFoot){f.a+=tn*.06;const nx=f.x+Math.cos(f.a)*fw*.42,nz=f.z+Math.sin(f.a)*fw*.42;if(!blk(nx,f.z,.7))f.x=nx;if(!blk(f.x,nz,.7))f.z=nz;p.v*=.9}
+ else{p.v+=fw>0?.018:fw<0?-.014:0;p.v*=.985;p.v=Math.max(-mx/2,Math.min(mx,p.v));p.a+=tn*.05*(1+.1*S.up.hnd)*Math.min(1,Math.abs(p.v)*5)*(p.v<0?-1:1);
+  const nx=p.x+Math.cos(p.a)*p.v,nz=p.z+Math.sin(p.a)*p.v;if(blk(nx,nz,2))p.v*=-.3;else{p.x=nx;p.z=nz}}
+ p.x=cl(p.x,1,L.w-1);p.z=cl(p.z,1,L.h-1);f.x=cl(f.x,1,L.w-1);f.z=cl(f.z,1,L.h-1);
+ if(G.free){for(const q of G.places)if(inR(p,q))return q.go();return}
+ const b=G.bank;
+ if(G.onFoot&&!G.rob&&inR(f,{x:b.x,z:b.z,w:b.w,h:b.h-2})){G.rob=1;G.al=480;say('ALARM! Police arrive in 8 seconds - crack the vault!')}
+ if(G.onFoot&&G.rob&&!G.open&&dist(f,G.vault)<5&&K.e){G.prog+=1/90;say('Cracking vault '+Math.floor(G.prog*100)+'%');if(G.prog>=1)openV(1,5000)}
+ if(G.open)G.bm.forEach(m=>{if(m.visible&&G.onFoot&&dist(f,{x:m.position.x,z:m.position.z})<3.5){m.visible=false;G.bags++;G.loot+=L.pay*G.mult/3;say('+'+$$(L.pay*G.mult/3))}});
+ if(G.rob){if(G.al>0&&--G.al==0){for(let n=0;n<L.cops;n++)spawn();say('The police are here!')}
+  if(G.al<=0&&G.t%600==0&&G.cops.length<L.cops+4){spawn();G.bounty+=2000}
+  G.cops.forEach(o=>{if(o.dis>0){o.dis--;return}const tg=G.onFoot?f:p;let d=Math.atan2(tg.z-o.z,tg.x-o.x)-o.a;d=Math.atan2(Math.sin(d),Math.cos(d));o.a+=cl(d,-.06,.06);const sp=.30+L.cops*.01+G.bounty/1200000;o.x+=Math.cos(o.a)*sp;o.z+=Math.sin(o.a)*sp;
+   const dd=dist(o,tg);if(dd<40&&dd>3&&Math.random()<.005){line(o,tg,0xff5555);if(!G.onFoot){G.hits++;G.cm.userData.cab.material.color.set(0x222233);if(G.hits==1)say('They shot out your window!')}}
+   if(dd<3&&G.inv<=0){G.lives--;G.inv=90+30*S.up.arm;o.dis=120;if(G.lives<=0)return busted();say('A cop got you! '+G.lives+' life left!')}});
+  if(mode!='play')return}
+ if(G.loot>0&&inR(G.onFoot?f:p,G.home))win()}
+const c2=$('c2'),x2=c2.getContext('2d');let V3=true,DEC=[];try{V3=localStorage.getItem('ghv')!='2'}catch(e){}
+function setView(){cv.style.display=V3?'block':'none';c2.style.display=V3?'none':'block'}
+function vw(){V3=!V3;try{localStorage.setItem('ghv',V3?'3':'2')}catch(e){}setView();menu()}
+const hx=c=>'#'+c.toString(16).padStart(6,'0');
+function draw2(bl){const p=G.p,f=G.foot,t=G.onFoot?f:p,K8=8,W=800,H=500,ox=cl(t.x*K8-W/2,0,Math.max(0,L.w*K8-W)),oy=cl(t.z*K8-H/2,0,Math.max(0,L.h*K8-H)),X=x=>x*K8-ox,Z=z=>z*K8-oy;
+ x2.fillStyle='#d9b66f';x2.fillRect(0,0,W,H);
+ DEC.forEach(d=>{if(d.c){x2.fillStyle='#3a7d3a';x2.beginPath();x2.arc(X(d.x),Z(d.z),5,0,7);x2.fill()}else{x2.fillStyle='#b8985a';x2.fillRect(X(d.x),Z(d.z),d.s*K8,d.s*K8*.6)}});
+ x2.strokeStyle='#8a6d3b';x2.lineWidth=4;x2.strokeRect(-ox,-oy,L.w*K8,L.h*K8);x2.textAlign='center';
+ const R=(b,c,tx,sub)=>{x2.fillStyle=c;x2.fillRect(X(b.x),Z(b.z),b.w*K8,b.h*K8);if(tx){x2.fillStyle='#000';x2.font='bold 15px sans-serif';x2.fillText(tx,X(b.x+b.w/2),Z(b.z+b.h/2)+5);if(sub){x2.font='12px sans-serif';x2.fillText(sub,X(b.x+b.w/2),Z(b.z)-6)}}};
+ if(G.free)G.places.forEach(b=>R(b,hx(b.col),b.label,b.sub));
+ else{const b=G.bank;R(G.home,'#4caf50','HIDEOUT');R(b,'#888');G.walls.forEach(w=>R(w,'#e0d8c0'));R({x:G.vault.x-3.5+(G.open?6:0),z:b.z+1,w:7,h:1.2},G.open?'#2a2':'#c22');
+  x2.fillStyle='#000';x2.font='bold 15px sans-serif';x2.fillText('BANK',X(b.x+b.w/2),Z(b.z+b.h)+18);
+  G.bm.forEach(m=>{if(m.visible){x2.fillStyle='#fd0';x2.beginPath();x2.arc(X(m.position.x),Z(m.position.z),7,0,7);x2.fill()}})}
+ const car=(x,z,a,col,cab,sir)=>{x2.save();x2.translate(X(x),Z(z));x2.rotate(a);x2.fillStyle=col;x2.fillRect(-15,-8,30,16);x2.fillStyle=cab;x2.fillRect(0,-6,10,12);if(sir){x2.fillStyle=G.t%16<8?'#f22':'#26f';x2.fillRect(-8,-5,5,10)}x2.restore()};
+ G.cops.forEach(o=>car(o.x,o.z,o.a,o.broken?'#666':'#fff',o.broken?'#223':'#9cf',!o.broken));
+ G.shots.forEach(s=>{x2.strokeStyle=hx(s.c);x2.lineWidth=2;x2.beginPath();x2.moveTo(X(s.a.x),Z(s.a.z));x2.lineTo(X(s.b.x),Z(s.b.z));x2.stroke()});
+ if(G.onFoot){if(!bl){x2.fillStyle='#000';x2.beginPath();x2.arc(X(f.x),Z(f.z),8,0,7);x2.fill();x2.strokeStyle='#fff';x2.lineWidth=1.5;x2.stroke()}}
+ if(G.onFoot||!bl)car(p.x,p.z,p.a,CARS.find(c=>c.id==S.car).col,G.hits>0?'#223':'#9cf',0)}
+const mm=$('mm'),xm=mm.getContext('2d');
+function mini(){const w=160,h=Math.round(w*L.h/L.w);if(mm.height!=h||mm.width!=w){mm.width=w;mm.height=h}const f=w/L.w;
+ xm.fillStyle='rgba(217,182,111,.9)';xm.fillRect(0,0,w,h);
+ const d=(b,c)=>{xm.fillStyle=c;xm.fillRect(b.x*f,b.z*f,Math.max(3,b.w*f),Math.max(3,b.h*f))},dot=(o,c,r)=>{xm.fillStyle=c;xm.beginPath();xm.arc(o.x*f,o.z*f,r,0,7);xm.fill()};
+ if(G.free)G.places.forEach(b=>d(b,hx(b.col)));else{d(G.home,'#4caf50');d(G.bank,'#ffcc33')}
+ G.cops.forEach(o=>dot(o,o.broken?'#666':'#f22',2.5));
+ if(G.onFoot){xm.fillStyle='#39f';xm.fillRect(G.p.x*f-2,G.p.z*f-2,4,4)}
+ const t=G.onFoot?G.foot:G.p;dot(t,'#fff',3.5);xm.strokeStyle='#000';xm.lineWidth=1.5;xm.stroke()}
+function draw(){const p=G.p,f=G.foot,on=G.onFoot,t=on?f:p,bl=G.inv>0&&G.t%6<3;
+ if(!V3)draw2(bl);G.cm.position.set(p.x,0,p.z);G.cm.rotation.y=-p.a;G.fm.position.set(f.x,0,f.z);G.fm.rotation.y=-f.a;G.fm.visible=on&&!bl;G.cm.visible=on||!bl;
+ G.cops.forEach(o=>{o.m.position.set(o.x,0,o.z);o.m.rotation.y=-o.a;const l=o.m.userData.l;l.visible=!o.broken;l.material.color.set(G.t%16<8?0xff2222:0x2244ff)});
+ G.shots=G.shots.filter(s=>{if(--s.t<=0){sc.remove(s.l);return false}return true});
+ const d=on?8:13;cam.position.lerp(new THREE.Vector3(t.x-Math.cos(t.a)*d,on?5:7,t.z-Math.sin(t.a)*d),.12);cam.lookAt(t.x,1.5,t.z);if(V3)rd.render(sc,cam);mini();
+ if(G.t%5==0){const hint=G.free?'Drive into a building to enter it':!G.rob?(on?'Walk into the bank!':'Park by the bank door and press E to get out'):!G.open?'Hold E at the red vault (or T for TNT)'+(G.al>0?' - police in '+Math.ceil(G.al/60)+'s':''):G.bags<3?'Grab the money bags!':on?'Get back to your car (E) and drive to the green hideout':'Drive to the green hideout!';
+  $('hud').innerHTML=(G.free?`${$$(S.money)}  Rank: ${RK[rank()]}  Nitro ${S.it.nitro}  |  Esc = menu`:`Lives ${'&hearts;'.repeat(G.lives)}  Loot ${$$(G.loot)}  Bounty ${$$(G.bounty)}  Nitro ${S.it.nitro}  TNT ${S.it.tnt+S.it.ptnt}  Ammo ${S.it.gun}`)+'<br>'+hint;$('msg').textContent=G.mt>0?G.msg:''}}
+(function loop(){if(mode=='play'||mode=='free'){upd();if(mode=='play'||mode=='free')draw()}requestAnimationFrame(loop)})();
+setView();menu();
+</script></body></html>
