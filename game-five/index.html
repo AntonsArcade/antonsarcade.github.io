@@ -792,8 +792,12 @@
           <div class="hint">Pick your rivals' rating. Win pays in full &mdash; losing still pays a quarter.</div>
           <div id="friendlyRatingButtons" style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;"></div>
           <div id="friendlyRewardLine" style="color:var(--gold);font-family:Fredoka,sans-serif;margin-bottom:10px;"></div>
-          <button class="start-btn" id="friendlyPlayBtn">&#x25B6; PLAY FRIENDLY</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="start-btn" id="friendlyPlayBtn" style="flex:1;min-width:140px;">&#x25B6; PLAY FRIENDLY</button>
+            <button class="start-btn" id="friendlySimBtn" style="flex:1;min-width:140px;background:linear-gradient(135deg,#6fe8a0,#0a3d1f);">&#x26A1; SIMULATE</button>
+          </div>
           <button class="secondary-btn" id="friendlyCloseBtn" style="margin-top:8px;">Close</button>
+          <div id="friendlySimResult" class="hidden" style="margin-top:12px;padding:10px;border-radius:10px;background:rgba(0,0,0,.35);border:1px solid #6fe8a0;text-align:center;"></div>
         </div>
       </div>
       <div id="cupInProgress" class="hidden">
@@ -1976,7 +1980,8 @@ function finishCup(result, prizeIdx){
   c.phase='finished'; c.result=result;
   c.prizeAmt = c.prizes[Math.min(prizeIdx, c.prizes.length-1)];
   MANAGER.budget += c.prizeAmt;
-  if (result==='won' && MANAGER.stats.trophies[c.comp]!==undefined) MANAGER.stats.trophies[c.comp]++;
+  const wonTrophy = result==='won' || (c.comp==='liga' && result==='liga' && prizeIdx===0);
+  if (wonTrophy && MANAGER.stats.trophies[c.comp]!==undefined) MANAGER.stats.trophies[c.comp]++;
   if (c.comp==='wc' && result==='won' && !MANAGER.worldTwoUnlocked){ MANAGER.worldTwoUnlocked=true; c.unlockedW2=true; }
   if (c.comp==='w2' && result==='won' && !MANAGER.worldThreeUnlocked){ MANAGER.worldThreeUnlocked=true; c.unlockedW3=true; }
   c.newAchievements = checkAchievements();
@@ -2308,6 +2313,25 @@ function endFriendly(over){
   });
 }
 
+function simulateFriendly(rating){
+  const reward = friendlyReward(rating);
+  const r1 = teamRating(), r2 = rating;
+  const {s1, s2} = simulateScore(r1, r2);
+  const won = s1>s2, draw = s1===s2;
+  const pay = won ? reward : Math.round(reward/4);
+  MANAGER.budget += pay;
+  recordMatchResult(won, s1);
+  const unlocked = checkAchievements();
+  saveGame();
+  updateManagerBudgetDisplay();
+  const box = document.getElementById('friendlySimResult');
+  box.classList.remove('hidden');
+  box.innerHTML = '<div style="font-weight:700;color:'+(won?'var(--gold)':draw?'#fff':'#f88')+';font-size:16px;">'+
+    (won?'\uD83C\uDFC6 YOU WIN':draw?"IT'S A DRAW":'\uD83D\uDC80 YOU LOSE')+' &nbsp; '+s1+' - '+s2+'</div>'+
+    '<div style="color:var(--gold);margin-top:4px;">\uD83D\uDCB0 '+(won?'Full payout: ':'Consolation (1/4 pay): ')+fmtM(pay)+'</div>'+
+    achievementBanner(unlocked);
+}
+
 function endCupMatch(over){
   const {matchObj:m,t1,t2}=cupMatchRef; cupMatchRef=null;
   const u1=!!t1.isUser, s1=u1?score.player:score.ai, s2=u1?score.ai:score.player;
@@ -2440,7 +2464,7 @@ function initManagerMode(){
       b.className = 'mg-player-btn '+(r===selFriendlyRating?'owned':'buy');
       b.textContent = '\u2B50'+r;
       b.style.cssText='width:auto;padding:6px 10px;';
-      b.addEventListener('click',()=>{ selFriendlyRating=r; renderFriendlyButtons(); });
+      b.addEventListener('click',()=>{ selFriendlyRating=r; document.getElementById('friendlySimResult').classList.add('hidden'); renderFriendlyButtons(); });
       wrap.appendChild(b);
     });
     document.getElementById('friendlyRewardLine').textContent =
@@ -2448,13 +2472,18 @@ function initManagerMode(){
   }
   document.getElementById('mgFriendlyBtn').addEventListener('click',()=>{
     document.getElementById('friendliesPanel').classList.remove('hidden');
+    document.getElementById('friendlySimResult').classList.add('hidden');
     renderFriendlyButtons();
   });
   document.getElementById('friendlyCloseBtn').addEventListener('click',()=>{
     document.getElementById('friendliesPanel').classList.add('hidden');
   });
   document.getElementById('friendlyPlayBtn').addEventListener('click',()=>{
+    document.getElementById('friendlySimResult').classList.add('hidden');
     launchFriendly(selFriendlyRating);
+  });
+  document.getElementById('friendlySimBtn').addEventListener('click',()=>{
+    simulateFriendly(selFriendlyRating);
   });
   document.getElementById('mgPosFilter').addEventListener('change',renderMarket);
   switchTab('squad');
