@@ -718,7 +718,10 @@
       <div class="mg-squad-grid" id="mgSquadGrid"></div>
       <div class="hint" style="margin-top:8px;">Formation 1-3-1. Tap a card, then tap another slot to swap. Tap an empty slot to shop for that position. Your CENTRE mid (CM ★) is who you control on PLAY. Own position = +3.</div>
       <div id="mgBenchSection" class="hidden" style="margin-top:14px;">
-        <h3 class="mg-section-lbl" style="color:#8fe8ff">&#x1F4E6; BENCH (from packs)</h3>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+          <h3 class="mg-section-lbl" style="color:#8fe8ff;margin:0;">&#x1F4E6; BENCH (from packs)</h3>
+          <button class="secondary-btn" id="mgSellAllBenchBtn" style="border-color:#ff6b6b;color:#ff6b6b;font-size:12px;padding:6px 10px;">&#x1F4B0; SELL ALL</button>
+        </div>
         <div class="hint" style="margin-bottom:6px;">Tap a bench card, then tap a squad slot to swap them in.</div>
         <div class="mg-market-grid" id="mgBenchGrid"></div>
       </div>
@@ -2521,6 +2524,17 @@ function initManagerMode(){
     simulateFriendly(selFriendlyRating);
   });
   document.getElementById('mgPosFilter').addEventListener('change',renderMarket);
+  document.getElementById('mgSellAllBenchBtn').addEventListener('click',()=>{
+    if (MANAGER.bench.length===0) return;
+    const total = MANAGER.bench.reduce((sum,id)=>sum+Math.round(playerPrice(charById(id))*0.6),0);
+    if (!confirm('Sell all '+MANAGER.bench.length+' bench players for '+fmtM(total)+' total? This cannot be undone.')) return;
+    MANAGER.budget += total;
+    MANAGER.bench = [];
+    selBench = null;
+    updateManagerBudgetDisplay();
+    saveGame();
+    renderSquad();
+  });
   switchTab('squad');
 }
 
