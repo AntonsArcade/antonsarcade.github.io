@@ -786,6 +786,12 @@
           <button class="start-btn hidden" id="mgStartGoatBtn" style="background:linear-gradient(135deg,#1a1a1a,#000);color:#ffd700;border-color:#ffd700;" disabled>&#x1F3C1; GOAT CUP &mdash; rivals &#x2B50;230-250 &mdash; win $8B</button>
           <div id="mgW3Locked" class="hint" style="color:#ff8a3d;">&#x1F512; Win WORLD TWO to unlock WORLD THREE: World Cup 2.0 and the GOAT Cup.</div>
           <button class="start-btn" id="mgFriendlyBtn" style="background:linear-gradient(135deg,#2a9d5c,#0a3d1f);color:#fff;border-color:#6fe8a0;" disabled>&#x1F91D; FRIENDLIES &mdash; pick your rivals</button>
+          <div id="friendlyLockedHint" class="hint" style="color:#ff8a3d;">&#x1F512; Admin-only mode &mdash; requires an access code.</div>
+          <div id="friendlyCodeBox" style="display:flex;gap:6px;align-items:center;margin-top:-4px;">
+            <input id="friendlyCodeInput" maxlength="20" placeholder="Enter access code" style="flex:1;min-width:0;padding:8px 10px;border-radius:10px;border:2px solid #6fe8a0;background:rgba(0,0,0,.35);color:#fff;font-family:Fredoka,sans-serif;">
+            <button class="secondary-btn" id="friendlyCodeBtn" style="border-color:#6fe8a0;color:#6fe8a0;white-space:nowrap;">REDEEM</button>
+          </div>
+          <div id="friendlyCodeMsg" class="hint" style="min-height:16px;"></div>
         </div>
         <div id="friendliesPanel" class="hidden" style="margin-top:14px;padding:14px;border-radius:14px;background:rgba(0,0,0,.3);border:2px solid #6fe8a0;">
           <h3 class="mg-section-lbl" style="color:#6fe8a0;">&#x1F91D; FRIENDLIES</h3>
@@ -1529,6 +1535,7 @@ const MANAGER = {
   teamName: 'My Spuds',
   worldTwoUnlocked: false,
   worldThreeUnlocked: false,
+  friendlyUnlocked: false,
   bench: [],
   cupStarted: false,
   cup: null,
@@ -1643,7 +1650,7 @@ function fmtM(n){
 function saveGame(){
   try{
     localStorage.setItem(SAVE_KEY, JSON.stringify({
-      teamName: MANAGER.teamName, budget: MANAGER.budget, squad: MANAGER.squad, worldTwoUnlocked: MANAGER.worldTwoUnlocked, worldThreeUnlocked: MANAGER.worldThreeUnlocked, bench: MANAGER.bench,
+      teamName: MANAGER.teamName, budget: MANAGER.budget, squad: MANAGER.squad, worldTwoUnlocked: MANAGER.worldTwoUnlocked, worldThreeUnlocked: MANAGER.worldThreeUnlocked, friendlyUnlocked: MANAGER.friendlyUnlocked, bench: MANAGER.bench,
       stats: MANAGER.stats, achievements: MANAGER.achievements, lastDailyPack: MANAGER.lastDailyPack
     }));
     return true;
@@ -1659,6 +1666,7 @@ function loadGame(){
     MANAGER.squad = Array.isArray(d.squad) ? [d.squad[0]||null,d.squad[1]||null,d.squad[2]||null,d.squad[3]||null,d.squad[4]||null] : MANAGER.squad;
     MANAGER.worldTwoUnlocked = !!d.worldTwoUnlocked;
     MANAGER.worldThreeUnlocked = !!d.worldThreeUnlocked;
+    MANAGER.friendlyUnlocked = !!d.friendlyUnlocked;
     MANAGER.bench = Array.isArray(d.bench) ? d.bench : [];
     if (d.stats) MANAGER.stats = Object.assign({matches:0,wins:0,goals:0,streak:0,bestStreak:0,mythicPulled:false,trophies:{wc:0,cl:0,liga:0,w2:0,w3cup:0,goat:0}}, d.stats, {trophies:Object.assign({wc:0,cl:0,liga:0,w2:0,w3cup:0,goat:0}, d.stats.trophies||{})});
     MANAGER.achievements = Array.isArray(d.achievements) ? d.achievements : [];
@@ -1670,7 +1678,7 @@ function resetGame(){
   try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
   MANAGER.teamName='My Spuds'; MANAGER.budget=900;
   MANAGER.squad=[null,null,null,null,null];
-  MANAGER.worldTwoUnlocked=false; MANAGER.worldThreeUnlocked=false; MANAGER.cup=null; MANAGER.bench=[]; selSlot=null; selBench=null;
+  MANAGER.worldTwoUnlocked=false; MANAGER.worldThreeUnlocked=false; MANAGER.friendlyUnlocked=false; MANAGER.cup=null; MANAGER.bench=[]; selSlot=null; selBench=null;
   MANAGER.stats={ matches:0, wins:0, goals:0, streak:0, bestStreak:0, mythicPulled:false, trophies:{wc:0,cl:0,liga:0,w2:0,w3cup:0,goat:0} };
   MANAGER.achievements=[]; MANAGER.lastDailyPack=null;
   const ni=document.getElementById('mgTeamName'); if(ni) ni.value=MANAGER.teamName;
@@ -1874,7 +1882,11 @@ function renderBench(){
   sec.classList.toggle('hidden', MANAGER.bench.length===0);
   if (MANAGER.bench.length===0) return;
   grid.innerHTML='';
-  MANAGER.bench.forEach((id,bi)=>{
+  // Display best-to-worst by rating, but keep true MANAGER.bench indices for selection/swap logic.
+  const order = MANAGER.bench.map((id,bi)=>bi)
+    .sort((ai,bj)=>charRating(charById(MANAGER.bench[bj]))-charRating(charById(MANAGER.bench[ai])));
+  order.forEach(bi=>{
+    const id = MANAGER.bench[bi];
     const c = charById(id);
     const card = el('div','mg-player-card rarity-'+cardRarity(c)+(selBench===bi?' sel':''));
     if (selBench===bi) card.style.outline='3px solid #fff';
@@ -2042,7 +2054,12 @@ function renderCupTab(){
   goatbtn.classList.toggle('hidden', !MANAGER.worldThreeUnlocked);
   document.getElementById('mgW3Locked').classList.toggle('hidden', MANAGER.worldThreeUnlocked);
   document.getElementById('mgGroupsPreview').innerHTML = ok ? '' : '<div style="opacity:0.6;font-size:13px;">You need all 5 slots filled to compete!</div>';
-  document.getElementById('mgFriendlyBtn').disabled = !ok;
+  document.getElementById('mgFriendlyBtn').disabled = !MANAGER.friendlyUnlocked;
+  document.getElementById('friendlyCodeBox').classList.toggle('hidden', MANAGER.friendlyUnlocked);
+  document.getElementById('friendlyLockedHint').classList.toggle('hidden', MANAGER.friendlyUnlocked);
+  const codeMsgEl = document.getElementById('friendlyCodeMsg');
+  if (MANAGER.friendlyUnlocked){ codeMsgEl.textContent='✅ Code redeemed — Friendlies unlocked!'; codeMsgEl.style.color='#6fe8a0'; }
+  else { codeMsgEl.textContent=''; }
   const otherCupLive = MANAGER.cup && !screenForComp(MANAGER.cup.comp);
   if (!otherCupLive){ 
     document.getElementById('cupPreLaunch').classList.remove('hidden');
@@ -2279,8 +2296,9 @@ function launchFriendly(rating){
     .sort((a,b)=>Math.abs(charRating(a)-rating)-Math.abs(charRating(b)-rating)).slice(0,6);
   aiChar = cand[Math.floor(Math.random()*cand.length)];
   const ci = MANAGER.squad[2] ? 2 : MANAGER.squad.findIndex(Boolean);
-  const base = charById(MANAGER.squad[ci]);
-  const b = base.pos===SLOTS[ci][1] ? 1.03 : 1;
+  const base = ci>=0 ? charById(MANAGER.squad[ci]) : ALL[0];
+  const slotIdx = ci>=0 ? ci : 2;
+  const b = base.pos===SLOTS[slotIdx][1] ? 1.03 : 1;
   playerChar = Object.assign({}, base, {speed:base.speed*b, jump:base.jump*b, kickPower:base.kickPower*b});
   gameMode='quickmatch';
   document.getElementById('cupVsBar').textContent = '\uD83E\uDD54 '+MANAGER.teamName+' \u2B50'+teamRating()+'   vs   Friendly XI \u2B50'+rating;
@@ -2474,6 +2492,23 @@ function initManagerMode(){
     document.getElementById('friendliesPanel').classList.remove('hidden');
     document.getElementById('friendlySimResult').classList.add('hidden');
     renderFriendlyButtons();
+  });
+  document.getElementById('friendlyCodeBtn').addEventListener('click',()=>{
+    const input = document.getElementById('friendlyCodeInput');
+    const code = (input.value||'').trim();
+    const msg = document.getElementById('friendlyCodeMsg');
+    if (code==='@nton'){
+      MANAGER.friendlyUnlocked = true;
+      saveGame();
+      input.value='';
+      renderCupTab();
+    } else {
+      msg.textContent = '❌ Invalid code.';
+      msg.style.color = '#ff6b6b';
+    }
+  });
+  document.getElementById('friendlyCodeInput').addEventListener('keydown',(e)=>{
+    if (e.key==='Enter') document.getElementById('friendlyCodeBtn').click();
   });
   document.getElementById('friendlyCloseBtn').addEventListener('click',()=>{
     document.getElementById('friendliesPanel').classList.add('hidden');
