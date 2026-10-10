@@ -119,6 +119,7 @@ const Audio_ = {
       case 'tech': this.tone(700, 0.1, 'triangle', 0.25, 300); break;
       case 'proj': this.tone(500, 0.18, 'sawtooth', 0.12, 300); break;
       case 'ko': this.tone(400, 0.7, 'sawtooth', 0.3, -330); this.noise(0.4, 0.4, 200); break;
+      case 'super': this.tone(180, 0.5, 'sawtooth', 0.3, 700); this.noise(0.5, 0.35, 500); this.tone(900, 0.3, 'square', 0.15, 400, 0.25); break;
       case 'ui': this.tone(660, 0.05, 'square', 0.12); break;
       case 'ok': this.tone(520, 0.06, 'square', 0.15); this.tone(780, 0.1, 'square', 0.15, 0, 0.06); break;
       case 'back': this.tone(330, 0.07, 'square', 0.12); break;
@@ -160,13 +161,14 @@ function M(name, st, ac, rc, dmg, hs, bs, x1, y0, y1, o = {}) {
   return Object.assign({ name, st, ac, rc, dmg, hs, bs, x0: 18, x1, y0, y1, kb: 5, push: 4, kd: false, low: false, adv: 0, proj: null, hstop: 5, snd: 'hitM', pose: 'punch' }, o);
 }
 const ARCH = {
-  rush: 'Rushdown', grap: 'Grappler', zone: 'Zoner', all: 'All-rounder'
+  rush: 'Rushdown', grap: 'Grappler', zone: 'Zoner', all: 'All-rounder', tri: 'Trickster'
 };
 const ROSTER = [
   { id: 'burger', name: 'Chuck', food: 'Chicken Burger', arche: 'grap', c1: '#f2c46d', c2: '#dc8a2c', c3: '#5cb85c',
     walkF: 2.3, walkB: 1.9, throwDmg: 190, throwRange: 96, w: 40, h: 124,
     blurb: 'Crispy, crunchy and full of cluck. Slow, but every hit lands like a fried drumstick.',
     moves: {
+      sup: M('Drumstick Dunk', 16, 5, 30, 340, 40, 20, 130, 0, 130, { sup: true, unb: true, kd: true, kb: 16, adv: 7, hstop: 12, snd: 'hitH' }),
       A: M('Bun Jab', 5, 3, 8, 32, 16, 11, 66, 50, 100),
       B: M('Pickle Slap', 9, 4, 14, 68, 22, 15, 84, 40, 105, { kb: 7 }),
       C: M('Crispy Crunch', 16, 5, 24, 130, 30, 20, 96, 30, 115, { kd: true, kb: 14, snd: 'hitH', hstop: 9, adv: 3 }),
@@ -177,6 +179,7 @@ const ROSTER = [
     walkF: 4.4, walkB: 3.6, throwDmg: 140, throwRange: 74, w: 34, h: 112,
     blurb: 'Hot, fast and fresh out of the fryer. Chains pokes into a quick dash.',
     moves: {
+      sup: M('Fry Frenzy', 10, 28, 24, 75, 14, 14, 92, 20, 115, { sup: true, rehit: 7, kd: true, kb: 1.5, adv: 4, hstop: 2, snd: 'hitL' }),
       A: M('Stick Poke', 3, 2, 6, 24, 14, 9, 62, 55, 105),
       B: M('Double Salt', 6, 3, 10, 44, 19, 12, 74, 45, 100, { kb: 4 }),
       C: M('Fry Dash', 11, 7, 20, 88, 26, 16, 78, 35, 105, { adv: 8, kd: true, kb: 11, snd: 'hitH', hstop: 7 }),
@@ -187,6 +190,7 @@ const ROSTER = [
     walkF: 3.0, walkB: 2.7, throwDmg: 150, throwRange: 78, w: 36, h: 118,
     blurb: 'A slice of attitude. Balanced and sneaky, with a long cheese pull and a gliding slide.',
     moves: {
+      sup: M('Pizza Party', 10, 30, 26, 60, 14, 14, 100, 0, 120, { sup: true, rehit: 6, kd: true, kb: 1.5, adv: 2, hstop: 2, pose: 'spin', snd: 'hitL' }),
       A: M('Crust Jab', 4, 3, 8, 28, 15, 10, 66, 55, 105),
       B: M('Cheese Pull', 8, 4, 13, 58, 21, 14, 92, 40, 100, { kb: 6 }),
       C: M('Cheese Slide', 12, 6, 22, 84, 24, 16, 96, 30, 100, { adv: 6, kd: true, kb: 11, snd: 'hitH', hstop: 7 }),
@@ -197,6 +201,7 @@ const ROSTER = [
     walkF: 2.5, walkB: 2.0, throwDmg: 180, throwRange: 100, w: 36, h: 122,
     blurb: 'Long, loud and loves a good squeeze. His grab reaches across the ring.',
     moves: {
+      sup: M('Mega Dog Slam', 18, 5, 32, 330, 40, 20, 165, 0, 130, { sup: true, unb: true, kd: true, kb: 16, hstop: 12, snd: 'hitH' }),
       A: M('Wiener Jab', 5, 3, 8, 30, 16, 11, 72, 50, 100),
       B: M('Mustard Whip', 10, 4, 14, 66, 22, 15, 96, 40, 105, { kb: 7 }),
       C: M('Footlong Smash', 17, 5, 25, 128, 30, 20, 108, 25, 118, { kd: true, kb: 14, snd: 'hitH', hstop: 9 }),
@@ -207,6 +212,7 @@ const ROSTER = [
     walkF: 4.2, walkB: 3.5, throwDmg: 140, throwRange: 72, w: 36, h: 106,
     blurb: 'Crunchy, spicy, impatient. Folds into a flying shell dive.',
     moves: {
+      sup: M('Fiesta Rush', 9, 22, 28, 280, 36, 20, 95, 20, 110, { sup: true, kd: true, kb: 15, adv: 15, hstop: 12, snd: 'hitH' }),
       A: M('Shell Jab', 3, 2, 6, 24, 14, 9, 60, 50, 100),
       B: M('Salsa Splat', 6, 3, 10, 46, 19, 12, 76, 40, 100, { kb: 4 }),
       C: M('Taco Tackle', 12, 7, 21, 92, 26, 16, 80, 30, 100, { adv: 9, kd: true, kb: 11, snd: 'hitH', hstop: 7 }),
@@ -217,24 +223,38 @@ const ROSTER = [
     walkF: 3.1, walkB: 2.8, throwDmg: 150, throwRange: 76, w: 34, h: 128,
     blurb: 'Smooth and cold. The only fighter with long range, but his ice cubes are slow and can be ducked.',
     moves: {
+      sup: M('Blizzard', 20, 2, 36, 0, 0, 0, 0, 0, 0, { sup: true, pose: 'toss', proj: { vx: 7.5, dmg: 260, hs: 30, bs: 18, r: 46, y: 64, kind: 'blizzard', kd: true, sup: true } }),
       A: M('Straw Jab', 4, 3, 8, 26, 15, 10, 70, 60, 110),
       B: M('Whip Cream', 8, 4, 13, 56, 21, 14, 90, 45, 105, { kb: 6 }),
       C: M('Ice Cube Spit', 20, 2, 36, 0, 0, 0, 0, 0, 0, { pose: 'toss', proj: { vx: 5.2, dmg: 46, hs: 20, bs: 12, r: 11, y: 100, kind: 'ice', kd: false } }),
       dA: M('Cup Kick', 5, 3, 9, 26, 15, 10, 68, 0, 30, { low: true, pose: 'kick' }),
       dC: M('Brain Freeze', 12, 5, 22, 68, 26, 17, 92, 0, 34, { low: true, kd: true, kb: 12, pose: 'kick', snd: 'hitH' })
     } },
+  { id: 'soda', name: 'Fizz', food: 'Soda', arche: 'tri', c1: '#d8302f', c2: '#f4f4f4', c3: '#b9c2cf',
+    walkF: 3.8, walkB: 3.1, throwDmg: 0, throwRange: 0, w: 32, h: 120,
+    blurb: 'Shaken, not stirred. Pops off with quick bursts, then erupts with a fizzing geyser.',
+    moves: {
+      sup: M('Soda Geyser', 12, 30, 26, 58, 14, 14, 110, 0, 220, { sup: true, rehit: 6, kd: true, kb: 1.5, hstop: 2, pose: 'toss', snd: 'hitL' }),
+      A: M('Pop Jab', 3, 2, 7, 25, 14, 9, 62, 55, 105),
+      B: M('Fizz Fist', 7, 3, 11, 50, 19, 13, 78, 45, 100, { kb: 5 }),
+      C: M('Shake and Burst', 15, 4, 22, 100, 28, 17, 100, 20, 110, { kd: true, kb: 12, snd: 'hitH', hstop: 8 }),
+      dA: M('Bubble Kick', 5, 3, 9, 24, 15, 10, 66, 0, 30, { low: true, pose: 'kick' }),
+      dC: M('Can Crush Sweep', 11, 5, 21, 66, 25, 16, 92, 0, 34, { low: true, kd: true, kb: 12, pose: 'kick', snd: 'hitH' })
+    } },
   // Story boss, not selectable until you beat story
   { id: 'chef', name: 'Chef Gran', food: 'Head Chef', arche: 'all', c1: '#f4f4f0', c2: '#c8372d', c3: '#2c2c34', boss: true,
-    walkF: 3.2, walkB: 2.8, throwDmg: 170, throwRange: 90, w: 44, h: 140,
-    blurb: 'Runs the Tough Love Arena kitchen. Nobody leaves hungry.',
+    walkF: 3.5, walkB: 3.0, throwDmg: 170, throwRange: 90, w: 44, h: 140,
+    blurb: 'Runs the arena kitchen and plays by her own rules. Fast, hard hitting, shrugs off hits while she swings, and builds super meter faster.',
     moves: {
-      A: M('Ladle Tap', 4, 3, 8, 34, 16, 11, 78, 50, 110),
-      B: M('Whisk Whip', 8, 4, 12, 66, 21, 14, 98, 40, 115, { kb: 7 }),
-      C: M('Pan Slam', 14, 5, 24, 110, 28, 18, 104, 25, 115, { kd: true, kb: 13, snd: 'hitH', hstop: 9 }),
-      dA: M('Clog Kick', 5, 3, 9, 30, 16, 11, 74, 0, 30, { low: true, pose: 'kick' }),
-      dC: M('Rolling Pin', 12, 4, 22, 80, 27, 18, 106, 0, 36, { low: true, kd: true, kb: 12, pose: 'kick', snd: 'hitH' })
+      sup: M('Grand Feast', 10, 40, 22, 48, 14, 14, 190, 0, 160, { sup: true, unb: true, rehit: 5, kd: true, kb: 1.5, hstop: 2, pose: 'spin', snd: 'hitL' }),
+      A: M('Ladle Tap', 4, 3, 7, 38, 15, 10, 78, 50, 110),
+      B: M('Whisk Whip', 8, 4, 12, 70, 20, 13, 98, 40, 115, { kb: 7 }),
+      C: M('Pan Slam', 13, 5, 22, 125, 28, 18, 112, 25, 115, { kd: true, kb: 13, snd: 'hitH', hstop: 9, armor: true }),
+      dA: M('Clog Kick', 4, 3, 8, 36, 15, 10, 80, 0, 30, { low: true, pose: 'kick' }),
+      dC: M('Rolling Pin', 9, 4, 18, 95, 27, 18, 112, 0, 36, { low: true, kd: true, kb: 12, pose: 'kick', snd: 'hitH' })
     } }
 ];
+ROSTER.forEach(r => { r.sup = r.moves.sup; });
 const BYID = {}; ROSTER.forEach(r => BYID[r.id] = r);
 const PLAYABLE = ROSTER.filter(r => !r.boss);
 const LEVELS = [
@@ -245,11 +265,11 @@ const LEVELS = [
   { n: 'Master',  react: 4,  aggr: .7,  block: .92, tech: .85, combo: 1,   whiff: .85, err: .02, spd: 1.05 }
 ];
 // ===== FIGHT SIM =====
-const RANK = { A: 1, B: 2, C: 3, dA: 1, dC: 3 };
+const RANK = { A: 1, B: 2, C: 3, dA: 1, dC: 3, sup: 9 };
 class Fighter {
   constructor(def, slot) { this.def = def; this.slot = slot; this.ctrl = null; this.reset(slot ? 620 : 340); }
   reset(x) {
-    this.x = x; this.vx = 0; this.face = this.slot ? -1 : 1; this.hp = this.maxhp = this.def.boss ? 1300 : 1000;
+    this.x = x; this.vx = 0; this.face = this.slot ? -1 : 1; this.hp = this.maxhp = this.def.boss ? 1200 : 1000; this.meter = this.def.boss ? 30 : 0;
     this.st = 'idle'; this.t = 0; this.stun = 0; this.mv = null; this.mvKey = ''; this.hitDone = false; this.connected = false;
     this.crouch = false; this.blocking = false; this.walk = 0; this.combo = 0; this.comboDmg = 0; this.flash = 0; this.inv = 0;
     this.prev = {}; this.buf = { a: 99, b: 99, c: 99 }; this.inp = {}; this.counter = false;
@@ -268,6 +288,11 @@ class Fighter {
     const mv = this.def.moves[key]; this.mv = mv; this.mvKey = key; this.st = 'atk'; this.t = 0; this.hitDone = false; this.connected = false;
     this.buf.a = this.buf.b = this.buf.c = 99; this.atkSeq = (this.atkSeq || 0) + 1; Audio_.sfx('whiff');
   }
+  startSuper(G) {
+    const m = this.def.sup; this.meter = 0; this.mv = m; this.mvKey = 'sup'; this.st = 'atk'; this.t = 0; this.hitDone = false; this.connected = false;
+    this.buf.a = this.buf.b = this.buf.c = 99; this.atkSeq = (this.atkSeq || 0) + 1; this.inv = m.st + 2; this.crouch = false;
+    G.superStart(this);
+  }
   tryThrowInput() { return (this.buf.a <= 2 && this.buf.b <= 2); }
   step(G) {
     const op = this.opp, inp = this.inp; this.t++; this.anim++;
@@ -284,7 +309,7 @@ class Fighter {
         } else this.walk = 0;
         this.blocking = !!this.dirB;
         this.face = op.x >= this.x ? 1 : -1;
-        if (this.tryThrowInput()) { this.st = 'grab'; this.t = 0; this.atkSeq = (this.atkSeq || 0) + 1; this.buf.a = this.buf.b = this.buf.c = 99; this.thr = null; break; }
+        if (this.tryThrowInput()) { this.buf.a = this.buf.b = this.buf.c = 99; if (this.meter >= 100) { this.startSuper(G); break; } else if (!this.def.noMeterMsg) G.pop(this.x, 150, 'NEED SUPER METER', '#c9c3d6'); }
         const c = this.crouch;
         if (this.buf.c <= 4) this.startMove(c ? 'dC' : 'C', G);
         else if (this.buf.b <= 4) this.startMove('B', G);
@@ -294,8 +319,10 @@ class Fighter {
       case 'atk': {
         const m = this.mv, total = m.st + m.ac + m.rc;
         this.blocking = false;
+        if (this.connected && this.mvKey !== 'sup' && this.meter >= 100 && this.tryThrowInput()) { this.startSuper(G); break; }
         if (this.t > m.st && this.t <= m.st + m.ac) {
           if (m.adv) this.x += this.face * m.adv;
+          if (m.rehit && this.hitDone && (this.t - m.st) % m.rehit === 0) this.hitDone = false;
           if (m.proj && !this.hitDone && this.t === m.st + 1) {
             this.hitDone = true; G.spawnProj(this, m.proj);
           } else if (!m.proj && !this.hitDone) G.checkMelee(this, op, m);
@@ -359,7 +386,8 @@ class Game {
     this.startRound();
   }
   startRound() {
-    this.f[0].reset(340); this.f[1].reset(620); this.projs = []; this.fx = []; this.pops = [];
+    const keep = this.round > 1 ? this.f.map(f => f.meter) : null;
+    this.f[0].reset(340); this.f[1].reset(620); if (keep) this.f.forEach((f, i) => { f.meter = keep[i]; }); this.sb = null; this.superKO = false; this.projs = []; this.fx = []; this.pops = [];
     this.phase = this.training ? 'fight' : 'intro'; this.pt = 0; this.timer = this.timeMax * 60; this.endMsg = '';
     this.hitstop = 0; this.slow = 0; this.maxCombo = [0, 0];
     if (!this.training) Audio_.sfx('ready');
@@ -374,7 +402,7 @@ class Game {
     this.resolve(a, b, m, hx1);
   }
   spawnProj(a, p) {
-    if (this.projs.some(q => q.owner === a)) return;
+    if (!p.sup && this.projs.some(q => q.owner === a)) return;
     this.projs.push({ owner: a, x: a.x + a.face * 50, y: p.y, vx: p.vx * a.face, p, face: a.face, t: 0 });
     Audio_.sfx('proj');
   }
@@ -383,7 +411,7 @@ class Game {
       q.x += q.vx; q.t++;
       const b = q.owner.opp, hb = this.hurt(b);
       if (b.inv <= 0 && !['down', 'thrown', 'ko'].includes(b.st) && q.x + q.p.r > hb.x0 && q.x - q.p.r < hb.x1 && q.p.y + q.p.r > hb.y0 && q.p.y - q.p.r < hb.y1) {
-        const mv = { dmg: q.p.dmg, hs: q.p.hs, bs: q.p.bs, kd: q.p.kd, kb: 6, push: 4, hstop: 5, low: false, snd: 'hitM' };
+        const mv = { dmg: q.p.dmg, hs: q.p.hs, bs: q.p.bs, kd: q.p.kd, kb: q.p.sup ? 12 : 6, push: 4, hstop: q.p.sup ? 10 : 5, low: false, sup: q.p.sup, snd: q.p.sup ? 'hitH' : 'hitM' };
         this.resolve(q.owner, b, mv, q.x, true); q.dead = true; continue;
       }
       if (q.x < -40 || q.x > W + 40) q.dead = true;
@@ -393,39 +421,53 @@ class Game {
   }
   canBlock(b, m) {
     if (!(b.st === 'idle' || b.st === 'block')) return false;
+    if (m.unb) return false;
     const holdBack = b.dirB; if (!holdBack) return false;
     if (m.low && !b.inp.d) return false;
     return true;
   }
+  addMeter(f, v) { f.meter = Math.min(100, f.meter + v * (f.def.boss ? 1.6 : 1)); }
+  superStart(f) {
+    this.hitstop = 42; this.sb = { slot: f.slot, name: f.def.sup.name, t: 0 }; this.shake = 14;
+    Audio_.sfx('super'); this.pop(f.x, 190, 'SUPER!', '#ffd23f');
+  }
   resolve(a, b, m, hitX, isProj) {
-    const y = clamp((m.y0 !== undefined && !isProj ? (m.y0 + m.y1) / 2 : 70), 20, b.hh - 8);
+    const y = clamp((!isProj ? (m.y0 + m.y1) / 2 : 70), 20, b.hh - 8);
+    const mult = a.def.boss ? 1.1 : 1;
     if (!isProj) { a.hitDone = true; a.connected = true; }
+    const kd = m.rehit ? (m.kd && a.t > m.st + m.ac - m.rehit) : m.kd;
     if (this.canBlock(b, m)) {
-      const chip = (m.kd || isProj) ? Math.round(m.dmg * 0.08) : 0;
+      const chip = (kd || isProj || m.sup) ? Math.round(m.dmg * (m.sup ? 0.2 : 0.08) * mult) : 0;
       if (!this.training) b.hp = Math.max(1, b.hp - chip);
       b.st = 'block'; b.stun = m.bs; b.t = 0; b.vx = a.face * (m.push + 1.5); b.blocking = true; b.crouch = !!b.inp.d;
       if (!isProj) a.vx = -a.face * 1.2;
-      this.hitstop = 5; this.spark(hitX, b.x === hitX ? 0 : 0, y, 'block'); Audio_.sfx('block');
+      if (!m.sup) this.addMeter(a, m.dmg * 0.05); this.addMeter(b, m.dmg * 0.04);
+      this.hitstop = 5; this.spark(hitX, 0, y, 'block'); Audio_.sfx('block');
       this.pop(b.x, 150, 'BLOCK', '#7ad7ff');
       return;
     }
-    // counter hit
-    const counter = b.st === 'atk' && b.t <= b.mv.st;
-    if (b.st === 'atk' && b.t <= b.mv.st) { /* interrupted */ }
+    // armor: heavy attacks of some fighters shrug off hits
+    if (b.st === 'atk' && b.mv && b.mv.armor && b.t <= b.mv.st + b.mv.ac) {
+      const d2 = Math.round(m.dmg * 0.6 * mult); if (!this.training) b.hp = Math.max(1, b.hp - d2);
+      b.flash = 4; this.hitstop = 4; this.spark(hitX, 0, y, 'hit'); Audio_.sfx('block'); this.pop(b.x, 150, 'ARMOR!', '#ff9f43');
+      if (!m.sup) this.addMeter(a, d2 * 0.1); this.addMeter(b, d2 * 0.1); return;
+    }
+    const counter = !m.sup && b.st === 'atk' && b.t <= b.mv.st;
     b.combo = (b.st === 'hit') ? b.combo + 1 : 1;
-    const scale = Math.max(0.35, 1 - 0.12 * (b.combo - 1));
-    let dmg = Math.round(m.dmg * scale * (counter ? 1.25 : 1));
+    const scale = m.sup ? 1 : Math.max(0.35, 1 - 0.12 * (b.combo - 1));
+    let dmg = Math.round(m.dmg * scale * (counter ? 1.25 : 1) * mult);
     if (this.training) dmg = Math.min(dmg, Math.max(0, b.hp - 1));
     b.hp = Math.max(0, b.hp - dmg); b.comboDmg = (b.comboDmg || 0) + dmg; b.flash = 6;
+    if (!m.sup) this.addMeter(a, dmg * 0.12); this.addMeter(b, dmg * 0.10);
     this.maxCombo[a.slot] = Math.max(this.maxCombo[a.slot], b.combo);
     const dir = a.face;
     b.mv = null;
-    if (b.hp <= 0 && !this.training) { this.ko(b, a, dir); }
-    else if (m.kd) { b.st = 'down'; b.t = 0; b.vx = dir * (m.kb * 0.9); b.inv = 0; }
+    if (b.hp <= 0 && !this.training) { this.superKO = !!m.sup; this.ko(b, a, dir); }
+    else if (kd) { b.st = 'down'; b.t = 0; b.vx = dir * (m.kb * 0.9); b.inv = 0; }
     else { b.st = 'hit'; b.stun = m.hs; b.t = 0; b.vx = dir * m.kb; }
     if (this.training && b.hp <= 1) { this.trainReset = 40; }
-    this.hitstop = m.hstop; this.shake = Math.max(this.shake, m.kd ? 10 : 4);
-    this.spark(hitX, 0, y, m.kd ? 'big' : 'hit'); Audio_.sfx(m.snd || 'hitM');
+    this.hitstop = m.hstop; this.shake = Math.max(this.shake, kd ? 10 : 4);
+    this.spark(hitX, 0, y, kd ? 'big' : 'hit'); Audio_.sfx(m.snd || 'hitM');
     this.pop(b.x, 150, counter ? 'COUNTER!' : (b.combo >= 2 ? b.combo + ' HITS' : ''), counter ? '#ffd23f' : '#fff');
   }
   doThrow(a, b) {
@@ -474,6 +516,7 @@ class Game {
     this.fx = this.fx.filter(p => p.t < p.life);
     for (const p of this.pops) p.t++; this.pops = this.pops.filter(p => p.t < 50);
     if (this.shake > 0) this.shake *= 0.85; if (this.shake < 0.3) this.shake = 0;
+    if (this.sb) { this.sb.t++; if (this.sb.t > 42) this.sb = null; }
     if (this.hitstop > 0) { this.hitstop--; return; }
     if (this.phase === 'ko' && this.slow > 0 && this.frame % 2) { /* slow motion: skip every other frame */ return; }
     this.pt++;
@@ -488,6 +531,7 @@ class Game {
           this.endRound(pa === pb ? -1 : pa > pb ? 0 : 1, 'TIME UP');
         }
       } else {
+        for (const f of this.f) f.meter = 100;
         if (this.trainReset > 0) { this.trainReset--; if (this.trainReset === 0) { for (const f of this.f) f.hp = f.maxhp; } }
         if (this.frame % 600 === 0) for (const f of this.f) if (f.st === 'idle' && f.hp < f.maxhp) f.hp = Math.min(f.maxhp, f.hp + 100);
       }
@@ -525,6 +569,7 @@ class Brain {
     this.cd--;
     // ---- chaining after connect ----
     if (me.st === 'atk') {
+      if (me.connected && me.meter >= 100 && me.mvKey !== 'sup' && Math.random() < L.combo * 0.12) { o.a = o.b = true; return o; }
       if (me.connected && me.t > me.mv.st && Math.random() < L.combo * 0.5) {
         const cur = RANK[me.mvKey], nxt = cur === 1 ? (Math.random() < .5 ? 'b' : 'c') : cur === 2 ? 'c' : null;
         if (nxt && Math.random() < L.combo) o[nxt] = true;
@@ -547,8 +592,9 @@ class Brain {
     }
     if (me.st === 'block' || (this.hold > 0 && me.st === 'idle')) { this.hold--; toward('b'); o.d = me.inp.d; return o; }
     if (me.st !== 'idle') return o;
-    // throw tech
-    if (ob.st === 'grab' && obDist < op.def.throwRange + 20 && Math.random() < L.tech * 0.25) { o.a = o.b = true; return o; }
+    // super when the meter is full and the target is in range
+    const sp = d.sup, supReach = sp.proj ? 340 : sp.x1 + hb * 0.4;
+    if (me.meter >= 100 && dist < supReach && Math.random() < 0.03 + L.combo * 0.05 + (op.st === 'hit' ? 0.2 : 0)) { o.a = o.b = true; return o; }
     // ---- spacing / offence ----
     const arche = d.arche;
     // whiff punish
@@ -562,7 +608,7 @@ class Brain {
       return o;
     }
     // approach
-    const want = arche === 'grap' ? d.throwRange - 24 : arche === 'rush' ? reach('B') - 18 : reach('B') - 10;
+    const want = arche === 'grap' ? reach('B') - 20 : arche === 'rush' ? reach('B') - 18 : reach('B') - 10;
     if (dist > want + 20) { if (Math.random() < L.spd) toward('f'); return o; }
     if (dist < want - 30 && arche === 'zone') { toward('b'); return o; }
     // in range: decide
@@ -573,7 +619,7 @@ class Brain {
     const blockingOp = op.blocking && (op.st === 'idle' || op.st === 'block');
     const r = Math.random();
     if (Math.random() < L.err) { if (r < .5) o.a = true; return o; }
-    if (dist < d.throwRange && (blockingOp ? r < .4 + L.combo * .2 : r < .08 + L.combo * .06)) { o.a = o.b = true; return o; }
+    if (blockingOp && dist < reach('B') && r < .25 + L.combo * .15) { o.d = true; o.a = true; return o; }
     if (blockingOp && r > .55 && this.li >= 2) { o.d = true; o.a = true; return o; } // low mixup
     if (dist < reach('A')) {
       const choose = Math.random();
@@ -676,6 +722,17 @@ const BODY = {
     ell(-w * .1, -h * 1.0, 8, 8, C('#d8203c'), 4);
     return { x: w * .06, y: -h * .44, s: .85 };
   },
+  soda(d, C, h, w, t) {
+    const top = -h * .8, bot = -26;
+    for (const [bx, by, r] of [[-.5, -.98, 4], [.1, -1.05, 5], [.55, -.95, 3.5]]) { cx.beginPath(); cx.arc(w * bx, h * by + Math.sin(t * .12 + bx * 9) * 3, r, 0, TAU); fillStroke(C('#fff'), 2.5); }
+    rrect(-w * 1.05, top, w * 2.1, bot - top, 14, C(d.c1), 5);
+    cx.save(); cx.beginPath(); cx.roundRect(-w * 1.05, top, w * 2.1, bot - top, 14); cx.clip();
+    cx.beginPath(); cx.moveTo(-w * 1.2, -h * .5); cx.bezierCurveTo(-w * .5, -h * .66, w * .4, -h * .34, w * 1.2, -h * .5); cx.lineTo(w * 1.2, -h * .36); cx.bezierCurveTo(w * .4, -h * .2, -w * .5, -h * .52, -w * 1.2, -h * .36); cx.closePath(); cx.fillStyle = C(d.c2); cx.fill();
+    cx.restore(); cx.beginPath(); cx.roundRect(-w * 1.05, top, w * 2.1, bot - top, 14); ink(5); cx.stroke();
+    cx.beginPath(); cx.ellipse(0, top, w * 1.05, 8, 0, 0, TAU); fillStroke(C(d.c3), 4);
+    cx.beginPath(); cx.ellipse(w * .25, top - 1, 10, 4, 0, 0, TAU); fillStroke(C('#e7ecf3'), 3);
+    return { x: w * .05, y: -h * .62, s: .85 };
+  },
   chef(d, C, h, w) {
     ell(0, -h * .38, w * 1.2, h * .38, C(d.c1), 5);
     cx.beginPath(); cx.moveTo(-w * .75, -h * .46); cx.lineTo(w * .75, -h * .46); cx.lineTo(w * .95, -34); cx.lineTo(-w * .95, -34); cx.closePath(); fillStroke(C(d.c2), 5); rrect(-w * .3, -h * .3, w * .6, h * .12, 6, C('#fff'), 3);
@@ -705,7 +762,8 @@ function computePose(f) {
       const t = f.t, st = m.st, ac = m.ac, rc = m.rc;
       const ext = t <= st ? -0.35 * (t / st) : t <= st + ac ? 1 : Math.max(0, 1 - easeOut((t - st - ac) / rc));
       const ym = (m.y0 + m.y1) / 2; P.mood = 'atk';
-      if (m.pose === 'kick') {
+      if (m.pose === 'spin') { P.spin = true; P.rot = f.t * 0.55; P.fh = [30, -h * .6]; P.bh = [-30, -h * .6]; P.sy = 1; }
+      else if (m.pose === 'kick') {
         P.ff = [lerp(18, m.x1 - 8, ext), -lerp(10, Math.max(14, ym + 8), Math.max(0, ext))]; P.lean = -5 * Math.max(0, ext); P.fh = [22, -h * .55]; P.bh = [-20, -h * .6];
         if (f.crouch || m.low) P.sy = .85;
       } else if (m.pose === 'toss') {
@@ -736,8 +794,12 @@ function drawFighter(f, G) {
   const legCol = C(d.id === 'fries' ? d.c2 : d.id === 'chef' ? d.c2 : d.id === 'taco' ? d.c1 : d.c1);
   // shadow
   const air = P.lift; cx.save(); cx.globalAlpha = .25 * (1 - Math.min(.6, air / 120)); cx.fillStyle = '#000'; cx.beginPath(); cx.ellipse(f.x, GROUND + 3, w * 1.5 * (f.st === 'down' || f.st === 'ko' ? 1.5 : 1), 9, 0, 0, TAU); cx.fill(); cx.restore();
+  if (f.st === 'atk' && f.mv && f.mv.sup) {
+    cx.save(); cx.translate(f.x, GROUND - h * .5); const gr = cx.createRadialGradient(0, 0, 10, 0, 0, 120); gr.addColorStop(0, 'rgba(255,240,150,.95)'); gr.addColorStop(1, 'rgba(255,120,60,0)');
+    cx.fillStyle = gr; cx.globalAlpha = .55 + .3 * Math.sin(f.t * .6); cx.beginPath(); cx.arc(0, 0, 120, 0, TAU); cx.fill(); cx.restore();
+  }
   cx.save(); cx.translate(f.x + (G.shake ? rnd(-1, 1) * G.shake * .3 : 0), GROUND - P.lift); cx.scale(f.face, 1);
-  if (P.rot) { cx.translate(0, -h * .5); cx.rotate(P.rot); cx.translate(0, h * .5 + (h * .5 - w) * (Math.abs(P.rot) > 1.5 ? 1 : Math.min(1, Math.abs(P.rot) / 1.5)) * (f.st === 'thrown' ? 0 : 1)); }
+  if (P.rot) { cx.translate(0, -h * .5); cx.rotate(P.rot); cx.translate(0, h * .5 + (h * .5 - w) * (Math.abs(P.rot) > 1.5 ? 1 : Math.min(1, Math.abs(P.rot) / 1.5)) * (f.st === 'thrown' || P.spin ? 0 : 1)); }
   cx.scale(1, P.sy); cx.translate(P.lean, 0);
   const sh = -h * .56, sw = w * .78;
   // back leg + back arm
@@ -760,6 +822,7 @@ function drawProj(q) {
   cx.rotate(a);
   if (q.p.kind === 'pep') { ell(0, 0, r, r, '#e04a2f'); ell(-6, -4, 4, 4, '#a02a1c', 2); ell(5, 5, 4, 4, '#a02a1c', 2); ell(6, -7, 3, 3, '#a02a1c', 2); }
   else if (q.p.kind === 'ice') { rrect(-r, -r, r * 2, r * 2, 4, '#bfeaff', 4); ink(2); cx.strokeStyle = '#fff'; cx.beginPath(); cx.moveTo(-r + 4, -r + 4); cx.lineTo(-2, -2); cx.stroke(); }
+  else if (q.p.kind === 'blizzard') { const g2 = cx.createRadialGradient(0, 0, 4, 0, 0, r); g2.addColorStop(0, '#ffffff'); g2.addColorStop(.6, '#bfeaff'); g2.addColorStop(1, 'rgba(120,200,255,.2)'); cx.fillStyle = g2; cx.beginPath(); cx.arc(0, 0, r, 0, TAU); cx.fill(); ink(5); cx.strokeStyle = '#fff'; for (let i = 0; i < 6; i++) { cx.save(); cx.rotate(i * Math.PI / 3); cx.beginPath(); cx.moveTo(0, 0); cx.lineTo(r * .9, 0); cx.stroke(); cx.restore(); } }
   else { ell(0, 0, r, r * .85, '#4a4a55'); rrect(r - 2, -4, 22, 8, 4, '#4a4a55', 4); ell(-4, -4, 5, 3, '#80808c', 2); }
   cx.restore();
 }
@@ -818,6 +881,12 @@ function hudBar(f, side, G) {
   cx.fillStyle = 'rgba(255,255,255,.35)'; if (side) cx.fillRect(x0 + w - bw, y + 4, bw, 6); else cx.fillRect(x0, y + 4, bw, 6);
   cx.restore(); cx.beginPath(); cx.roundRect(x0, y, w, h, 14); ink(5); cx.stroke();
   bigText(f.def.name, side ? x0 + w : x0, y + 44, 24, '#fff', INK, side ? 'right' : 'left');
+  const mw = 210, mx = side ? x0 + w - mw : x0, my = y + 62, full = f.meter >= 100;
+  rrect(mx, my, mw, 14, 7, '#3a3345', 4);
+  cx.save(); cx.beginPath(); cx.roundRect(mx, my, mw, 14, 7); cx.clip();
+  const fw2 = mw * f.meter / 100; cx.fillStyle = full ? (G.frame % 20 < 10 ? '#fff' : '#7ad7ff') : '#4fb3ff'; if (side) cx.fillRect(mx + mw - fw2, my, fw2, 14); else cx.fillRect(mx, my, fw2, 14); cx.restore();
+  cx.beginPath(); cx.roundRect(mx, my, mw, 14, 7); ink(4); cx.stroke();
+  bigText(full ? 'SUPER READY  A+B' : 'SUPER', side ? mx - 8 : mx + mw + 8, my + 8, 15, full ? '#ffd23f' : '#fff', INK, side ? 'right' : 'left');
   const wins = G.wins[f.slot];
   for (let i = 0; i < G.roundsToWin; i++) { const px = side ? x0 + 12 + i * 26 : x0 + w - 12 - i * 26; star(px, y + 44, 10, i < wins ? '#ffd23f' : '#3a3345'); }
 }
@@ -852,6 +921,17 @@ function drawBanner(G) {
     if (G.pt > 25) bigText(G.roundWinner < 0 ? 'DRAW' : G.f[G.roundWinner].def.name + ' wins the round!', W / 2, 270, 34, '#fff', INK);
   }
 }
+function drawSuperBanner(G) {
+  if (!G.sb) return; const f = G.f[G.sb.slot], k = Math.min(1, G.sb.t / 7), left = f.slot === 0;
+  cx.save(); cx.fillStyle = 'rgba(15,8,35,.8)'; cx.fillRect(0, 0, W, H);
+  cx.fillStyle = f.def.c1; cx.globalAlpha = .28; for (let i = 0; i < 9; i++) { cx.beginPath(); cx.moveTo(i * 130 - 40 + (G.sb.t * 6 % 130), 0); cx.lineTo(i * 130 + 30 + (G.sb.t * 6 % 130), 0); cx.lineTo(i * 130 - 140 + (G.sb.t * 6 % 130), H); cx.lineTo(i * 130 - 210 + (G.sb.t * 6 % 130), H); cx.fill(); } cx.globalAlpha = 1;
+  const px = left ? lerp(-120, 250, easeOut(k)) : lerp(W + 120, W - 250, easeOut(k));
+  portrait(f.def, px, 470, 2.6, 'atk', left ? 1 : -1);
+  bigText('SUPER MOVE', W / 2, 120, 34, '#ffd23f', INK, 'center', 8);
+  bigText(f.def.sup.name.toUpperCase() + '!', W / 2, 190, Math.min(88, 70 + 20 * k), '#fff', INK, 'center', 14);
+  bigText(f.def.name, W / 2, 255, 36, f.def.c1, INK, 'center', 8);
+  cx.restore();
+}
 function renderGame(G) {
   cx.save(); const sk = G.shake; if (sk) cx.translate(rnd(-sk, sk) * .5, rnd(-sk, sk) * .5);
   STAGES[G.stageId].draw(G.frame);
@@ -859,7 +939,7 @@ function renderGame(G) {
   for (const f of order) drawFighter(f, G);
   for (const q of G.projs) drawProj(q);
   drawFx(G); cx.restore();
-  drawHUD(G); drawBanner(G);
+  drawHUD(G); drawBanner(G); drawSuperBanner(G);
 }
 // ===== SCENES / MENUS =====
 let scene = null, sceneT = 0, tick = 0;
@@ -932,19 +1012,20 @@ class MainMenu {
   constructor() {
     this.m = new Menu([
       { label: 'STORY MODE', fn: () => startStory() },
+      { label: 'SURVIVAL', fn: () => startSurvival() },
       { label: 'VS CPU', fn: () => startVsCpu() },
       { label: 'LOCAL 2 PLAYER', fn: () => startLocal() },
       { label: 'TRAINING', fn: () => startTraining() },
       { label: 'WATCH CPU', fn: () => startWatch() },
       { label: 'HOW TO PLAY', fn: () => go(new HowTo(() => go(new MainMenu()))) },
       { label: 'OPTIONS', fn: () => go(new Options(() => go(new MainMenu()))) }
-    ], { y: 168, gap: 46, size: 32, w: 400 });
+    ], { y: 150, gap: 42, size: 29, w: 400 });
   }
   update() { this.m.update(); }
   render() {
-    bg(tick, .1); bigText('LUNCH BRAWL ARENA', W / 2, 62, 50, '#ffd23f', INK, 'center', 9);
+    bg(tick, .1); bigText('LUNCH BRAWL ARENA', W / 2 + 60, 56, 40, '#ffd23f', INK, 'center', 9);
     portrait(ROSTER[0], 130, 470, 1.15, 'atk', 1); portrait(ROSTER[4], 830, 470, 1.15, 'idle', -1);
-    this.m.draw();
+    this.m.draw(); drawRankCard(20, 14);
     bigText('Online play is not available in this version', W / 2, 515, 15, '#fff', INK);
   }
 }
@@ -954,11 +1035,13 @@ class SelectScene {
   constructor(picks, done, back) { this.picks = picks; this.done = done; this.backFn = back; this.i = 0; this.res = []; this.cur = 0; }
   get cards() { const c = PLAYABLE.slice(); c.push(unlockedChef ? BYID.chef : null); c.push('rand'); return c; }
   update() {
-    const n = 8; let c = this.cur;
-    if (N.left()) c = (c + n - 1) % n; if (N.right()) c = (c + 1) % n; if (N.up()) c = (c + n - 4) % n; if (N.down()) c = (c + 4) % n;
+    const n = 9; let c = this.cur;
+    if (N.left()) c = (c + n - 1) % n; if (N.right()) c = (c + 1) % n;
+    if (N.up()) c = c >= 5 ? c - 5 : Math.min(n - 1, c + 5);
+    if (N.down()) c = c + 5 < n ? c + 5 : c % 5;
     if (c !== this.cur) { this.cur = c; Audio_.sfx('ui'); }
     const cl = takeClick();
-    if (cl) for (let i = 0; i < 8; i++) { const [bx, by, bw, bh] = this.cardBox(i); if (cl[0] >= bx && cl[0] <= bx + bw && cl[1] >= by && cl[1] <= by + bh) { if (this.cur === i) this.confirm(); else { this.cur = i; Audio_.sfx('ui'); } } }
+    if (cl) for (let i = 0; i < 9; i++) { const [bx, by, bw, bh] = this.cardBox(i); if (cl[0] >= bx && cl[0] <= bx + bw && cl[1] >= by && cl[1] <= by + bh) { if (this.cur === i) this.confirm(); else { this.cur = i; Audio_.sfx('ui'); } } }
     if (N.ok()) this.confirm();
     if (N.back()) { Audio_.sfx('back'); if (this.i > 0) { this.i--; this.res.pop(); } else this.backFn(); }
   }
@@ -968,15 +1051,15 @@ class SelectScene {
     Audio_.sfx('ok'); this.res.push(c); this.i++;
     if (this.i >= this.picks.length) this.done(this.res);
   }
-  cardBox(i) { return [36 + (i % 4) * 124, 150 + Math.floor(i / 4) * 128, 116, 120]; }
+  cardBox(i) { return [28 + (i % 5) * 99, 150 + Math.floor(i / 5) * 128, 92, 120]; }
   render() {
     bg(tick, .25); bigText(this.picks[this.i].label + ' - CHOOSE YOUR FIGHTER', W / 2, 52, 38, '#ffd23f', INK);
     this.cards.forEach((c, i) => {
       const [bx, by, bw, bh] = this.cardBox(i), on = i === this.cur;
       rrect(bx, by, bw, bh, 16, on ? '#ffd23f' : '#fff6e6', on ? 7 : 5);
-      if (c === null) bigText('LOCKED', bx + bw / 2, by + 60, 20, '#8a8498', INK, 'center', 0);
+      if (c === null) bigText('LOCKED', bx + bw / 2, by + 60, 17, '#8a8498', INK, 'center', 0);
       else if (c === 'rand') bigText('?', bx + bw / 2, by + 56, 64, INK, '#ffd23f', 'center', 0);
-      else { cx.save(); cx.beginPath(); cx.rect(bx + 4, by + 4, bw - 8, bh - 8); cx.clip(); portrait(c, bx + bw / 2, by + bh - 10, .62, 'idle', 1); cx.restore(); }
+      else { cx.save(); cx.beginPath(); cx.rect(bx + 4, by + 4, bw - 8, bh - 8); cx.clip(); portrait(c, bx + bw / 2, by + bh - 10, .52, 'idle', 1); cx.restore(); }
     });
     const c = this.cards[this.cur];
     panel(530, 100, 394, 410);
@@ -986,7 +1069,8 @@ class SelectScene {
       cx.fillStyle = '#3a3345'; cx.font = '15px ' + FONT; cx.textAlign = 'left'; wrapText(c.blurb, 726, 208, 186, 19);
       const mv = c.moves; cx.fillStyle = '#3a3345'; cx.font = '15px ' + FONT;
       [['A', mv.A], ['B', mv.B], ['C', mv.C.proj ? { name: mv.C.name, dmg: mv.C.proj.dmg } : mv.C], ['Down+A', mv.dA], ['Down+C', mv.dC]].forEach(([k, m], j) => { cx.fillStyle = '#e04a2f'; cx.textAlign = 'left'; cx.fillText(k, 560, 392 + j * 22); cx.fillStyle = '#3a3345'; cx.fillText(m.name, 630, 392 + j * 22); cx.textAlign = 'right'; cx.fillText(m.dmg + ' dmg', 905, 392 + j * 22); });
-      cx.textAlign = 'left'; cx.fillStyle = '#e04a2f'; cx.fillText('Throw', 560, 392 + 5 * 22); cx.fillStyle = '#3a3345'; cx.fillText('A + B', 630, 392 + 5 * 22); cx.textAlign = 'right'; cx.fillText(c.throwDmg + ' dmg', 905, 392 + 5 * 22);
+      const sm = c.sup, tot = sm.proj ? sm.proj.dmg : sm.rehit ? sm.dmg * Math.floor(sm.ac / sm.rehit) : sm.dmg;
+      cx.textAlign = 'left'; cx.fillStyle = '#e04a2f'; cx.fillText('Super', 560, 392 + 5 * 22); cx.fillStyle = '#3a3345'; cx.fillText('A+B  ' + sm.name, 630, 392 + 5 * 22); cx.textAlign = 'right'; cx.fillText(tot + ' dmg', 905, 392 + 5 * 22);
     } else if (c === 'rand') { bigText('RANDOM', 727, 300, 46, INK, '#fff', 'center', 0); }
     else bigText('Beat Story Mode to unlock', 727, 300, 24, INK, '#fff', 'center', 0);
     bigText('Arrows / WASD to move   Enter to pick   Esc to go back', W / 2, 522, 16, '#fff', INK);
@@ -1012,11 +1096,11 @@ class HowTo {
     panel(40, 84, 430, 220); panel(490, 84, 430, 220); panel(40, 320, 880, 190);
     const L = (t, x, y, c = '#3a3345', s = 17) => { cx.font = s + 'px ' + FONT; cx.fillStyle = c; cx.textAlign = 'left'; cx.fillText(t, x, y); };
     L('PLAYER 1  (also works for single player)', 62, 114, '#e04a2f', 19);
-    ['Move: A / D  or  Left / Right', 'Crouch: S  or  Down', 'Attacks: F = A,  G = B,  H = C', 'Single player also: J / K / L or Z / X / C', 'No jump. Hold BACK to block.'].forEach((t, i) => L(t, 62, 146 + i * 28));
+    ['Move: A / D  or  Left / Right', 'Crouch: S  or  Down', 'Attacks: F = A,  G = B,  H = C', 'Single player also: J / K / L or Z / X / C', 'SUPER: press A and B together', 'No jump. Hold BACK to block.'].forEach((t, i) => L(t, 62, 142 + i * 27));
     L('PLAYER 2  (local versus)', 512, 114, '#2f7fe0', 19);
-    ['Move: Left / Right', 'Crouch: Down', 'Attacks: J = A,  K = B,  L = C', 'In 2 player mode P1 uses WASD + F G H', 'Esc or Enter pauses the match.'].forEach((t, i) => L(t, 512, 146 + i * 28));
+    ['Move: Left / Right', 'Crouch: Down', 'Attacks: J = A,  K = B,  L = C', 'SUPER: press J and K together', 'In 2 player mode P1 uses WASD + F G H', 'Esc or Enter pauses the match.'].forEach((t, i) => L(t, 512, 142 + i * 27));
     L('FIGHTING BASICS', 62, 348, '#e04a2f', 19);
-    ['There are three attack buttons. A is fast, B is solid, C is heavy or a special like a projectile or dash.', 'Chain on hit or block: A, then B, then C. Down+A is a low poke. Down+C is a sweep that knocks down.', 'Hold back to block. Low attacks must be blocked crouching (hold back and down).', 'Throw with A + B at close range. It beats blocking. Press A + B yourself at the same moment to tech it.', 'Counter hits do extra damage. Long combos scale down. Win two rounds before time runs out.'].forEach((t, i) => L(t, 62, 380 + i * 25, '#3a3345', 16));
+    ['There are three attack buttons. A is fast, B is solid, C is heavy. Chain on hit or block: A, then B, then C.', 'Down+A is a low poke. Down+C is a sweep that knocks down. Low attacks must be blocked crouching.', 'The SUPER meter fills when you hit, block or get hit. At full, press A + B for your fighter\'s super move.', 'You can cancel a connecting attack into your super. Some supers cannot be blocked, so keep your distance.', 'Only Mylo has long range. Crouch to duck his ice cubes. Win two rounds before time runs out.'].forEach((t, i) => L(t, 62, 380 + i * 25, '#3a3345', 16));
     bigText('Press any key to go back', W / 2, 524, 18, '#fff', INK);
   }
 }
@@ -1099,16 +1183,78 @@ class FightScene {
   }
 }
 class ResultScene {
-  constructor(r, opts) { this.r = r; this.m = new Menu(opts, { y: 400, gap: 46, size: 30, w: 400 }); this.title = r.title; }
+  constructor(r, opts) { this.r = r; this.m = new Menu(opts, { x: 700, y: 345, gap: 46, size: 28, w: 380 }); }
   update() { this.m.update(); }
   render() {
     const r = this.r, G = r.G; bg(tick, .35);
-    bigText(r.title, W / 2, 70, 64, r.win ? '#ffd23f' : '#ff6b5e', INK);
-    if (r.def) portrait(r.def, W / 2, 330, 1.7, r.win === false ? 'hit' : 'win', 1);
-    bigText(r.sub || '', W / 2, 130, 28, '#fff', INK);
-    if (G) bigText('Rounds ' + G.wins[0] + ' - ' + G.wins[1] + '   Best combo ' + Math.max(G.maxCombo[0], G.maxCombo[1]) + ' hits', W / 2, 365, 20, '#fff', INK);
+    bigText(r.title, W / 2, 52, 60, r.win ? '#ffd23f' : '#ff6b5e', INK);
+    if (r.def) portrait(r.def, 230, 440, 1.6, r.win === false ? 'hit' : 'win', 1);
+    panel(470, 100, 450, 215);
+    const T = (t, y, size, fill = INK) => bigText(t, 695, y, size, fill, '#fff', 'center', 0);
+    T(r.sub || '', 126, 22, '#7a3e1d');
+    if (G) T('Rounds ' + G.wins[0] + ' - ' + G.wins[1] + '    Best combo ' + Math.max(G.maxCombo[0], G.maxCombo[1]), 154, 19);
+    if (r.xp) {
+      const x = r.xp; T('+' + x.gain + ' XP', 190, 34, '#e04a2f');
+      if (x.bonus.length) T(x.bonus.join('   '), 218, 16, '#3a3345');
+      rrect(530, 236, 330, 18, 9, '#3a3345', 3); cx.save(); cx.beginPath(); cx.roundRect(530, 236, 330, 18, 9); cx.clip(); cx.fillStyle = '#4fb3ff'; cx.fillRect(530, 236, 330 * x.after.cur / x.after.need, 18); cx.restore();
+      cx.beginPath(); cx.roundRect(530, 236, 330, 18, 9); ink(3); cx.stroke();
+      T((x.lvUp ? 'RANK UP!  ' : '') + 'Lv ' + (x.after.lv + 1) + '  ' + x.after.title, 272, 20, x.lvUp ? '#e04a2f' : INK);
+    }
+    if (r.streak) T('Win streak ' + r.streak.streak + '   Best ' + r.streak.best, 300, 17, '#3a3345');
     this.m.draw();
   }
+}
+// ---------- Progression ----------
+const RANKS = ['Lunch Tray', 'Side Dish', 'Appetizer', 'Entree', "Chef's Special", 'Prime Cut', 'Head Chef', 'Grand Feast'];
+function xpInfo() {
+  let xp = store.get('xp', 0), lv = 0, need = 100;
+  while (xp >= need) { xp -= need; lv++; need = 100 + lv * 40; }
+  return { lv, cur: xp, need, title: RANKS[Math.min(RANKS.length - 1, Math.floor(lv / 2))] };
+}
+function awardXP(G, win, level, extra = 0) {
+  const before = xpInfo(), bonus = []; let gain = win ? 40 + level * 15 : 10;
+  if (win) {
+    if (G.wins[1] === 0 && G.wins[0] >= G.roundsToWin) { gain += 40; bonus.push('Flawless +40'); }
+    if (G.maxCombo[0] >= 5) { gain += 20; bonus.push(G.maxCombo[0] + '-hit combo +20'); }
+    if (G.superKO && G.winnerSlot === 0) { gain += 15; bonus.push('Super KO +15'); }
+    if (extra) { gain += extra; bonus.push('Streak +' + extra); }
+  }
+  store.set('xp', store.get('xp', 0) + gain);
+  const after = xpInfo(); return { gain, bonus, lvUp: after.lv > before.lv, after };
+}
+function recordStreak(win) {
+  const st = win ? store.get('streak', 0) + 1 : 0, best = Math.max(store.get('best', 0), st);
+  store.set('streak', st); store.set('best', best); return { streak: st, best };
+}
+function drawRankCard(x, y) {
+  const i = xpInfo(); panel(x, y, 230, 76, 'rgba(255,255,255,.9)');
+  bigText('Lv ' + (i.lv + 1) + '  ' + i.title, x + 115, y + 20, 21, INK, '#fff', 'center', 0);
+  rrect(x + 16, y + 38, 198, 14, 7, '#3a3345', 3); cx.save(); cx.beginPath(); cx.roundRect(x + 16, y + 38, 198, 14, 7); cx.clip(); cx.fillStyle = '#4fb3ff'; cx.fillRect(x + 16, y + 38, 198 * i.cur / i.need, 14); cx.restore();
+  cx.beginPath(); cx.roundRect(x + 16, y + 38, 198, 14, 7); ink(3); cx.stroke();
+  bigText('Best survival: ' + store.get('bestSurv', 0) + '   Best streak: ' + store.get('best', 0), x + 115, y + 63, 13, '#3a3345', '#fff', 'center', 0);
+}
+// ---------- Survival ----------
+let SV = null;
+function startSurvival() { go(new SelectScene([{ label: 'SURVIVAL' }], d => { SV = { p: d[0], wins: 0 }; survivalFight(); }, () => go(new MainMenu()))); }
+function survivalFight() {
+  const n = SV.wins, lv = Math.min(4, Math.floor(n / 2)); let o;
+  if (n > 0 && (n + 1) % 5 === 0) o = BYID.chef; else { do { o = pick(PLAYABLE); } while (o.id === SV.p.id); }
+  go(new FightScene({
+    defs: [SV.p, o], ctrls: ['pad0', new Brain(lv)], humans: 1, rounds: 1, noRestart: true, label: 'SURVIVAL  fight ' + (n + 1) + '  CPU: ' + LEVELS[lv].n + (o.id === 'chef' ? '  BOSS' : ''),
+    onQuit: () => go(new MainMenu()),
+    onEnd: r => {
+      if (r.winner === 0) {
+        SV.wins++; Audio_.sfx('win'); const best = Math.max(store.get('bestSurv', 0), SV.wins); store.set('bestSurv', best);
+        const xp = awardXP(r.G, true, lv, Math.min(40, SV.wins * 5));
+        go(new ResultScene({ title: 'SURVIVED!', win: true, def: SV.p, sub: 'Streak ' + SV.wins + '   Best ' + best + '   Next: ' + (SV.wins > 0 && (SV.wins + 1) % 5 === 0 ? 'HEAD CHEF!' : 'CPU lv ' + (Math.min(4, Math.floor(SV.wins / 2)) + 1)), G: r.G, xp },
+          [{ label: 'NEXT FIGHT', fn: () => survivalFight() }, { label: 'CASH OUT', fn: () => go(new MainMenu()) }]));
+      } else {
+        Audio_.sfx('lose'); const xp = awardXP(r.G, false, 0); const best = store.get('bestSurv', 0);
+        go(new ResultScene({ title: 'ELIMINATED', win: false, def: SV.p, sub: 'You won ' + SV.wins + ' in a row.  Best ' + best, G: r.G, xp },
+          [{ label: 'TRY AGAIN', fn: () => { SV.wins = 0; survivalFight(); } }, { label: 'CHANGE FIGHTER', fn: () => startSurvival() }, { label: 'MAIN MENU', fn: () => go(new MainMenu()) }]));
+      }
+    }
+  }));
 }
 class Dialogue {
   constructor(lines, p, o, next, head) { this.lines = lines; this.p = p; this.o = o; this.next = next; this.i = 0; this.head = head; this.chars = 0; }
@@ -1134,15 +1280,16 @@ const LORE = {
   hotdog: { quip: "Let's get wrapped up in this!", taunt: "I'll give you the long and the short of it.", goal: "The ballpark crowd forgets Frank after the seventh inning. Tonight he plans to be unforgettable.", end: "Frank got a standing ovation, mustard stains and all. Nobody forgot him this time." },
   taco: { quip: "Time to taco 'bout a fight!", taunt: "I'm about to fold you in half.", goal: "Tito heard the champion eats for free every Tuesday. He is going for it.", end: "Tito made every day Tuesday. The arena's salsa bar has never been empty since." },
   shake: { quip: "Stay cool. This will be quick.", taunt: "Get ready for some brain freeze.", goal: "Mylo is chasing the title so the whole dessert menu finally gets some respect.", end: "Mylo's cherry now sits on the champion's crown. He lets nobody touch it." },
+  soda: { quip: "Time to pop the top!", taunt: "Shake me up and see what happens.", goal: "Fizz has been stuck in the back of the cooler for years. Tonight he is busting out.", end: "Fizz finally escaped the cooler. Now he headlines the arena and everything he touches fizzes." },
   chef: { quip: "Nobody leaves my kitchen hungry.", taunt: "You beat my whole menu? Now try the head chef.", goal: "Chef Gran has run the arena kitchen for thirty years and has never lost a cook-off. Tonight she steps into the ring herself.", end: "The kitchen is quiet. Chef Gran bows, hands over her tallest hat, and promises one more feast." }
 };
 let S = null;
 function startStory() { go(new SelectScene([{ label: 'STORY MODE' }], d => beginStory(d[0]), () => go(new MainMenu()))); }
 function beginStory(p) {
-  const rest = PLAYABLE.filter(c => c.id !== p.id); const idx = PLAYABLE.findIndex(c => c.id === p.id) % rest.length;
-  const order = rest.slice(idx).concat(rest.slice(0, idx)); const lv = [0, 1, 1, 2, 3];
+  const rest = PLAYABLE.filter(c => c.id !== p.id); const idx = Math.max(0, PLAYABLE.findIndex(c => c.id === p.id)) % rest.length;
+  const order = rest.slice(idx).concat(rest.slice(0, idx)); const lv = [0, 1, 1, 2, 2, 3];
   const boss = p.boss ? pick(PLAYABLE) : BYID.chef; order.push(boss);
-  S = { p, order: order.slice(0, p.boss ? 5 : 6), lv: p.boss ? [1, 1, 2, 3, 4] : lv.concat([4]), i: 0, cont: 0 };
+  S = { p, order: order.slice(0, p.boss ? 5 : 6), lv: p.boss ? [1, 1, 2, 3, 4] : lv.concat([3]), i: 0, cont: 0 };
   go(new Dialogue([{ who: 'n', text: LORE[p.id].goal }, { who: 'n', text: S.order.length + ' fights stand between ' + p.name + ' and the title. Hold back to block, and chain A, B, C for combos.' }], p, order[0], () => storyStep(), 'STORY'));
 }
 function storyStep() {
@@ -1159,12 +1306,12 @@ function storyFight() {
     onQuit: () => go(new MainMenu()),
     onEnd: r => {
       if (r.winner === 0) {
-        S.i++; Audio_.sfx('win');
+        const xp = awardXP(r.G, true, S.lv[S.i]); S.i++; Audio_.sfx('win');
         if (S.i >= S.order.length) storyEnd();
-        else go(new ResultScene({ title: 'YOU WIN!', win: true, def: p, sub: 'Next up: ' + S.order[S.i].name, G: r.G }, [{ label: 'NEXT FIGHT', fn: () => storyStep() }, { label: 'QUIT STORY', fn: () => go(new MainMenu()) }]));
+        else go(new ResultScene({ title: 'YOU WIN!', win: true, def: p, sub: 'Next up: ' + S.order[S.i].name, G: r.G, xp }, [{ label: 'NEXT FIGHT', fn: () => storyStep() }, { label: 'QUIT STORY', fn: () => go(new MainMenu()) }]));
       } else {
-        S.cont++; Audio_.sfx('lose');
-        go(new ResultScene({ title: 'DEFEATED', win: false, def: p, sub: 'Continues used: ' + S.cont, G: r.G }, [{ label: 'CONTINUE', fn: () => storyFight() }, { label: 'QUIT STORY', fn: () => go(new MainMenu()) }]));
+        S.cont++; Audio_.sfx('lose'); const xp = awardXP(r.G, false, 0);
+        go(new ResultScene({ title: 'DEFEATED', win: false, def: p, sub: 'Continues used: ' + S.cont, G: r.G, xp }, [{ label: 'CONTINUE', fn: () => storyFight() }, { label: 'QUIT STORY', fn: () => go(new MainMenu()) }]));
       }
     }
   }));
@@ -1180,7 +1327,7 @@ function startVsCpu() {
 function vsCpuFight(defs, lv) {
   go(new FightScene({ defs, ctrls: ['pad0', new Brain(lv)], humans: 1, label: 'CPU: ' + LEVELS[lv].n,
     onQuit: () => go(new MainMenu()),
-    onEnd: r => go(new ResultScene({ title: r.winner === 0 ? 'YOU WIN!' : r.winner === 1 ? 'CPU WINS' : 'DRAW', win: r.winner === 0, def: defs[r.winner === 1 ? 1 : 0], G: r.G },
+    onEnd: r => go(new ResultScene({ title: r.winner === 0 ? 'YOU WIN!' : r.winner === 1 ? 'CPU WINS' : 'DRAW', win: r.winner === 0, def: defs[r.winner === 1 ? 1 : 0], G: r.G, xp: awardXP(r.G, r.winner === 0, lv), streak: recordStreak(r.winner === 0) },
       [{ label: 'REMATCH', fn: () => vsCpuFight(defs, lv) }, { label: 'CHANGE FIGHTERS', fn: () => startVsCpu() }, { label: 'MAIN MENU', fn: () => go(new MainMenu()) }])) }));
 }
 function startLocal() { go(new SelectScene([{ label: 'PLAYER 1' }, { label: 'PLAYER 2' }], defs => localFight(defs), () => go(new MainMenu()))); }
