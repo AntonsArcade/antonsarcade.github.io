@@ -160,18 +160,18 @@ function M(name, st, ac, rc, dmg, hs, bs, x1, y0, y1, o = {}) {
   return Object.assign({ name, st, ac, rc, dmg, hs, bs, x0: 18, x1, y0, y1, kb: 5, push: 4, kd: false, low: false, adv: 0, proj: null, hstop: 5, snd: 'hitM', pose: 'punch' }, o);
 }
 const ARCH = {
-  rush: 'Rushdown', grap: 'Grappler', zone: 'Zoner'
+  rush: 'Rushdown', grap: 'Grappler', zone: 'Zoner', all: 'All-rounder'
 };
 const ROSTER = [
-  { id: 'burger', name: 'Chuck', food: 'Burger', arche: 'grap', c1: '#e8a23a', c2: '#7a3e1d', c3: '#5cb85c',
+  { id: 'burger', name: 'Chuck', food: 'Chicken Burger', arche: 'grap', c1: '#f2c46d', c2: '#dc8a2c', c3: '#5cb85c',
     walkF: 2.3, walkB: 1.9, throwDmg: 190, throwRange: 96, w: 40, h: 124,
-    blurb: 'Big bun, bigger feelings. Slow, but every hit lands like a lunch tray.',
+    blurb: 'Crispy, crunchy and full of cluck. Slow, but every hit lands like a fried drumstick.',
     moves: {
       A: M('Bun Jab', 5, 3, 8, 32, 16, 11, 66, 50, 100),
       B: M('Pickle Slap', 9, 4, 14, 68, 22, 15, 84, 40, 105, { kb: 7 }),
-      C: M('Triple Stack', 16, 5, 24, 130, 30, 20, 96, 30, 115, { kd: true, kb: 14, snd: 'hitH', hstop: 9, adv: 3 }),
+      C: M('Crispy Crunch', 16, 5, 24, 130, 30, 20, 96, 30, 115, { kd: true, kb: 14, snd: 'hitH', hstop: 9, adv: 3 }),
       dA: M('Fry Kick', 6, 3, 10, 30, 16, 11, 70, 0, 30, { low: true, pose: 'kick' }),
-      dC: M('Ketchup Sweep', 13, 4, 24, 78, 28, 18, 100, 0, 34, { low: true, kd: true, kb: 12, pose: 'kick', snd: 'hitH' })
+      dC: M('Mayo Sweep', 13, 4, 24, 78, 28, 18, 100, 0, 34, { low: true, kd: true, kb: 12, pose: 'kick', snd: 'hitH' })
     } },
   { id: 'fries', name: 'Spud', food: 'Fries', arche: 'rush', c1: '#e8392f', c2: '#f6cf3b', c3: '#fff6d0',
     walkF: 4.4, walkB: 3.6, throwDmg: 140, throwRange: 74, w: 34, h: 112,
@@ -183,13 +183,13 @@ const ROSTER = [
       dA: M('Toe Poke', 4, 2, 7, 22, 14, 9, 64, 0, 30, { low: true, pose: 'kick' }),
       dC: M('Spud Slide', 10, 6, 20, 62, 24, 15, 90, 0, 32, { low: true, kd: true, adv: 6, pose: 'kick' })
     } },
-  { id: 'pizza', name: 'Pepi', food: 'Pizza', arche: 'zone', c1: '#f0b640', c2: '#d9402f', c3: '#c88a2a',
+  { id: 'pizza', name: 'Pepi', food: 'Pizza', arche: 'all', c1: '#f0b640', c2: '#d9402f', c3: '#c88a2a',
     walkF: 3.0, walkB: 2.7, throwDmg: 150, throwRange: 78, w: 36, h: 118,
-    blurb: 'A slice of attitude. Flings pepperoni across the whole arena.',
+    blurb: 'A slice of attitude. Balanced and sneaky, with a long cheese pull and a gliding slide.',
     moves: {
       A: M('Crust Jab', 4, 3, 8, 28, 15, 10, 66, 55, 105),
       B: M('Cheese Pull', 8, 4, 13, 58, 21, 14, 92, 40, 100, { kb: 6 }),
-      C: M('Pepperoni Toss', 14, 2, 24, 0, 0, 0, 0, 0, 0, { pose: 'toss', proj: { vx: 5.2, dmg: 74, hs: 24, bs: 15, r: 20, y: 70, kind: 'pep', kd: false } }),
+      C: M('Cheese Slide', 12, 6, 22, 84, 24, 16, 96, 30, 100, { adv: 6, kd: true, kb: 11, snd: 'hitH', hstop: 7 }),
       dA: M('Slice Kick', 5, 3, 9, 26, 15, 10, 68, 0, 30, { low: true, pose: 'kick' }),
       dC: M('Crust Spin', 12, 5, 22, 70, 26, 17, 94, 0, 34, { low: true, kd: true, kb: 12, pose: 'kick', snd: 'hitH' })
     } },
@@ -215,22 +215,22 @@ const ROSTER = [
     } },
   { id: 'shake', name: 'Mylo', food: 'Milkshake', arche: 'zone', c1: '#f7c6dc', c2: '#e8466e', c3: '#fff3e0',
     walkF: 3.1, walkB: 2.8, throwDmg: 150, throwRange: 76, w: 34, h: 128,
-    blurb: 'Smooth and cold. Spits ice cubes fast and pokes with a long straw.',
+    blurb: 'Smooth and cold. The only fighter with long range, but his ice cubes are slow and can be ducked.',
     moves: {
-      A: M('Straw Jab', 4, 3, 8, 26, 15, 10, 78, 60, 110),
+      A: M('Straw Jab', 4, 3, 8, 26, 15, 10, 70, 60, 110),
       B: M('Whip Cream', 8, 4, 13, 56, 21, 14, 90, 45, 105, { kb: 6 }),
-      C: M('Ice Cube Spit', 12, 2, 22, 0, 0, 0, 0, 0, 0, { pose: 'toss', proj: { vx: 8.6, dmg: 58, hs: 22, bs: 13, r: 14, y: 82, kind: 'ice', kd: false } }),
+      C: M('Ice Cube Spit', 20, 2, 36, 0, 0, 0, 0, 0, 0, { pose: 'toss', proj: { vx: 5.2, dmg: 46, hs: 20, bs: 12, r: 11, y: 100, kind: 'ice', kd: false } }),
       dA: M('Cup Kick', 5, 3, 9, 26, 15, 10, 68, 0, 30, { low: true, pose: 'kick' }),
       dC: M('Brain Freeze', 12, 5, 22, 68, 26, 17, 92, 0, 34, { low: true, kd: true, kb: 12, pose: 'kick', snd: 'hitH' })
     } },
   // Story boss, not selectable until you beat story
-  { id: 'chef', name: 'Chef Gran', food: 'Head Chef', arche: 'zone', c1: '#f4f4f0', c2: '#c8372d', c3: '#2c2c34', boss: true,
+  { id: 'chef', name: 'Chef Gran', food: 'Head Chef', arche: 'all', c1: '#f4f4f0', c2: '#c8372d', c3: '#2c2c34', boss: true,
     walkF: 3.2, walkB: 2.8, throwDmg: 170, throwRange: 90, w: 44, h: 140,
     blurb: 'Runs the Tough Love Arena kitchen. Nobody leaves hungry.',
     moves: {
       A: M('Ladle Tap', 4, 3, 8, 34, 16, 11, 78, 50, 110),
       B: M('Whisk Whip', 8, 4, 12, 66, 21, 14, 98, 40, 115, { kb: 7 }),
-      C: M('Flying Pan', 13, 2, 22, 0, 0, 0, 0, 0, 0, { pose: 'toss', proj: { vx: 6.8, dmg: 96, hs: 26, bs: 16, r: 24, y: 76, kind: 'pan', kd: true } }),
+      C: M('Pan Slam', 14, 5, 24, 110, 28, 18, 104, 25, 115, { kd: true, kb: 13, snd: 'hitH', hstop: 9 }),
       dA: M('Clog Kick', 5, 3, 9, 30, 16, 11, 74, 0, 30, { low: true, pose: 'kick' }),
       dC: M('Rolling Pin', 12, 4, 22, 80, 27, 18, 106, 0, 36, { low: true, kd: true, kb: 12, pose: 'kick', snd: 'hitH' })
     } }
@@ -532,7 +532,7 @@ class Brain {
       return o;
     }
     // ---- defence ----
-    const incoming = ob.st === 'atk' && ob.mv && ob.t <= ob.mv.st + ob.mv.ac && (ob.mv.proj || obDist <= ob.mv.x1 + me.hb + 18);
+    const incoming = ob.st === 'atk' && ob.mv && ob.t <= ob.mv.st + ob.mv.ac && (!ob.mv.proj && obDist <= ob.mv.x1 + me.hb + 18);
     if (incoming) {
       const id = op.mvKey + '|' + (ob.mv ? ob.mv.name : '') + '|' + op.frameId;
       const key = (op.atkCount = op.atkCount || 0);
@@ -540,9 +540,10 @@ class Brain {
       if (this.willBlock && !ob.mv.proj) { toward('b'); if (ob.mv.low) o.d = true; this.hold = 6; return o; }
       if (this.willBlock && ob.mv.proj) { toward('b'); this.hold = 4; return o; }
     }
-    // incoming projectile
-    for (const q of G.projs) if (q.owner !== me && Math.abs(q.x - me.x) < 200 && (q.x - me.x) * q.vx < 0 && me.st === 'idle') {
-      if (Math.random() < L.block * 0.18) { toward('b'); return o; }
+    // incoming projectile: duck under it (it flies at head height)
+    for (const q of G.projs) if (q.owner !== me && Math.abs(q.x - me.x) < 240 && (q.x - me.x) * q.vx < 0 && me.st === 'idle') {
+      if (!q.aiSeen) { q.aiSeen = 1; this.duck = Math.random() < L.block * (1 - L.err); }
+      if (this.duck) { o.d = true; return o; }
     }
     if (me.st === 'block' || (this.hold > 0 && me.st === 'idle')) { this.hold--; toward('b'); o.d = me.inp.d; return o; }
     if (me.st !== 'idle') return o;
@@ -627,8 +628,10 @@ const BODY = {
   burger(d, C, h, w, t) {
     const top = -h, yb = -26;
     rrect(-w * .95, -h * .36, w * 1.9, h * .36 - 26, 14, C(d.c1)); // bottom bun
-    rrect(-w, -h * .5, w * 2, h * .15, 8, C(d.c2));                                   // patty
-    cx.beginPath(); cx.moveTo(-w * .98, -h * .5); for (let i = 0; i <= 8; i++) cx.lineTo(-w * .98 + i * w * .245, -h * .5 + (i % 2 ? 9 : 2)); cx.lineTo(w * .98, -h * .53); cx.lineTo(-w * .98, -h * .53); cx.closePath(); fillStroke(C('#f6cf3b'), 4); // cheese drip
+    rrect(-w * 1.12, -h * .52, w * 2.24, h * .17, 10, C(d.c2));                         // crispy chicken fillet
+    for (const [bx, by] of [[-1.1, -.46], [1.1, -.42], [-.7, -.35], [.75, -.36]]) ell(w * bx, h * by, 9, 8, C(d.c2), 4);
+    cx.fillStyle = C('#a85f17'); for (let i = 0; i < 9; i++) { cx.beginPath(); cx.arc(-w * 1.0 + i * w * .25, -h * (.47 + (i % 3) * .035), 2.2, 0, TAU); cx.fill(); }
+    cx.beginPath(); cx.moveTo(-w * .5, -h * .5); cx.quadraticCurveTo(-w * .45, -h * .38, -w * .3, -h * .5); cx.moveTo(w * .1, -h * .5); cx.quadraticCurveTo(w * .15, -h * .4, w * .3, -h * .5); cx.closePath(); fillStroke(C('#fffdf6'), 3); // mayo drips
     cx.beginPath(); cx.moveTo(-w * 1.05, -h * .55); for (let i = 0; i <= 8; i++) cx.quadraticCurveTo(-w * 1.05 + (i + .5) * w * .26, -h * .55 + (i % 2 ? 11 : -3), -w * 1.05 + (i + 1) * w * .26, -h * .55); cx.lineTo(w * 1.05, -h * .6); cx.lineTo(-w * 1.05, -h * .6); cx.closePath(); fillStroke(C(d.c3), 4); // lettuce
     cx.beginPath(); cx.ellipse(0, -h * .6, w * 1.02, h * .4, 0, Math.PI, 0); cx.closePath(); fillStroke(C(d.c1), 5);   // top bun
     cx.fillStyle = C('#fff3c4'); for (const [sx, sy] of [[-.5, -.84], [-.1, -.93], [.35, -.86], [.62, -.74], [-.7, -.72]]) { cx.save(); cx.translate(w * sx, h * sy); cx.rotate(sx * 2); cx.beginPath(); cx.ellipse(0, 0, 4.5, 2.5, 0, 0, TAU); cx.fill(); cx.restore(); }
@@ -979,7 +982,7 @@ class SelectScene {
     panel(530, 100, 394, 410);
     if (c && c !== 'rand') {
       portrait(c, 625, 335, 1.25, 'idle', 1);
-      bigText(c.name, 819, 140, 40, INK, '#fff', 'center', 0); bigText(c.food + '  •  ' + ARCH[c.arche], 819, 176, 20, '#7a3e1d', '#fff', 'center', 0);
+      bigText(c.name, 819, 140, 40, INK, '#fff', 'center', 0); bigText(c.food + '  •  ' + ARCH[c.arche], 819, 176, 17, '#7a3e1d', '#fff', 'center', 0);
       cx.fillStyle = '#3a3345'; cx.font = '15px ' + FONT; cx.textAlign = 'left'; wrapText(c.blurb, 726, 208, 186, 19);
       const mv = c.moves; cx.fillStyle = '#3a3345'; cx.font = '15px ' + FONT;
       [['A', mv.A], ['B', mv.B], ['C', mv.C.proj ? { name: mv.C.name, dmg: mv.C.proj.dmg } : mv.C], ['Down+A', mv.dA], ['Down+C', mv.dC]].forEach(([k, m], j) => { cx.fillStyle = '#e04a2f'; cx.textAlign = 'left'; cx.fillText(k, 560, 392 + j * 22); cx.fillStyle = '#3a3345'; cx.fillText(m.name, 630, 392 + j * 22); cx.textAlign = 'right'; cx.fillText(m.dmg + ' dmg', 905, 392 + j * 22); });
@@ -1125,7 +1128,7 @@ class Dialogue {
 }
 // ---------- Story ----------
 const LORE = {
-  burger: { quip: "Stack 'em high. I'm not backing down.", taunt: "Try to flatten me. I dare you.", goal: "The Lunch Brawl Arena crowns one fighter every season. Chuck's food truck is going broke, and the prize money would save it.", end: "Chuck paid off the truck and handed out free burgers to the entire crowd. The line went around the block." },
+  burger: { quip: "Stack 'em high. I'm not backing down.", taunt: "Try to flatten me. I dare you.", goal: "The Lunch Brawl Arena crowns one fighter every season. Chuck's chicken burger truck is going broke, and the prize money would save it.", end: "Chuck paid off the truck and handed out free chicken burgers to the entire crowd. The line went around the block." },
   fries: { quip: "Fresh from the fryer and ready to roll!", taunt: "I'm hot, I'm fast, and I'm salty about it.", goal: "Spud is tired of being everyone's side dish. Tonight he wants to be the main event.", end: "Spud got top billing at last. The menu board now lists him first, in extra large letters." },
   pizza: { quip: "Time to cut you down to size.", taunt: "Hope you like extra cheese!", goal: "Pepi wants to prove that one slice can beat a whole meal.", end: "Pepi opened a pizzeria inside the arena. Every table has a front row seat." },
   hotdog: { quip: "Let's get wrapped up in this!", taunt: "I'll give you the long and the short of it.", goal: "The ballpark crowd forgets Frank after the seventh inning. Tonight he plans to be unforgettable.", end: "Frank got a standing ovation, mustard stains and all. Nobody forgot him this time." },
