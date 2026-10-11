@@ -19,6 +19,15 @@ body { margin: 0; background: var(--bg); color: var(--fg); overflow: hidden; dis
 #touch button.on { background: var(--btn-on); color: #1b1522; }
 #touch .btns button { width: 72px; height: 72px; }
 @media (max-width: 480px) { #touch button { width: 54px; height: 54px; } #touch .btns button { width: 60px; height: 60px; } }
+#savebox { position: fixed; inset: 0; background: rgba(15,10,22,.82); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 5; }
+#savebox .card { width: min(560px, 100%); max-height: 100%; overflow: auto; background: #fff6d6; color: #1b1522; border: 5px solid #1b1522; border-radius: 18px; padding: 16px 18px; box-sizing: border-box; -webkit-user-select: text; user-select: text; touch-action: auto; }
+#savebox h2 { margin: 0 0 4px; font-weight: normal; font-size: 28px; color: #e04a2f; }
+#savebox p { margin: 4px 0 8px; font: 14px/1.35 system-ui, sans-serif; }
+#savebox textarea { width: 100%; height: 96px; box-sizing: border-box; font: 12px monospace; border: 3px solid #1b1522; border-radius: 10px; padding: 6px; resize: none; background: #fff; color: #1b1522; }
+#savebox .row { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+#savebox button { font: 18px 'Lilita One', sans-serif; padding: 8px 14px; border: 3px solid #1b1522; border-radius: 12px; background: #ffd23f; color: #1b1522; cursor: pointer; }
+#savebox button.danger { background: #ff8a7a; } #savebox button.close { background: #cfc9de; }
+#savebox #sb_msg { min-height: 20px; font: 600 14px system-ui, sans-serif; color: #2e6e3a; }
 </style>
 </head>
 <body>
@@ -27,6 +36,18 @@ body { margin: 0; background: var(--bg); color: var(--fg); overflow: hidden; dis
 <div id="touch" hidden>
   <div class="pad"><button id="tl" aria-label="Left">◀</button><button id="td" aria-label="Down">▼</button><button id="tr" aria-label="Right">▶</button></div>
   <div class="btns"><button id="ta" aria-label="Attack A">A</button><button id="tb" aria-label="Attack B">B</button><button id="tc" aria-label="Attack C">C</button></div>
+</div>
+<div id="savebox" hidden>
+  <div class="card" role="dialog" aria-label="Save data">
+    <h2>SAVE DATA</h2>
+    <p id="sb_info"></p>
+    <p>Your progress (coins, unlocks, ranks, settings) is stored in this browser. To move it or back it up, copy the code below, or save it as a file. Paste a code and press Load to restore.</p>
+    <textarea id="sb_code" spellcheck="false" aria-label="Save code"></textarea>
+    <div class="row"><button id="sb_copy">Copy code</button><button id="sb_dl">Download file</button><button id="sb_file">Open file...</button><button id="sb_load">Load code</button></div>
+    <div id="sb_msg" role="status"></div>
+    <div class="row"><button id="sb_reset" class="danger">Erase all progress</button><button id="sb_close" class="close">Close</button></div>
+    <input type="file" id="sb_in" accept=".txt,.lba,text/plain" hidden>
+  </div>
 </div>
 <script>
 // ===== CORE =====
@@ -40,21 +61,28 @@ const rnd = (a, b) => a + Math.random() * (b - a);
 const ri = (a, b) => Math.floor(rnd(a, b + 1));
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const store = {
-  get(k, d) { try { const v = localStorage.getItem('tla_' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
-  set(k, v) { try { localStorage.setItem('tla_' + k, JSON.stringify(v)); } catch (e) {} }
+  mem: {}, ok: true,
+  raw(k) { if (k in this.mem) return this.mem[k]; try { const v = localStorage.getItem('tla_' + k); return v === null ? undefined : v; } catch (e) { this.ok = false; return undefined; } },
+  get(k, d) { const v = this.raw(k); if (v === undefined) return d; try { return JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { const s = JSON.stringify(v); this.mem[k] = s; try { localStorage.setItem('tla_' + k, s); } catch (e) { this.ok = false; } store.dirty = Date.now(); },
+  keys() { const o = {}; try { for (let i = 0; i < localStorage.length; i++) { const n = localStorage.key(i); if (n.startsWith('tla_')) o[n.slice(4)] = 1; } } catch (e) {} for (const k in this.mem) o[k] = 1; return Object.keys(o); },
+  dump() { const o = {}; for (const k of this.keys()) { const v = this.raw(k); if (v !== undefined) o[k] = v; } return o; },
+  wipe() { for (const k of this.keys()) { try { localStorage.removeItem('tla_' + k); } catch (e) {} } this.mem = {}; this.wiped = true; }
 };
 
 // ----- Input -----
 const keys = {}, keyEdge = {};
+function overlayOpen() { const b = document.getElementById('savebox'); return !!b && !b.hidden; }
 const touch = { l: 0, r: 0, d: 0, a: 0, b: 0, c: 0 };
 addEventListener('keydown', e => {
+  if (typeof overlayOpen === 'function' && overlayOpen() || e.target && /^(TEXTAREA|INPUT)$/.test(e.target.tagName)) return;
   if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' ','Tab'].includes(e.key)) e.preventDefault();
   const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
   if (!keys[k]) keyEdge[k] = true;
   keys[k] = true;
   Audio_.unlock();
 });
-addEventListener('keyup', e => { const k = e.key.length === 1 ? e.key.toLowerCase() : e.key; keys[k] = false; });
+addEventListener('keyup', e => { if (typeof overlayOpen === 'function' && overlayOpen() || e.target && /^(TEXTAREA|INPUT)$/.test(e.target.tagName)) return; const k = e.key.length === 1 ? e.key.toLowerCase() : e.key; keys[k] = false; });
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
 function edge(...ks) { let r = false; for (const k of ks) if (keyEdge[k]) r = true; return r; }
 function clearEdges() { for (const k in keyEdge) delete keyEdge[k]; }
@@ -578,6 +606,7 @@ class Game {
   }
   endRound(winner, msg) {
     this.phase = 'end'; this.pt = 0; this.endMsg = msg; this.roundWinner = winner;
+    if (winner === 0) { if (this.f[0].hp >= this.f[0].maxhp) this.perfect0 = true; if (msg === 'TIME UP') this.timeWin0 = true; else if (this.f[0].hp <= 50) this.close0 = true; } else if (winner === 1) this.lost0 = true;
     if (winner >= 0) { this.wins[winner]++; if (this.f[winner].st !== 'ko') this.f[winner].st = 'win'; Audio_.sfx('win'); }
     else { this.wins[0]++; this.wins[1]++; }
     for (const f of this.f) if (f.st === 'idle') { f.st = f.slot === winner ? 'win' : f.st; }
@@ -905,9 +934,38 @@ const STAGES = [
     rrect(60, 250, 840, 110, 8, '#aab3c2'); cx.fillStyle = '#f4b942'; for (let i = 0; i < 5; i++) ell(150 + i * 160, 250, 36, 14, '#f4b942', 4);
     for (let i = 0; i < 20; i++) for (let j = 0; j < 3; j++) { cx.fillStyle = (i + j) % 2 ? '#2e2f3a' : '#e9ebf1'; cx.fillRect(i * 48, GROUND + j * 34, 48, 34); }
     cx.fillStyle = INK; cx.fillRect(0, GROUND - 2, W, 5);
+  } },
+  { name: 'Moonlit Pier', draw(t) {
+    const g = cx.createLinearGradient(0, 0, 0, GROUND); g.addColorStop(0, '#0b1030'); g.addColorStop(.7, '#2a2f6b'); g.addColorStop(1, '#4a4f9a'); cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+    for (let i = 0; i < 60; i++) { cx.fillStyle = '#fff'; cx.globalAlpha = .35 + .5 * Math.abs(Math.sin(t * .03 + i)); cx.fillRect((i * 151) % W, (i * 67) % 230, 2, 2); } cx.globalAlpha = 1;
+    cx.fillStyle = '#fff6c8'; cx.beginPath(); cx.arc(740, 120, 58, 0, TAU); cx.fill(); ink(5); cx.stroke(); cx.fillStyle = 'rgba(200,190,140,.45)'; for (const [x, y, r] of [[722, 105, 12], [755, 140, 9], [738, 98, 6]]) { cx.beginPath(); cx.arc(x, y, r, 0, TAU); cx.fill(); }
+    cx.fillStyle = '#1b2a66'; cx.fillRect(0, 300, W, GROUND - 300); for (let i = 0; i < 14; i++) { cx.fillStyle = 'rgba(255,246,200,.35)'; cx.fillRect(700 + Math.sin(t * .05 + i) * (14 - i) * 3 - 30, 304 + i * 10, 60 - i * 3, 3); }
+    cx.fillStyle = '#16204e'; cx.beginPath(); cx.moveTo(0, 300); for (let i = 0; i <= 12; i++) cx.lineTo(i * 80, 300 - (i % 3) * 14 - 20); cx.lineTo(W, 300); cx.fill();
+    for (const x of [90, 330, 570, 810]) { rrect(x - 7, 250, 14, 190, 4, '#5b3a22'); ell(x, 246, 15, 15, '#ffd86b', 4); cx.fillStyle = 'rgba(255,216,107,.18)'; cx.beginPath(); cx.arc(x, 246, 48 + Math.sin(t * .1 + x) * 3, 0, TAU); cx.fill(); }
+    cx.fillStyle = '#8a5a34'; cx.fillRect(0, GROUND, W, H - GROUND); for (let i = 0; i < 20; i++) { cx.fillStyle = i % 2 ? '#7a4d2b' : '#946339'; cx.fillRect(i * 48, GROUND, 46, H - GROUND); }
+    cx.fillStyle = INK; cx.fillRect(0, GROUND - 2, W, 5);
+  } },
+  { name: 'Candy Kingdom', draw(t) {
+    const g = cx.createLinearGradient(0, 0, 0, GROUND); g.addColorStop(0, '#ffc2e2'); g.addColorStop(1, '#fff0f8'); cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+    for (const [x, y, s2] of [[140, 90, 1], [560, 70, 1.3], [840, 120, .8]]) { const px = (x + t * .1 * s2) % (W + 200) - 100; cx.fillStyle = '#fff'; cx.beginPath(); cx.arc(px, y, 28 * s2, 0, TAU); cx.arc(px + 30 * s2, y + 6, 22 * s2, 0, TAU); cx.arc(px - 28 * s2, y + 8, 20 * s2, 0, TAU); cx.fill(); }
+    cx.fillStyle = '#b6f0d0'; cx.beginPath(); cx.moveTo(0, 360); cx.quadraticCurveTo(240, 270, 480, 350); cx.quadraticCurveTo(720, 280, W, 340); cx.lineTo(W, GROUND); cx.lineTo(0, GROUND); cx.fill(); ink(5); cx.stroke();
+    for (const [x, c] of [[110, '#ff7eb6'], [260, '#7ad7ff'], [700, '#ffd23f'], [850, '#b88cff']]) { rrect(x - 5, 270, 10, 130, 4, '#fff', 4); cx.beginPath(); cx.arc(x, 250, 38, 0, TAU); fillStroke(c, 5); ink(4); cx.strokeStyle = '#fff'; cx.beginPath(); cx.arc(x, 250, 22, 0, Math.PI * 1.5); cx.stroke(); cx.beginPath(); cx.arc(x, 250, 9, Math.PI, Math.PI * 2.4); cx.stroke(); }
+    for (const [x, c] of [[420, '#ff9ecb'], [520, '#9ee8ff']]) { cx.beginPath(); cx.ellipse(x, 395, 38, 30, 0, Math.PI, 0); cx.closePath(); fillStroke(c, 5); }
+    cx.fillStyle = '#ffe3f1'; cx.fillRect(0, GROUND, W, H - GROUND); for (let i = 0; i < 24; i++) { cx.fillStyle = i % 2 ? '#ff9ecb' : '#fff'; cx.save(); cx.translate(i * 44 - 40, GROUND); cx.beginPath(); cx.moveTo(0, 0); cx.lineTo(24, 0); cx.lineTo(-20, H - GROUND); cx.lineTo(-44, H - GROUND); cx.fill(); cx.restore(); }
+    cx.fillStyle = INK; cx.fillRect(0, GROUND - 2, W, 5);
+  } },
+  { name: 'Volcano Cook-off', draw(t) {
+    const g = cx.createLinearGradient(0, 0, 0, GROUND); g.addColorStop(0, '#2a0a12'); g.addColorStop(.6, '#8a2418'); g.addColorStop(1, '#ff7a2b'); cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+    cx.fillStyle = '#3a1a1e'; cx.beginPath(); cx.moveTo(180, GROUND); cx.lineTo(420, 170); cx.lineTo(540, 170); cx.lineTo(800, GROUND); cx.closePath(); fillStroke('#3a1a1e', 5);
+    cx.fillStyle = '#ff6a2b'; cx.beginPath(); cx.moveTo(420, 170); cx.lineTo(540, 170); cx.lineTo(500, 200 + Math.sin(t * .08) * 6); cx.lineTo(480, 180); cx.lineTo(450, 205); cx.closePath(); cx.fill();
+    for (let i = 0; i < 26; i++) { const k = (t * (.6 + (i % 5) * .15) + i * 53) % 330; cx.fillStyle = i % 3 ? '#ffb347' : '#fff1a8'; cx.globalAlpha = 1 - k / 330; cx.beginPath(); cx.arc(470 + Math.sin(i * 2.3 + t * .02) * (30 + k * .6), 180 - k, 2 + i % 3, 0, TAU); cx.fill(); } cx.globalAlpha = 1;
+    cx.fillStyle = '#2b1518'; cx.fillRect(0, GROUND, W, H - GROUND); ink(0); cx.strokeStyle = '#ff6a2b'; cx.lineWidth = 5; cx.lineCap = 'round';
+    for (const [x, y] of [[60, 60], [250, 30], [470, 70], [690, 40], [880, 65]]) { cx.globalAlpha = .7 + .3 * Math.sin(t * .06 + x); cx.beginPath(); cx.moveTo(x, GROUND + y * .3); cx.lineTo(x + 40, GROUND + y * .5); cx.lineTo(x + 25, GROUND + y * .9); cx.stroke(); } cx.globalAlpha = 1;
+    cx.fillStyle = INK; cx.fillRect(0, GROUND - 2, W, 5);
   } }
 ];
 
+const STAGE_INFO = [{ n: 'Picnic Park' }, { n: 'Neon Diner' }, { n: 'Sunset Rooftop' }, { n: 'Grand Kitchen', story: true }, { n: 'Moonlit Pier', cost: 500 }, { n: 'Candy Kingdom', cost: 700 }, { n: 'Volcano Cook-off', cost: 1000 }];
 // ---- HUD ----
 function hudBar(f, side, G) {
   const x0 = side ? W - 40 - 380 : 40, y = 26, w = 380, h = 28;
@@ -994,16 +1052,40 @@ let unlockedChef = store.get('chef', false);
 const PV = { shake: 0 };
 const previews = {}; function pvFighter(def) { const k = def.id + (def.skinIdx || 0); return previews[k] || (previews[k] = new Fighter(def, 0)); }
 // ----- colour palettes (unlocked by rank) -----
-const PALS = [{ n: 'Classic', need: 0 }, { n: 'Flip', h: 170, need: 2 }, { n: 'Neon', h: 70, s: 1.3, l: -.05, need: 5 }];
+const PALS = [
+  { n: 'Classic' },
+  { n: 'Flip', h: 170, need: 2 },
+  { n: 'Neon', h: 70, s: 1.3, l: -.05, need: 5 },
+  { n: 'Candy', h: 330, s: .75, l: .14, cost: 250, m: 1 },
+  { n: 'Shadow', h: 260, s: .55, l: -.22, cost: 400, m: 2 },
+  { n: 'Golden', gold: true, cost: 600, m: 3 },
+  { n: 'Rainbow', rainbow: true, cost: 1000, m: 4 }
+];
 function hex2hsl(hx) { const n = parseInt(hx.slice(1), 16), r = (n >> 16 & 255) / 255, g = (n >> 8 & 255) / 255, b = (n & 255) / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b); let h = 0, s = 0; const l = (mx + mn) / 2; if (mx !== mn) { const d = mx - mn; s = l > .5 ? d / (2 - mx - mn) : d / (mx + mn); h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; } return [h, s, l]; }
 function hsl2hex(h, s, l) { h = ((h % 360) + 360) % 360; const c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs(h / 60 % 2 - 1)), m = l - c / 2; let r = 0, g = 0, b = 0; if (h < 60) [r, g, b] = [c, x, 0]; else if (h < 120) [r, g, b] = [x, c, 0]; else if (h < 180) [r, g, b] = [0, c, x]; else if (h < 240) [r, g, b] = [0, x, c]; else if (h < 300) [r, g, b] = [x, 0, c]; else [r, g, b] = [c, 0, x]; return '#' + [r, g, b].map(v => Math.round((v + m) * 255).toString(16).padStart(2, '0')).join(''); }
 const skinCache = {};
 function skin(def, i) {
   if (!i) return def; const k = def.id + i; if (skinCache[k]) return skinCache[k]; const P = PALS[i], d = Object.assign({}, def); d.skinIdx = i;
-  for (const c of ['c1', 'c2', 'c3']) { const [h, s, l] = hex2hsl(def[c]); d[c] = s < .14 ? def[c] : hsl2hex(h + P.h, Math.min(1, s * (P.s || 1)), clamp(l + (P.l || 0), .05, .95)); }
+  for (const [ci, c] of ['c1', 'c2', 'c3'].entries()) {
+    const [h, s, l] = hex2hsl(def[c]); if (s < .14) continue;
+    if (P.rainbow) Object.defineProperty(d, c, { get() { return hsl2hex(h + tick * 2.2, Math.max(.7, s), l); }, enumerable: true, configurable: true });
+    else if (P.gold) d[c] = hsl2hex([46, 38, 52][ci], [.85, .9, .7][ci], clamp(ci === 1 ? l * .8 : l + (ci === 2 ? .12 : .05), .1, .9));
+    else d[c] = hsl2hex(h + P.h, Math.min(1, s * (P.s || 1)), clamp(l + (P.l || 0), .05, .95));
+  }
   return skinCache[k] = d;
 }
-function palUnlocked(i) { return xpInfo().lv >= PALS[i].need; }
+function palOwned(def, i) {
+  if (i === 0) return true; if (!def || def === 'rand') return false; const P = PALS[i];
+  if (P.need !== undefined) return xpInfo().lv >= P.need;
+  return !!store.get('owned', {})[def.id + ':' + i] || mStars(def.id) >= P.m;
+}
+function buyPal(def, i) { const P = PALS[i]; if (!spend(P.cost)) return false; const o = store.get('owned', {}); o[def.id + ':' + i] = 1; store.set('owned', o); checkMeta(); return true; }
+function palLock(def, i) { const P = PALS[i]; return P.need !== undefined ? 'Rank Lv ' + (P.need + 1) : 'B: buy ' + P.cost + 'c  or  Mastery ' + P.m; }
+// ----- stages -----
+let STAGE_PICK = -1;
+function stageOwned(i) { const I = STAGE_INFO[i]; if (!I.cost && !I.story) return true; if (store.get('owned', {})['stage:' + i]) return true; return !!I.story && (unlockedChef || store.get('clears', []).length > 0); }
+function randomStage() { if (STAGE_PICK >= 0) return STAGE_PICK; const o = STAGE_INFO.map((_, i) => i).filter(stageOwned); return pick(o); }
+function buyStage(i) { if (!spend(STAGE_INFO[i].cost)) return false; const o = store.get('owned', {}); o['stage:' + i] = 1; store.set('owned', o); checkMeta(); return true; }
 function portrait(def, x, y, s = 1, state = 'idle', face = 1) {
   const f = pvFighter(def); f.x = 0; f.st = state; f.face = face; f.anim = tick; f.t = tick % 40; f.mv = null; f.crouch = false; f.blocking = false; f.walk = 0; f.flash = 0;
   if (state === 'atk') { f.mv = def.moves.B; f.t = (tick % 40) + 1; f.mvKey = 'B'; if (f.t > 30) f.t = 30; }
@@ -1061,6 +1143,7 @@ class TitleScene {
 // ---------- Main menu ----------
 class MainMenu {
   constructor() {
+    STAGE_PICK = -1;
     this.m = new Menu([
       { label: 'STORY MODE', fn: () => startStory() },
       { label: 'SURVIVAL', fn: () => startSurvival() },
@@ -1069,9 +1152,11 @@ class MainMenu {
       { label: 'TRAINING', fn: () => startTraining() },
       { label: 'WATCH CPU', fn: () => startWatch() },
       { label: 'ACHIEVEMENTS', fn: () => go(new AchScene(() => go(new MainMenu()))) },
+      { label: 'UNLOCKS', fn: () => go(new UnlockScene(() => go(new MainMenu()))) },
+      { label: 'SAVE DATA', fn: () => openSave() },
       { label: 'HOW TO PLAY', fn: () => go(new HowTo(() => go(new MainMenu()))) },
       { label: 'OPTIONS', fn: () => go(new Options(() => go(new MainMenu()))) }
-    ], { y: 140, gap: 40, size: 28, w: 400 });
+    ], { y: 112, gap: 35, size: 25, w: 400 });
   }
   update() { this.m.update(); }
   render() {
@@ -1084,7 +1169,7 @@ class MainMenu {
 // ---------- Character select ----------
 class SelectScene {
   // picks: [{label, cpu?:bool}], done(defs)
-  constructor(picks, done, back) { this.picks = picks; this.done = done; this.backFn = back; this.i = 0; this.res = []; this.cur = 0; this.pal = 0; }
+  constructor(picks, done, back) { this.picks = picks; this.done = done; this.backFn = back; this.i = 0; this.res = []; this.cur = 0; this.pal = 0; this.msg = ''; this.msgT = 0; }
   get cards() { const c = PLAYABLE.slice(); c.push(unlockedChef ? BYID.chef : null); c.push('rand'); return c; }
   update() {
     const n = 9; let c = this.cur;
@@ -1092,34 +1177,43 @@ class SelectScene {
     if (N.up()) c = c >= 5 ? c - 5 : Math.min(n - 1, c + 5);
     if (N.down()) c = c + 5 < n ? c + 5 : c % 5;
     if (c !== this.cur) { this.cur = c; Audio_.sfx('ui'); }
-    const cl = takeClick();
+    let cl = takeClick();
+    if (this.msgT > 0) this.msgT--;
+    if (edge('b')) this.tryBuy();
+    if (cl && cl[0] >= 540 && cl[0] <= 915 && cl[1] >= 352 && cl[1] <= 380) { const c0 = this.cards[this.cur]; if (c0 && c0 !== 'rand' && !palOwned(c0, this.pal)) this.tryBuy(); else { this.pal = (this.pal + 1) % PALS.length; Audio_.sfx('ui'); } cl = null; }
     if (cl) for (let i = 0; i < 9; i++) { const [bx, by, bw, bh] = this.cardBox(i); if (cl[0] >= bx && cl[0] <= bx + bw && cl[1] >= by && cl[1] <= by + bh) { if (this.cur === i) this.confirm(); else { this.cur = i; Audio_.sfx('ui'); } } }
     if (edge('q', 'Tab')) { this.pal = (this.pal + PALS.length - 1) % PALS.length; Audio_.sfx('ui'); }
     if (edge('e')) { this.pal = (this.pal + 1) % PALS.length; Audio_.sfx('ui'); }
     if (N.ok()) this.confirm();
     if (N.back()) { Audio_.sfx('back'); if (this.i > 0) { this.i--; this.res.pop(); } else this.backFn(); }
   }
+  tryBuy() {
+    const c = this.cards[this.cur]; if (!c || c === 'rand' || palOwned(c, this.pal) || PALS[this.pal].cost === undefined) return;
+    if (buyPal(c, this.pal)) { Audio_.sfx('ok'); this.msg = PALS[this.pal].n + ' palette bought for ' + c.name + '!'; } else { Audio_.sfx('back'); this.msg = 'Not enough coins (' + coins() + ' / ' + PALS[this.pal].cost + ')'; }
+    this.msgT = 120;
+  }
   confirm() {
     let c = this.cards[this.cur]; if (c === null) { Audio_.sfx('back'); return; }
-    if (c === 'rand') c = pick(PLAYABLE); else if (palUnlocked(this.pal)) c = skin(c, this.pal);
+    if (c === 'rand') c = pick(PLAYABLE); else if (palOwned(c, this.pal)) c = skin(c, this.pal);
     Audio_.sfx('ok'); this.res.push(c); this.i++;
     if (this.i >= this.picks.length) this.done(this.res);
   }
   cardBox(i) { return [28 + (i % 5) * 99, 150 + Math.floor(i / 5) * 128, 92, 120]; }
   render() {
-    bg(tick, .25); bigText(this.picks[this.i].label + ' - CHOOSE YOUR FIGHTER', W / 2, 52, 38, '#ffd23f', INK);
+    bg(tick, .25); bigText(this.picks[this.i].label + ' - CHOOSE YOUR FIGHTER', W / 2, 52, 38, '#ffd23f', INK); bigText('Coins ' + coins(), W - 24, 22, 20, '#ffd23f', INK, 'right');
     this.cards.forEach((c, i) => {
       const [bx, by, bw, bh] = this.cardBox(i), on = i === this.cur;
       rrect(bx, by, bw, bh, 16, on ? '#ffd23f' : '#fff6e6', on ? 7 : 5);
       if (c === null) bigText('LOCKED', bx + bw / 2, by + 60, 17, '#8a8498', INK, 'center', 0);
       else if (c === 'rand') bigText('?', bx + bw / 2, by + 56, 64, INK, '#ffd23f', 'center', 0);
-      else { cx.save(); cx.beginPath(); cx.rect(bx + 4, by + 4, bw - 8, bh - 8); cx.clip(); portrait(skin(c, palUnlocked(this.pal) ? this.pal : 0), bx + bw / 2, by + bh - 10, .52, 'idle', 1); cx.restore(); }
+      else { cx.save(); cx.beginPath(); cx.rect(bx + 4, by + 4, bw - 8, bh - 8); cx.clip(); portrait(skin(c, palOwned(c, this.pal) ? this.pal : 0), bx + bw / 2, by + bh - 10, .52, 'idle', 1); cx.restore(); }
     });
     const c = this.cards[this.cur];
     panel(530, 100, 394, 410);
     if (c && c !== 'rand') {
-      portrait(skin(c, this.pal), 625, 335, 1.25, 'idle', 1);
-      { const ok = palUnlocked(this.pal); bigText('< Q   ' + PALS[this.pal].n + (ok ? '' : '  (Lv ' + (PALS[this.pal].need + 1) + ')') + '   E >', 727, 366, 15, ok ? INK : '#c0392b', '#fff', 'center', 0); }
+      { const ok = palOwned(c, this.pal); portrait(skin(c, ok ? this.pal : 0), 625, 335, 1.25, 'idle', 1);
+        const P = PALS[this.pal]; bigText(this.msgT > 0 ? this.msg : '< Q  ' + P.n + '  E >' + (ok ? '' : '   ' + palLock(c, this.pal)), 727, 366, 14, this.msgT > 0 ? '#2e7d32' : ok ? INK : '#c0392b', '#fff', 'center', 0);
+        const ms = mStars(c.id), w = mWins(c.id), nx = MASTERY.find(t => w < t); bigText('Mastery ' + ms + '/4    Wins ' + w + (nx ? '  (next star at ' + nx + ')' : '  MAX'), 819, 296, 14, '#7a3e1d', '#fff', 'center', 0); }
       bigText(c.name, 819, 140, 40, INK, '#fff', 'center', 0); bigText(c.food + '  •  ' + ARCH[c.arche], 819, 176, 17, '#7a3e1d', '#fff', 'center', 0);
       cx.fillStyle = '#3a3345'; cx.font = '15px ' + FONT; cx.textAlign = 'left'; wrapText(c.blurb, 726, 208, 186, 19);
       const mv = c.moves; cx.fillStyle = '#3a3345'; cx.font = '15px ' + FONT;
@@ -1184,7 +1278,7 @@ class FightScene {
   constructor(cfg) { if (cfg.defs[0].id === cfg.defs[1].id && (cfg.defs[0].skinIdx || 0) === (cfg.defs[1].skinIdx || 0)) cfg.defs[1] = skin(BYID[cfg.defs[1].id], (cfg.defs[1].skinIdx || 0) === 1 ? 2 : 1); this.cfg = cfg; this.touch = !!cfg.humans; this.paused = false; this.t = 0; this.splash = cfg.training ? 0 : 100; }
   enter() {
     const c = this.cfg; twoPlayerInput = !!c.local;
-    this.G = new Game(c.defs[0], c.defs[1], { stage: c.stage ?? ri(0, 2), rounds: c.rounds ?? SET.rounds, time: SET.time, training: c.training });
+    this.G = new Game(c.defs[0], c.defs[1], { stage: c.stage ?? randomStage(), rounds: c.rounds ?? SET.rounds, time: SET.time, training: c.training });
     this.ctrls = c.ctrls.slice(); this.dummy = 0; this.brain = new Brain(2); Audio_.mode = 'fight';
     this.pm = new Menu([
       { label: 'RESUME', fn: () => { this.paused = false; } },
@@ -1264,8 +1358,8 @@ class ResultScene {
     T(r.sub || '', 126, 22, '#7a3e1d');
     if (G) T('Rounds ' + G.wins[0] + ' - ' + G.wins[1] + '    Best combo ' + Math.max(G.maxCombo[0], G.maxCombo[1]), 154, 19);
     if (r.xp) {
-      const x = r.xp; T('+' + x.gain + ' XP', 190, 34, '#e04a2f');
-      if (x.bonus.length) T(x.bonus.join('   '), 218, 16, '#3a3345');
+      const x = r.xp; T('+' + x.gain + ' XP    +' + x.coins + ' coins', 190, 28, '#e04a2f');
+      if (x.bonus.length) T(x.bonus.join('  ·  '), 218, 15, '#3a3345');
       rrect(530, 236, 330, 18, 9, '#3a3345', 3); cx.save(); cx.beginPath(); cx.roundRect(530, 236, 330, 18, 9); cx.clip(); cx.fillStyle = '#4fb3ff'; cx.fillRect(530, 236, 330 * x.after.cur / x.after.need, 18); cx.restore();
       cx.beginPath(); cx.roundRect(530, 236, 330, 18, 9); ink(3); cx.stroke();
       T((x.lvUp ? 'RANK UP!  ' : '') + 'Lv ' + (x.after.lv + 1) + '  ' + x.after.title, 272, 20, x.lvUp ? '#e04a2f' : INK);
@@ -1281,16 +1375,27 @@ function xpInfo() {
   while (xp >= need) { xp -= need; lv++; need = 100 + lv * 40; }
   return { lv, cur: xp, need, title: RANKS[Math.min(RANKS.length - 1, Math.floor(lv / 2))] };
 }
+function todayStr(d = new Date()) { return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+function dailyBonus() {
+  const t = todayStr(), D = store.get('day', { last: '', streak: 0 }); if (D.last === t) return 0;
+  D.streak = D.last === todayStr(new Date(Date.now() - 864e5)) ? D.streak + 1 : 1; D.last = t; store.set('day', D);
+  if (D.streak >= 3) unlock('daily3'); return 40 + 10 * Math.min(D.streak, 7);
+}
+function coins() { return store.get('coins', 0); }
+function addCoins(n) { if (n <= 0) return; store.set('coins', coins() + n); checkMeta(); }
+function spend(n) { if (coins() < n) return false; store.set('coins', coins() - n); stat('spent', n); checkMeta(); return true; }
 function awardXP(G, win, level, extra = 0) {
-  const before = xpInfo(), bonus = []; let gain = win ? 40 + level * 15 : 10;
+  const before = xpInfo(), bonus = []; let gain = win ? 40 + level * 15 : 10, cg = win ? 25 + level * 10 : 8;
   if (win) {
-    if (G.wins[1] === 0 && G.wins[0] >= G.roundsToWin) { gain += 40; bonus.push('Flawless +40'); }
-    if (G.maxCombo[0] >= 5) { gain += 20; bonus.push(G.maxCombo[0] + '-hit combo +20'); }
-    if (G.superKO && G.winnerSlot === 0) { gain += 15; bonus.push('Super KO +15'); }
-    if (extra) { gain += extra; bonus.push('Streak +' + extra); }
+    if (G.wins[1] === 0 && G.wins[0] >= G.roundsToWin) { gain += 40; cg += 25; bonus.push('Flawless'); }
+    if (G.maxCombo[0] >= 5) { gain += 20; cg += 10; bonus.push(G.maxCombo[0] + '-hit combo'); }
+    if (G.superKO && G.winnerSlot === 0) { gain += 15; cg += 10; bonus.push('Super KO'); }
+    if (extra) { gain += extra; cg += extra; bonus.push('Streak'); }
   }
+  const dly = dailyBonus(); if (dly) { cg += dly; bonus.push('Daily bonus'); }
   store.set('xp', store.get('xp', 0) + gain);
-  const after = xpInfo(); return { gain, bonus, lvUp: after.lv > before.lv, after };
+  const after = xpInfo(); if (after.lv > before.lv) { cg += 50 * (after.lv - before.lv); bonus.push('Rank up'); }
+  addCoins(cg); return { gain, coins: cg, bonus, lvUp: after.lv > before.lv, after };
 }
 function recordStreak(win) {
   const st = win ? store.get('streak', 0) + 1 : 0, best = Math.max(store.get('best', 0), st);
@@ -1301,7 +1406,7 @@ function drawRankCard(x, y) {
   bigText('Lv ' + (i.lv + 1) + '  ' + i.title, x + 115, y + 20, 21, INK, '#fff', 'center', 0);
   rrect(x + 16, y + 38, 198, 14, 7, '#3a3345', 3); cx.save(); cx.beginPath(); cx.roundRect(x + 16, y + 38, 198, 14, 7); cx.clip(); cx.fillStyle = '#4fb3ff'; cx.fillRect(x + 16, y + 38, 198 * i.cur / i.need, 14); cx.restore();
   cx.beginPath(); cx.roundRect(x + 16, y + 38, 198, 14, 7); ink(3); cx.stroke();
-  bigText('Best survival: ' + store.get('bestSurv', 0) + '   Best streak: ' + store.get('best', 0), x + 115, y + 63, 13, '#3a3345', '#fff', 'center', 0);
+  bigText('Coins ' + coins() + '    Best run ' + store.get('bestSurv', 0) + '    Streak ' + store.get('best', 0), x + 115, y + 63, 13, '#3a3345', '#fff', 'center', 0);
 }
 // ---------- Achievements ----------
 const ACH = [
@@ -1310,6 +1415,7 @@ const ACH = [
   { id: 'combo5', n: 'Combo Platter', d: 'Land a 5-hit combo.' },
   { id: 'super_ko', n: 'Finishing Touch', d: 'Win a match with a super move KO.' },
   { id: 'super10', n: 'Special Delivery', d: 'Land 10 super moves in total.' },
+  { id: 'super25', n: 'Super Fan', d: 'Land 25 super moves in total.' },
   { id: 'story', n: 'Order Up', d: 'Beat Story Mode.' },
   { id: 'story3', n: 'Full Menu', d: 'Beat Story Mode with 3 different fighters.' },
   { id: 'chef', n: 'Kitchen Nightmare', d: 'Beat Chef Gran.' },
@@ -1317,40 +1423,129 @@ const ACH = [
   { id: 'streak5', n: 'On a Roll', d: 'Win 5 VS CPU matches in a row.' },
   { id: 'surv5', n: 'Survivor', d: 'Win 5 Survival fights in a row.' },
   { id: 'surv10', n: 'Iron Stomach', d: 'Win 10 Survival fights in a row.' },
-  { id: 'rank5', n: 'Rising Star', d: 'Reach rank level 5.' }
+  { id: 'surv15', n: 'Bottomless Pit', d: 'Win 15 Survival fights in a row.' },
+  { id: 'rank5', n: 'Rising Star', d: 'Reach rank level 5.' },
+  { id: 'rank10', n: 'Gourmet', d: 'Reach rank level 10.' },
+  { id: 'wins10', n: 'Regular', d: 'Win 10 matches.' },
+  { id: 'wins50', n: 'Veteran', d: 'Win 50 matches.' },
+  { id: 'wins100', n: 'Legend', d: 'Win 100 matches.' },
+  { id: 'roster', n: 'Full Roster', d: 'Win a match with every fighter.' },
+  { id: 'master3', n: 'Dedicated', d: 'Reach 3 mastery stars with any fighter.' },
+  { id: 'master4', n: 'One Trick', d: 'Reach 4 mastery stars with any fighter.' },
+  { id: 'perfect', n: 'Untouchable', d: 'Win a round without taking damage.' },
+  { id: 'close', n: 'Close Call', d: 'Win a round with 50 HP or less left.' },
+  { id: 'comeback', n: 'Comeback Kid', d: 'Win a match after losing a round.' },
+  { id: 'timeup', n: 'Clock Watcher', d: 'Win a round when time runs out.' },
+  { id: 'daily3', n: 'Regular Customer', d: 'Play 3 days in a row.' },
+  { id: 'rich', n: 'Piggy Bank', d: 'Hold 1000 coins at once.' },
+  { id: 'spender', n: 'Big Spender', d: 'Spend 1500 coins.' },
+  { id: 'wardrobe', n: 'Fashionista', d: 'Own 8 bought palettes.' },
+  { id: 'stage', n: 'Stage Owner', d: 'Buy all three bonus stages.' },
+  { id: 'quest10', n: 'Task Master', d: 'Complete 10 daily quests.' },
+  { id: 'quest50', n: 'Employee of the Month', d: 'Complete 50 daily quests.' },
+  { id: 'wins250', n: 'Hall of Fame', d: 'Win 250 matches.' },
+  { id: 'rank15', n: 'Connoisseur', d: 'Reach rank level 15.' },
+  { id: 'rank20', n: 'Grand Feast', d: 'Reach rank level 20.' },
+  { id: 'wardrobe20', n: 'Walk-in Closet', d: 'Own 20 bought palettes.' },
+  { id: 'tycoon', n: 'Food Tycoon', d: 'Spend 5000 coins.' },
+  { id: 'allmaster', n: 'Michelin Star', d: 'Reach 4 mastery stars with every fighter.' },
+  { id: 'collect100', n: 'Completionist', d: 'Collect every unlock: 100% collection.' }
 ];
 const TOASTS = [];
-function unlock(id) { const a = store.get('ach', {}); if (a[id]) return; a[id] = 1; store.set('ach', a); const d = ACH.find(x => x.id === id); TOASTS.push({ n: d.n, d: d.d, t: 0 }); }
+function unlock(id) { const a = store.get('ach', {}); if (a[id]) return; a[id] = 1; store.set('ach', a); const d = ACH.find(x => x.id === id); TOASTS.push({ n: d.n, d: d.d + '   +75 coins', t: 0, h: 'ACHIEVEMENT!' }); addCoins(75); }
 function stat(k, v) { const s = store.get('stats', {}); s[k] = (s[k] || 0) + v; store.set('stats', s); return s[k]; }
-function recordMatch(G, win, level, opp) {
+function checkMeta() {
+  const st = store.get('stats', {}), own = store.get('owned', {});
+  if ((st.wins || 0) >= 10) unlock('wins10'); if ((st.wins || 0) >= 50) unlock('wins50'); if ((st.wins || 0) >= 100) unlock('wins100');
+  if ((st.supers || 0) >= 10) unlock('super10'); if ((st.supers || 0) >= 25) unlock('super25');
+  if (xpInfo().lv >= 4) unlock('rank5'); if (xpInfo().lv >= 9) unlock('rank10');
+  if (coins() >= 1000) unlock('rich'); if ((st.spent || 0) >= 1500) unlock('spender');
+  if (Object.keys(own).filter(k => !k.startsWith('stage:')).length >= 8) unlock('wardrobe');
+  if ([4, 5, 6].every(i => own['stage:' + i])) unlock('stage');
+  if (xpInfo().lv >= 14) unlock('rank15'); if (xpInfo().lv >= 19) unlock('rank20'); if ((st.wins || 0) >= 250) unlock('wins250');
+  if (Object.keys(own).filter(k => !k.startsWith('stage:')).length >= 20) unlock('wardrobe20'); if ((st.spent || 0) >= 5000) unlock('tycoon');
+  if ((st.quests || 0) >= 10) unlock('quest10'); if ((st.quests || 0) >= 50) unlock('quest50');
+  if (PLAYABLE.concat([BYID.chef]).every(p => mStars(p.id) >= 4)) unlock('allmaster');
+  if (typeof collectPct === 'function' && collectPct() >= 100) unlock('collect100');
+  checkQuests();
+}
+// ----- daily quests -----
+const QPOOL = [
+  { k: 'wins', t: g => 'Win ' + g + ' matches', g: [2, 3, 4], r: 70 }, { k: 'matches', t: g => 'Play ' + g + ' matches', g: [3, 4, 5], r: 50 },
+  { k: 'supers', t: g => 'Land ' + g + ' super moves', g: [2, 3, 5], r: 80 }, { k: 'combo5', t: g => g === 1 ? 'Land a 5+ hit combo' : 'Land ' + g + ' combos of 5+ hits', g: [1, 2], r: 70 },
+  { k: 'flawless', t: g => 'Win a match without losing a round', g: [1], r: 100 }, { k: 'rounds', t: g => 'Win ' + g + ' rounds', g: [4, 6, 8], r: 60 },
+  { k: 'hard', t: g => 'Win a match on Expert level or higher', g: [1], r: 110 }
+];
+function hashStr(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function questDay() {
+  const t = todayStr(); let Q = store.get('quest', null);
+  if (!Q || Q.day !== t) {
+    const st = store.get('stats', {}); let h = hashStr(t), pool = QPOOL.slice(), q = [];
+    for (let i = 0; i < 3; i++) { h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0; const d = pool.splice(h % pool.length, 1)[0]; const g = d.g[(h >>> 8) % d.g.length]; q.push({ k: d.k, g, base: st[d.k] || 0, r: Math.round(d.r * (1 + .15 * d.g.indexOf(g)) / 5) * 5, done: 0 }); }
+    Q = { day: t, q, bonus: 0 }; store.set('quest', Q);
+  }
+  return Q;
+}
+function qText(q) { return QPOOL.find(d => d.k === q.k).t(q.g); }
+function qProg(q) { return Math.min(q.g, (store.get('stats', {})[q.k] || 0) - q.base); }
+let inQuest = false;
+function checkQuests() {
+  if (inQuest) return; inQuest = true;
+  try {
+    const Q = questDay(); let ch = false;
+    for (const q of Q.q) if (!q.done && qProg(q) >= q.g) { q.done = 1; ch = true; store.set('quest', Q); stat('quests', 1); addCoins(q.r); TOASTS.push({ h: 'QUEST DONE!', n: qText(q), d: '+' + q.r + ' coins', t: 0 }); }
+    if (ch && !Q.bonus && Q.q.every(q => q.done)) { Q.bonus = 1; store.set('quest', Q); addCoins(150); TOASTS.push({ h: 'ALL QUESTS!', n: 'Daily set complete', d: '+150 coin bonus', t: 0 }); }
+  } finally { inQuest = false; }
+}
+// ----- mastery: wins with a fighter earn stars, coins and palettes -----
+const MASTERY = [3, 10, 25, 50], MREWARD = [100, 150, 250, 400];
+function mWins(id) { return store.get('mastery', {})[id] || 0; }
+function mStars(id) { const w = mWins(id); return MASTERY.filter(t => w >= t).length; }
+function masteryWin(def) {
+  const id = def.id, M = store.get('mastery', {}), b = mStars(id); M[id] = (M[id] || 0) + 1; store.set('mastery', M); const a = mStars(id);
+  if (a > b) { addCoins(MREWARD[a - 1]); const pal = PALS.find(p => p.m === a); TOASTS.push({ n: 'Mastery ' + a + '/4  ' + def.name, d: '+' + MREWARD[a - 1] + ' coins' + (pal ? '   ' + pal.n + ' palette unlocked' : ''), t: 0 }); if (a >= 3) unlock('master3'); if (a >= 4) unlock('master4'); }
+  if (PLAYABLE.every(p => (M[p.id] || 0) > 0)) unlock('roster');
+}
+function recordMatch(G, win, level, opp, me) {
+  stat('matches', 1); stat('rounds', G.wins[0] || 0); if (G.maxCombo[0] >= 5) stat('combo5', 1);
+  if (win && G.wins[1] === 0 && G.wins[0] >= G.roundsToWin) stat('flawless', 1);
+  if (win && level >= 3) stat('hard', 1);
   if (win) {
     stat('wins', 1); unlock('first_win');
     if (G.wins[1] === 0 && G.wins[0] >= G.roundsToWin) unlock('flawless');
     if (G.superKO && G.winnerSlot === 0) unlock('super_ko');
+    if (G.lost0 && G.winner === 0) unlock('comeback');
     if (opp && opp.id === 'chef') unlock('chef');
     if (level >= 4) unlock('master');
+    if (me) masteryWin(me);
   }
+  if (G.perfect0) unlock('perfect'); if (G.close0) unlock('close'); if (G.timeWin0) unlock('timeup');
   if (G.maxCombo[0] >= 5) unlock('combo5');
-  if (stat('supers', G.supLanded[0]) >= 10) unlock('super10');
-  if (xpInfo().lv >= 4) unlock('rank5');
+  stat('supers', G.supLanded[0]); checkMeta();
 }
 function drawToasts() {
   const t = TOASTS[0]; if (!t || scene instanceof FightScene) return; t.t++;
   const k = t.t < 20 ? t.t / 20 : t.t > 200 ? 1 - (t.t - 200) / 20 : 1, y = lerp(-80, 14, easeOut(clamp(k, 0, 1)));
-  rrect(W / 2 - 230, y, 460, 66, 16, '#fff6d6', 5); bigText('ACHIEVEMENT!  ' + t.n, W / 2, y + 24, 22, '#e04a2f', '#fff', 'center', 0); bigText(t.d, W / 2, y + 49, 15, INK, '#fff', 'center', 0);
+  rrect(W / 2 - 230, y, 460, 66, 16, '#fff6d6', 5); bigText((t.h || 'UNLOCKED!') + '  ' + t.n, W / 2, y + 24, 22, '#e04a2f', '#fff', 'center', 0); bigText(t.d, W / 2, y + 49, 15, INK, '#fff', 'center', 0);
   if (t.t > 220) TOASTS.shift();
 }
 class AchScene {
-  constructor(back) { this.back = back; }
-  update() { if (N.back() || N.ok() || takeClick()) { Audio_.sfx('back'); this.back(); } }
+  constructor(back) { this.back = back; this.page = 0; }
+  get pages() { return Math.ceil(ACH.length / 12); }
+  update() {
+    if (N.left()) { this.page = (this.page + this.pages - 1) % this.pages; Audio_.sfx('ui'); }
+    if (N.right()) { this.page = (this.page + 1) % this.pages; Audio_.sfx('ui'); }
+    if (N.back() || N.ok()) { Audio_.sfx('back'); this.back(); }
+    const c = takeClick(); if (c) { if (c[1] > 480) { if (c[0] < 330) this.page = (this.page + this.pages - 1) % this.pages; else if (c[0] > 630) this.page = (this.page + 1) % this.pages; else this.back(); Audio_.sfx('ui'); } else { this.page = (this.page + 1) % this.pages; Audio_.sfx('ui'); } }
+  }
   render() {
-    bg(tick, .4); bigText('ACHIEVEMENTS', W / 2, 44, 46, '#ffd23f', INK); const got = store.get('ach', {}), n = ACH.filter(a => got[a.id]).length;
-    bigText(n + ' / ' + ACH.length + ' unlocked', W / 2, 82, 18, '#fff', INK);
-    ACH.forEach((a, i) => { const col = i < 7 ? 0 : 1, row = i < 7 ? i : i - 7, x = 30 + col * 460, y = 104 + row * 55, on = !!got[a.id];
-      rrect(x, y, 440, 49, 14, on ? '#fff6d6' : '#cfc9de', 4); bigText(a.n, x + 16, y + 17, 20, on ? INK : '#5d5775', '#fff', 'left', 0); bigText(a.d, x + 16, y + 38, 13, on ? '#3a3345' : '#5d5775', '#fff', 'left', 0);
-      if (on) bigText('✔', x + 412, y + 25, 28, '#2e9e4f', '#fff', 'center', 0); });
-    const st = store.get('stats', {}); bigText('Matches won ' + (st.wins || 0) + '    Supers landed ' + (st.supers || 0) + '    Best streak ' + store.get('best', 0) + '    Best survival ' + store.get('bestSurv', 0), W / 2, 505, 17, '#fff', INK);
-    bigText('Press any key to go back', W / 2, 528, 14, '#fff', INK);
+    bg(tick, .4); bigText('ACHIEVEMENTS', W / 2, 40, 44, '#ffd23f', INK); const got = store.get('ach', {}), n = ACH.filter(a => got[a.id]).length;
+    bigText(n + ' / ' + ACH.length + ' unlocked    (+75 coins each)', W / 2, 76, 17, '#fff', INK);
+    ACH.slice(this.page * 12, this.page * 12 + 12).forEach((a, k) => { const col = Math.floor(k / 6), row = k % 6, x = 30 + col * 460, y = 98 + row * 60, on = !!got[a.id];
+      rrect(x, y, 440, 53, 14, on ? '#fff6d6' : '#cfc9de', 4); bigText(a.n, x + 16, y + 18, 20, on ? INK : '#5d5775', '#fff', 'left', 0); bigText(a.d, x + 16, y + 41, 13, on ? '#3a3345' : '#5d5775', '#fff', 'left', 0);
+      if (on) bigText('✔', x + 412, y + 27, 28, '#2e9e4f', '#fff', 'center', 0); });
+    const st = store.get('stats', {}); bigText('Matches won ' + (st.wins || 0) + '    Supers landed ' + (st.supers || 0) + '    Best streak ' + store.get('best', 0) + '    Best survival ' + store.get('bestSurv', 0), W / 2, 478, 16, '#fff', INK);
+    bigText('<  Prev          Page ' + (this.page + 1) + ' / ' + this.pages + '  (Back: Esc)          Next  >', W / 2, 514, 18, '#fff', INK);
   }
 }
 class MoveList {
@@ -1381,11 +1576,11 @@ function survivalFight() {
     onEnd: r => {
       if (r.winner === 0) {
         SV.wins++; Audio_.sfx('win'); const best = Math.max(store.get('bestSurv', 0), SV.wins); store.set('bestSurv', best);
-        const xp = awardXP(r.G, true, lv, Math.min(40, SV.wins * 5)); recordMatch(r.G, true, lv, o); if (SV.wins >= 5) unlock('surv5'); if (SV.wins >= 10) unlock('surv10');
+        const xp = awardXP(r.G, true, lv, Math.min(40, SV.wins * 5)); recordMatch(r.G, true, lv, o, SV.p); if (SV.wins >= 5) unlock('surv5'); if (SV.wins >= 10) unlock('surv10'); if (SV.wins >= 15) unlock('surv15');
         go(new ResultScene({ title: 'SURVIVED!', win: true, def: SV.p, sub: 'Streak ' + SV.wins + '   Best ' + best + '   Next: ' + (SV.wins > 0 && (SV.wins + 1) % 5 === 0 ? 'HEAD CHEF!' : 'CPU lv ' + (Math.min(4, Math.floor(SV.wins / 2)) + 1)), G: r.G, xp },
           [{ label: 'NEXT FIGHT', fn: () => survivalFight() }, { label: 'CASH OUT', fn: () => go(new MainMenu()) }]));
       } else {
-        Audio_.sfx('lose'); const xp = awardXP(r.G, false, 0); recordMatch(r.G, false, 0, null); const best = store.get('bestSurv', 0);
+        Audio_.sfx('lose'); const xp = awardXP(r.G, false, 0); recordMatch(r.G, false, 0, null, SV.p); const best = store.get('bestSurv', 0);
         go(new ResultScene({ title: 'ELIMINATED', win: false, def: SV.p, sub: 'You won ' + SV.wins + ' in a row.  Best ' + best, G: r.G, xp },
           [{ label: 'TRY AGAIN', fn: () => { SV.wins = 0; survivalFight(); } }, { label: 'CHANGE FIGHTER', fn: () => startSurvival() }, { label: 'MAIN MENU', fn: () => go(new MainMenu()) }]));
       }
@@ -1442,38 +1637,38 @@ function storyFight() {
     onQuit: () => go(new MainMenu()),
     onEnd: r => {
       if (r.winner === 0) {
-        const xp = awardXP(r.G, true, S.lv[S.i]); recordMatch(r.G, true, S.lv[S.i], S.order[S.i]); S.i++; Audio_.sfx('win');
+        const xp = awardXP(r.G, true, S.lv[S.i]); recordMatch(r.G, true, S.lv[S.i], S.order[S.i], p); S.i++; Audio_.sfx('win');
         if (S.i >= S.order.length) storyEnd();
         else go(new ResultScene({ title: 'YOU WIN!', win: true, def: p, sub: 'Next up: ' + S.order[S.i].name, G: r.G, xp }, [{ label: 'NEXT FIGHT', fn: () => storyStep() }, { label: 'QUIT STORY', fn: () => go(new MainMenu()) }]));
       } else {
-        S.cont++; Audio_.sfx('lose'); const xp = awardXP(r.G, false, 0); recordMatch(r.G, false, 0, null);
+        S.cont++; Audio_.sfx('lose'); const xp = awardXP(r.G, false, 0); recordMatch(r.G, false, 0, null, p);
         go(new ResultScene({ title: 'DEFEATED', win: false, def: p, sub: 'Continues used: ' + S.cont, G: r.G, xp }, [{ label: 'CONTINUE', fn: () => storyFight() }, { label: 'QUIT STORY', fn: () => go(new MainMenu()) }]));
       }
     }
   }));
 }
 function storyEnd() {
-  const p = S.p, newly = !unlockedChef; unlock('story'); { const cl = store.get('clears', []); if (!cl.includes(p.id)) cl.push(p.id); store.set('clears', cl); if (cl.length >= 3) unlock('story3'); } unlockedChef = true; store.set('chef', true);
-  go(new Dialogue([{ who: 'n', text: LORE[p.id].end }, { who: 'n', text: 'THE END.  Continues used: ' + S.cont + (newly ? '.  Head Chef Gran is now unlocked as a playable fighter!' : '.') }], p, p, () => go(new MainMenu()), 'CHAMPION!'));
+  const p = S.p, newly = !unlockedChef, sb = 150 + (newly ? 250 : 0); addCoins(sb); unlock('story'); { const cl = store.get('clears', []); if (!cl.includes(p.id)) cl.push(p.id); store.set('clears', cl); if (cl.length >= 3) unlock('story3'); } unlockedChef = true; store.set('chef', true);
+  go(new Dialogue([{ who: 'n', text: LORE[p.id].end }, { who: 'n', text: 'THE END.  Continues used: ' + S.cont + (newly ? '.  Head Chef Gran is now unlocked as a playable fighter!' : '.') + '  Story bonus: +' + sb + ' coins.' }], p, p, () => go(new MainMenu()), 'CHAMPION!'));
 }
 // ---------- Other modes ----------
 function startVsCpu() {
-  go(new SelectScene([{ label: 'PLAYER 1' }, { label: 'CPU OPPONENT' }], defs => go(new LevelScene(lv => vsCpuFight(defs, lv), () => go(new MainMenu()))), () => go(new MainMenu())));
+  go(new SelectScene([{ label: 'PLAYER 1' }, { label: 'CPU OPPONENT' }], defs => go(new LevelScene(lv => go(new StageScene(() => vsCpuFight(defs, lv), () => startVsCpu())), () => startVsCpu())), () => go(new MainMenu())));
 }
 function vsCpuFight(defs, lv) {
   go(new FightScene({ defs, ctrls: ['pad0', new Brain(lv)], humans: 1, label: 'CPU: ' + LEVELS[lv].n,
     onQuit: () => go(new MainMenu()),
-    onEnd: r => go(new ResultScene({ title: r.winner === 0 ? 'YOU WIN!' : r.winner === 1 ? 'CPU WINS' : 'DRAW', win: r.winner === 0, def: defs[r.winner === 1 ? 1 : 0], G: r.G, xp: (x => (recordMatch(r.G, r.winner === 0, lv, defs[1]), x))(awardXP(r.G, r.winner === 0, lv)), streak: recordStreak(r.winner === 0) },
+    onEnd: r => go(new ResultScene({ title: r.winner === 0 ? 'YOU WIN!' : r.winner === 1 ? 'CPU WINS' : 'DRAW', win: r.winner === 0, def: defs[r.winner === 1 ? 1 : 0], G: r.G, xp: (x => (recordMatch(r.G, r.winner === 0, lv, defs[1], defs[0]), x))(awardXP(r.G, r.winner === 0, lv)), streak: recordStreak(r.winner === 0) },
       [{ label: 'REMATCH', fn: () => vsCpuFight(defs, lv) }, { label: 'CHANGE FIGHTERS', fn: () => startVsCpu() }, { label: 'MAIN MENU', fn: () => go(new MainMenu()) }])) }));
 }
-function startLocal() { go(new SelectScene([{ label: 'PLAYER 1' }, { label: 'PLAYER 2' }], defs => localFight(defs), () => go(new MainMenu()))); }
+function startLocal() { go(new SelectScene([{ label: 'PLAYER 1' }, { label: 'PLAYER 2' }], defs => go(new StageScene(() => localFight(defs), () => startLocal())), () => go(new MainMenu()))); }
 function localFight(defs) {
   go(new FightScene({ defs, ctrls: ['pad0', 'pad1'], local: true, humans: 1, onQuit: () => go(new MainMenu()),
     onEnd: r => go(new ResultScene({ title: r.winner < 0 ? 'DRAW' : 'PLAYER ' + (r.winner + 1) + ' WINS!', win: true, def: defs[r.winner < 0 ? 0 : r.winner], G: r.G },
       [{ label: 'REMATCH', fn: () => localFight(defs) }, { label: 'CHANGE FIGHTERS', fn: () => startLocal() }, { label: 'MAIN MENU', fn: () => go(new MainMenu()) }])) }));
 }
 function startTraining() {
-  go(new SelectScene([{ label: 'YOU' }, { label: 'TRAINING DUMMY' }], defs => go(new FightScene({ defs, ctrls: ['pad0', 'dummy'], training: true, humans: 1, stage: ri(0, 2), onQuit: () => go(new MainMenu()), onEnd: () => go(new MainMenu()) })), () => go(new MainMenu())));
+  go(new SelectScene([{ label: 'YOU' }, { label: 'TRAINING DUMMY' }], defs => go(new StageScene(() => go(new FightScene({ defs, ctrls: ['pad0', 'dummy'], training: true, humans: 1, stage: randomStage(), onQuit: () => go(new MainMenu()), onEnd: () => go(new MainMenu()) })), () => startTraining())), () => go(new MainMenu())));
 }
 function startWatch() {
   go(new LevelScene(lv => watchFight(lv), () => go(new MainMenu()), 'WATCH CPU - SKILL'));
@@ -1493,6 +1688,142 @@ function boot() { go(new TitleScene()); requestAnimationFrame(loop); }
 if (!window.__TEST) {
   const f = document.fonts && document.fonts.load ? Promise.race([document.fonts.load("40px 'Lilita One'"), new Promise(r => setTimeout(r, 1500))]) : Promise.resolve();
   f.then(boot, boot);
+}
+// ===== STAGE PICKER + UNLOCKS =====
+function collectPct() {
+  const all = PLAYABLE.concat([BYID.chef]); let have = 0, tot = 0;
+  for (const d of all) for (let i = 1; i < PALS.length; i++) { tot++; if (palOwned(d, i)) have++; }
+  for (let i = 0; i < STAGE_INFO.length; i++) { tot++; if (stageOwned(i)) have++; }
+  tot++; if (unlockedChef) have++;
+  return Math.floor(100 * have / tot);
+}
+function stageLockText(i) { const I = STAGE_INFO[i]; return I.story ? 'Beat Story Mode to unlock' : 'Press B / click to buy: ' + I.cost + ' coins'; }
+class StageScene {
+  constructor(done, back) { this.done = done; this.back = back; this.sel = 0; this.msg = ''; this.mt = 0; }
+  get n() { return STAGE_INFO.length + 1; }
+  idx() { return this.sel === 0 ? -1 : this.sel - 1; }
+  choose() {
+    const i = this.idx();
+    if (i < 0 || stageOwned(i)) { STAGE_PICK = i; Audio_.sfx('ok'); this.done(); return; }
+    this.buy();
+  }
+  buy() {
+    const i = this.idx(); if (i < 0 || stageOwned(i)) return; const I = STAGE_INFO[i];
+    if (I.story) { this.say('Beat Story Mode first'); return; }
+    if (buyStage(i)) { Audio_.sfx('win'); this.say(I.n + ' unlocked!'); } else this.say('Need ' + (I.cost - coins()) + ' more coins');
+  }
+  say(t) { this.msg = t; this.mt = 140; Audio_.sfx('back'); }
+  update() {
+    if (this.mt > 0) this.mt--;
+    if (N.up()) { this.sel = (this.sel + this.n - 1) % this.n; Audio_.sfx('ui'); }
+    if (N.down()) { this.sel = (this.sel + 1) % this.n; Audio_.sfx('ui'); }
+    if (edge('b', 'k', 'x')) this.buy(); else if (N.back()) { Audio_.sfx('back'); this.back(); }
+    if (N.ok()) this.choose();
+    const c = takeClick(); if (c) { for (let i = 0; i < this.n; i++) { const y = 96 + i * 48; if (c[0] > 30 && c[0] < 330 && c[1] > y && c[1] < y + 44) { if (this.sel === i) this.choose(); else { this.sel = i; Audio_.sfx('ui'); } } } if (c[0] > 400 && c[1] > 380 && c[1] < 460) this.buy(); }
+  }
+  render() {
+    bg(tick, .45); bigText('CHOOSE STAGE', W / 2, 40, 44, '#ffd23f', INK); bigText('Coins: ' + coins(), W - 30, 40, 24, '#ffd23f', INK, 'right');
+    for (let i = 0; i < this.n; i++) {
+      const y = 96 + i * 48, on = i === this.sel, si = i - 1, ok = si < 0 || stageOwned(si);
+      rrect(30, y, 300, 44, 12, on ? '#ffd23f' : ok ? '#fff6d6' : '#cfc9de', on ? 5 : 4);
+      bigText(si < 0 ? 'RANDOM' : STAGE_INFO[si].n, 46, y + 23, 22, ok ? INK : '#5d5775', '#fff', 'left', 0);
+      if (!ok) bigText('LOCKED', 316, y + 23, 15, '#8a3a2a', '#fff', 'right', 0);
+    }
+    const si = this.idx(), ok = si < 0 || stageOwned(si);
+    panel(360, 96, 570, 290);
+    cx.save(); cx.beginPath(); cx.roundRect(376, 112, 538, 258, 12); cx.clip(); cx.translate(376, 112); cx.scale(538 / W, 258 / H);
+    if (si < 0) STAGES[(tick / 90 | 0) % 3].draw(tick); else STAGES[si].draw(tick);
+    cx.restore(); cx.beginPath(); cx.roundRect(376, 112, 538, 258, 12); ink(4); cx.stroke();
+    if (!ok) { cx.fillStyle = 'rgba(27,21,34,.6)'; cx.beginPath(); cx.roundRect(376, 112, 538, 258, 12); cx.fill(); bigText('LOCKED', 645, 250, 46, '#fff', INK); }
+    bigText(si < 0 ? 'A random stage you own' : STAGE_INFO[si].n, 645, 412, 28, '#fff', INK);
+    if (!ok) { rrect(470, 430, 350, 44, 12, !STAGE_INFO[si].story && coins() >= STAGE_INFO[si].cost ? '#7ee06a' : '#cfc9de', 4); bigText(stageLockText(si), 645, 453, 17, INK, '#fff', 'center', 0); }
+    if (this.mt > 0) bigText(this.msg, 645, 492, 22, '#ffd23f', INK);
+    bigText('Up / Down: browse    Enter: fight here    B: buy    Esc: back', W / 2, 522, 16, '#fff', INK);
+  }
+}
+class UnlockScene {
+  constructor(back) { this.back = back; this.page = 0; }
+  update() {
+    if (N.left()) { this.page = (this.page + 2) % 3; Audio_.sfx('ui'); } if (N.right()) { this.page = (this.page + 1) % 3; Audio_.sfx('ui'); }
+    if (N.back() || N.ok()) { Audio_.sfx('back'); this.back(); }
+    const c = takeClick(); if (c) { if (c[1] > 480) { if (c[0] < 330) this.page = (this.page + 2) % 3; else if (c[0] > 630) this.page = (this.page + 1) % 3; else this.back(); Audio_.sfx('ui'); } else { this.page = (this.page + 1) % 3; Audio_.sfx('ui'); } }
+  }
+  render() {
+    bg(tick, .45); const pct = collectPct(), t = ['DAILY QUESTS', 'FIGHTERS & PALETTES', 'STAGES'][this.page];
+    bigText(t, W / 2, 38, 42, '#ffd23f', INK); bigText('Collection ' + pct + '%', 30, 38, 22, '#fff', INK, 'left'); bigText('Coins: ' + coins(), W - 30, 38, 22, '#ffd23f', INK, 'right');
+    if (this.page === 0) this.quests(); else if (this.page === 1) this.fighters(); else this.stages();
+    bigText('<  Prev          Page ' + (this.page + 1) + ' / 3  (Back: Esc)          Next  >', W / 2, 514, 18, '#fff', INK);
+  }
+  quests() {
+    const Q = questDay(), D = store.get('day', { streak: 0 });
+    Q.q.forEach((q, i) => { const y = 84 + i * 86, p = qProg(q), dn = !!q.done;
+      rrect(60, y, 840, 76, 16, dn ? '#d9f5cf' : '#fff6d6', 5); bigText(qText(q), 84, y + 28, 26, INK, '#fff', 'left', 0); bigText('Reward: ' + q.r + ' coins', 84, y + 58, 17, '#7a3e1d', '#fff', 'left', 0);
+      rrect(560, y + 40, 220, 18, 9, '#3a3345', 3); cx.save(); cx.beginPath(); cx.roundRect(560, y + 40, 220, 18, 9); cx.clip(); cx.fillStyle = dn ? '#2e9e4f' : '#4fb3ff'; cx.fillRect(560, y + 40, 220 * p / q.g, 18); cx.restore();
+      bigText(dn ? 'DONE' : p + ' / ' + q.g, 840, y + 50, 22, dn ? '#2e9e4f' : INK, '#fff', 'center', 0); });
+    bigText(Q.bonus ? 'All three done: +150 bonus claimed!' : 'Finish all three for a +150 coin bonus. New quests every day.', W / 2, 356, 20, '#fff', INK);
+    panel(60, 380, 840, 92); const L = (a, b, x) => { bigText(a, x, 410, 30, INK, '#fff', 'center', 0); bigText(b, x, 444, 16, '#7a3e1d', '#fff', 'center', 0); };
+    L(String(D.streak || 0), 'day login streak (bonus up to 7)', 190); L(String(store.get('stats', {}).quests || 0), 'quests completed', 480); L(String(xpInfo().lv + 1), 'rank level', 770);
+  }
+  fighters() {
+    const all = PLAYABLE.concat(unlockedChef ? [BYID.chef] : []);
+    cx.font = '15px ' + FONT; bigText('Mastery', 372, 74, 16, '#fff', INK); for (let i = 1; i < PALS.length; i++) bigText(PALS[i].n, 520 + (i - 1) * 72, 74, 14, '#fff', INK);
+    for (let k = 0; k < 8; k++) { const d = all[k], y = 86 + k * 50;
+      rrect(30, y, 900, 44, 12, d ? '#fff6d6' : '#cfc9de', 4);
+      if (!d) { bigText(k === 7 ? '??? (beat Story Mode)' : '', 50, y + 23, 20, '#5d5775', '#fff', 'left', 0); continue; }
+      bigText(d.name, 50, y + 23, 22, INK, '#fff', 'left', 0); bigText(d.food, 190, y + 24, 14, '#7a3e1d', '#fff', 'left', 0);
+      const s = mStars(d.id); bigText('★'.repeat(s) + '☆'.repeat(4 - s), 372, y + 24, 22, s ? '#e8a400' : '#8a8499', '#fff', 'center', 0);
+      for (let i = 1; i < PALS.length; i++) { const o = palOwned(d, i), x = 520 + (i - 1) * 72; cx.beginPath(); cx.arc(x, y + 22, 12, 0, TAU); cx.fillStyle = o ? (PALS[i].gold ? '#ffd23f' : PALS[i].rainbow ? hsl2hex(tick * 3 + i * 40, 1, .55) : hsl2hex(hex2hsl(d.c1)[0] + (PALS[i].h || 0), .8, .55)) : '#cfc9de'; cx.fill(); ink(3); cx.stroke(); if (!o) bigText('?', x, y + 23, 15, '#5d5775', '#fff', 'center', 0); }
+    }
+    bigText('Win with a fighter for mastery stars (3, 10, 25, 50 wins). Palettes unlock at stars or can be bought on the select screen.', W / 2, 494, 14, '#fff', INK);
+  }
+  stages() {
+    STAGE_INFO.forEach((I, i) => { const col = i % 4, row = Math.floor(i / 4), x = 30 + col * 230, y = 78 + row * 200, ok = stageOwned(i);
+      rrect(x, y, 215, 188, 14, '#fff6d6', 4); cx.save(); cx.beginPath(); cx.roundRect(x + 10, y + 10, 195, 112, 8); cx.clip(); cx.translate(x + 10, y + 10); cx.scale(195 / W, 112 / H); STAGES[i].draw(tick); cx.restore();
+      cx.beginPath(); cx.roundRect(x + 10, y + 10, 195, 112, 8); ink(3); cx.stroke();
+      if (!ok) { cx.fillStyle = 'rgba(27,21,34,.6)'; cx.beginPath(); cx.roundRect(x + 10, y + 10, 195, 112, 8); cx.fill(); bigText('LOCKED', x + 107, y + 66, 22, '#fff', INK); }
+      bigText(I.n, x + 107, y + 142, 20, INK, '#fff', 'center', 0); bigText(ok ? 'Owned' : I.story ? 'Beat Story Mode' : I.cost + ' coins', x + 107, y + 166, 15, ok ? '#2e9e4f' : '#8a3a2a', '#fff', 'center', 0); });
+    bigText('Buy stages on the stage select screen (VS CPU, Local and Training).', W / 2, 482, 16, '#fff', INK);
+  }
+}
+// ===== SAVE / LOAD =====
+const SAVE_TAG = 'LBA1';
+function saveHash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); }
+function b64e(s) { return btoa(unescape(encodeURIComponent(s))); }
+function b64d(s) { return decodeURIComponent(escape(atob(s))); }
+function exportSave() { const body = b64e(JSON.stringify(store.dump())); return SAVE_TAG + '.' + body + '.' + saveHash(body); }
+function importSave(code) {
+  code = (code || '').replace(/\s+/g, ''); const p = code.split('.');
+  if (p.length !== 3 || p[0] !== SAVE_TAG) throw new Error('That is not a Lunch Brawl save code.');
+  if (saveHash(p[1]) !== p[2]) throw new Error('The code looks damaged or incomplete. Copy it again in full.');
+  let o; try { o = JSON.parse(b64d(p[1])); } catch (e) { throw new Error('Could not read the code.'); }
+  if (!o || typeof o !== 'object') throw new Error('Could not read the code.');
+  store.wipe(); for (const k in o) { try { store.set(k, JSON.parse(o[k])); } catch (e) {} }
+  refreshLive();
+}
+function refreshLive() {
+  Object.assign(SET, { rounds: 2, time: 60, touch: true }, store.get('set', {})); unlockedChef = store.get('chef', false);
+  Audio_.vol = store.get('vol', 0.6); Audio_.music = store.get('music', true); for (const k in skinCache) delete skinCache[k]; STAGE_PICK = -1;
+}
+function saveSummary() {
+  const i = xpInfo(), st = store.get('stats', {});
+  return 'Rank ' + (i.lv + 1) + ' ' + i.title + '  |  ' + coins() + ' coins  |  ' + (st.wins || 0) + ' wins  |  Collection ' + collectPct() + '%  |  ' + Object.keys(store.get('ach', {})).length + '/' + ACH.length + ' achievements'
+    + (store.ok ? '' : '  |  Browser storage is blocked here: progress lasts only until you close this page, so copy your code to keep it.');
+}
+function openSave() {
+  const box = document.getElementById('savebox'), $ = id => document.getElementById(id), code = $('sb_code'), msg = $('sb_msg'); let armed = 0;
+  const say = (t, bad) => { msg.textContent = t; msg.style.color = bad ? '#b3261e' : '#2e6e3a'; };
+  const refresh = () => { $('sb_info').textContent = saveSummary(); code.value = exportSave(); };
+  const close = () => { box.hidden = true; document.removeEventListener('keydown', onKey, true); canvasFocus(); };
+  const onKey = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+  function canvasFocus() { try { document.activeElement && document.activeElement.blur(); } catch (e) {} clearEdges(); for (const k in keys) keys[k] = false; }
+  refresh(); say(''); box.hidden = false; $('sb_reset').textContent = 'Erase all progress'; document.addEventListener('keydown', onKey, true);
+  $('sb_copy').onclick = () => { code.focus(); code.select(); let ok = false; try { ok = document.execCommand('copy'); } catch (e) {} if (!ok && navigator.clipboard) navigator.clipboard.writeText(code.value).then(() => say('Copied!'), () => say('Press Ctrl+C to copy the selected code.', 1)); else say(ok ? 'Copied!' : 'Press Ctrl+C to copy the selected code.', !ok); };
+  $('sb_dl').onclick = () => { try { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([code.value], { type: 'text/plain' })); a.download = 'lunch-brawl-save.txt'; document.body.appendChild(a); a.click(); a.remove(); say('Saved. If nothing downloaded, use Copy code instead.'); } catch (e) { say('Download not available here. Use Copy code.', 1); } };
+  $('sb_file').onclick = () => $('sb_in').click();
+  $('sb_in').onchange = e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { code.value = String(r.result).trim(); say('File read. Press Load code.'); }; r.readAsText(f); e.target.value = ''; };
+  $('sb_load').onclick = () => { try { importSave(code.value); refresh(); say('Save loaded!'); } catch (e) { say(e.message, 1); } };
+  $('sb_reset').onclick = () => { if (!armed) { armed = 1; $('sb_reset').textContent = 'Really erase? Press again'; setTimeout(() => { armed = 0; $('sb_reset').textContent = 'Erase all progress'; }, 4000); return; } armed = 0; store.wipe(); refreshLive(); $('sb_reset').textContent = 'Erase all progress'; refresh(); say('All progress erased.'); };
+  $('sb_close').onclick = close; box.onclick = e => { if (e.target === box) close(); };
 }
 </script>
 </body>
