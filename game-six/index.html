@@ -282,7 +282,8 @@
       <div class="shapeRow" id="shapeRow"></div>
 
       <button id="startBtn">Start engine</button>
-      <div class="menuRow"><button id="dragBtn" style="background:linear-gradient(180deg,var(--orange),#c2561a);box-shadow:0 0 14px rgba(255,140,66,.6)">Drag race</button><button id="garageBtn" style="background:linear-gradient(180deg,var(--purple),#5a3bb0);box-shadow:0 0 14px rgba(138,92,255,.6)">Garage</button><button id="missionBtn" style="background:linear-gradient(180deg,#3dff8a,#1c9a52);box-shadow:0 0 14px rgba(61,255,138,.5)">Missions</button><button id="badgeBtn" style="background:linear-gradient(180deg,var(--yellow),#b89a2e);box-shadow:0 0 14px rgba(246,218,110,.6)">Badges</button></div>
+      <div class="menuRow"><button id="dragBtn" style="background:linear-gradient(180deg,var(--orange),#c2561a);box-shadow:0 0 14px rgba(255,140,66,.6)">Drag race</button><button id="garageBtn" style="background:linear-gradient(180deg,var(--purple),#5a3bb0);box-shadow:0 0 14px rgba(138,92,255,.6)">Garage</button><button id="missionBtn" style="background:linear-gradient(180deg,#3dff8a,#1c9a52);box-shadow:0 0 14px rgba(61,255,138,.5)">Missions</button><button id="saveBtn" style="background:linear-gradient(180deg,#8f88b8,#5a5480);box-shadow:0 0 14px rgba(143,136,184,.5)">Save</button><button id="badgeBtn" style="background:linear-gradient(180deg,var(--yellow),#b89a2e);box-shadow:0 0 14px rgba(246,218,110,.6)">Badges</button></div>
+      <div class="statsLine" id="saveBadge" style="margin:10px 0 0;font-size:11px">💾 …</div>
       <div class="hint">← → steer · ↑ gas · ↓ brake · SHIFT/SPACE nitro · P pause<br>Oncoming lanes score ×2 · brake-check cars for +10,000 · stay off the walls<br>Touch: hold the left / right side to steer</div>
     </div>
 
@@ -367,11 +368,41 @@
   window.addEventListener('resize', resize);
 
   // ================= PROFILE / PERSISTENCE =================
-  const store={
-    async get(k){ try{ if(window.storage){ const r=await window.storage.get(k,false); return r&&r.value; } }catch(e){} try{ return localStorage.getItem(k); }catch(e){ return null; } },
-    async set(k,v){ try{ if(window.storage){ await window.storage.set(k,v,false); return; } }catch(e){} try{ localStorage.setItem(k,v); }catch(e){} }
+  // Saves go to EVERY storage the browser allows (host storage, localStorage, IndexedDB);
+  // on load the newest copy wins. Plus a manual backup (file / code) in the Save screen.
+  const idb = {
+    open(){ return new Promise((res,rej)=>{ try{ const r = indexedDB.open('neon_drift',1); r.onupgradeneeded = ()=> r.result.createObjectStore('kv'); r.onsuccess = ()=> res(r.result); r.onerror = ()=> rej(r.error); }catch(e){ rej(e); } }); },
+    async get(k){ const db = await this.open(); return new Promise((res,rej)=>{ const q = db.transaction('kv').objectStore('kv').get(k); q.onsuccess = ()=>{ db.close(); res(q.result||null); }; q.onerror = ()=> rej(q.error); }); },
+    async set(k,v){ const db = await this.open(); return new Promise((res,rej)=>{ const t = db.transaction('kv','readwrite'); t.objectStore('kv').put(v,k); t.oncomplete = ()=>{ db.close(); res(); }; t.onerror = ()=> rej(t.error); }); }
+  };
+  const backends = {
+    host:  { label:'app storage',     ok:()=> typeof window.storage !== 'undefined' && !!window.storage, get: async k=>{ const r = await window.storage.get(k,false); return r && r.value; }, set: async (k,v)=>{ await window.storage.set(k,v,false); } },
+    local: { label:'browser storage', ok:()=> { try{ return typeof localStorage !== 'undefined' && !!localStorage; }catch(e){ return false; } }, get: async k=> localStorage.getItem(k), set: async (k,v)=>{ localStorage.setItem(k,v); } },
+    idb:   { label:'IndexedDB',       ok:()=> typeof indexedDB !== 'undefined', get: k=> idb.get(k), set: (k,v)=> idb.set(k,v) }
+  };
+  let saveStatus = { ok:0, total:0, lastAt:0, names:[] };
+  const store = {
+    async get(k){
+      let bestV = null, bt = -1;
+      for(const n in backends){
+        const b = backends[n]; if(!b.ok()) continue;
+        try{ const v = await b.get(k); if(v){ let t = 0; try{ t = JSON.parse(v).savedAt || 0; }catch(e){} if(t > bt){ bt = t; bestV = v; } } }catch(e){}
+      }
+      return bestV;
+    },
+    async set(k,v){
+      let ok = 0, total = 0; const names = [];
+      for(const n in backends){
+        const b = backends[n]; if(!b.ok()) continue; total++;
+        try{ await b.set(k,v); ok++; names.push(b.label); }catch(e){}
+      }
+      saveStatus = { ok, total, lastAt:Date.now(), names };
+      if(typeof updateSaveBadge === 'function') updateSaveBadge();
+      return ok > 0;
+    }
   };
   let profile = { bestScore:0, lifetimeDistance:0, badges:[], unlockedShapes:['sport','van','lambo','police'], selectedColorIdx:0, selectedShape:'sport', credits:1000, dragTier:0, up:{eng:0,tire:0,armor:0,nitro:0,turbo:0}, xp:0, missions:null, mc:{day:'',dragwin:0}, dragBest:{}, lastDay:'', streak:0, missionsDone:0 };
+  const DEFAULT_PROFILE = JSON.stringify(profile);
   const BADGE_NAMES = {
     redline30: 'Redline 30 — held 290+ kph for 30s',
     closecall10: 'Threader — 10 close calls in one run',
@@ -470,36 +501,46 @@
     saveProfile(); updateStatsLine();
   }
 
-  async function loadProfile(){
-    try{
-      const rv = await store.get('profile');
-      if(rv){
-        const p = JSON.parse(rv);
-        profile = Object.assign(profile, p);
-      }
-    }catch(e){ /* no saved profile yet */ }
-    if(!profile.unlockedShapes.includes('sport')) profile.unlockedShapes.push('sport');
-    if(!profile.unlockedShapes.includes('van')) profile.unlockedShapes.push('van');
-    if(!profile.unlockedShapes.includes('lambo')) profile.unlockedShapes.push('lambo');
-    if(!profile.unlockedShapes.includes('police')) profile.unlockedShapes.push('police');
+  function normalizeProfile(){
+    ['sport','van','lambo','police'].forEach(k=>{ if(!profile.unlockedShapes.includes(k)) profile.unlockedShapes.push(k); });
+    profile.unlockedShapes = profile.unlockedShapes.filter((k,i,a)=> SHAPES[k] && a.indexOf(k)===i);
     profile.up = Object.assign({eng:0,tire:0,armor:0,nitro:0,turbo:0}, profile.up);
     profile.dragBest = profile.dragBest || {}; profile.mc = profile.mc || {day:'',dragwin:0}; profile.xp = profile.xp || 0;
+    profile.badges = (profile.badges||[]).filter((k,i,a)=> a.indexOf(k)===i);
     best = profile.bestScore || 0;
     bestVal.textContent = best;
     selectedColorIdx = Math.min(profile.selectedColorIdx||0, CAR_COLORS.length-1);
     selectedShape = (SHAPES[profile.selectedShape] && profile.unlockedShapes.includes(profile.selectedShape)) ? profile.selectedShape : 'sport';
+  }
+  async function loadProfile(){
+    try{
+      const rv = await store.get('profile');
+      if(rv){ profile = Object.assign(JSON.parse(DEFAULT_PROFILE), JSON.parse(rv)); }
+    }catch(e){ /* no saved profile yet */ }
+    normalizeProfile();
     renderPickers();
     updateStatsLine();
     dailyInit();
   }
+  let saving = false, saveAgain = false;
   async function saveProfile(){
-    await store.set('profile', JSON.stringify(profile));
+    if(saving){ saveAgain = true; return; }
+    saving = true;
+    try{ do{ saveAgain = false; profile.savedAt = Date.now(); await store.set('profile', JSON.stringify(profile)); }while(saveAgain); }
+    finally{ saving = false; }
   }
+  // synchronous last-chance write when the tab is hidden / closed
+  function flushSave(){ try{ profile.savedAt = Date.now(); localStorage.setItem('profile', JSON.stringify(profile)); }catch(e){} saveProfile(); }
+  window.addEventListener('pagehide', flushSave);
+  window.addEventListener('beforeunload', flushSave);
+  document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') flushSave(); });
+  setInterval(()=>{ if(!document.hidden) saveProfile(); }, 15000);
   function updateStatsLine(){
     const lv = lvlOf(profile.xp), a = 120*(lv-1)*(lv-1), b = 120*lv*lv, pct = Math.round(100*(profile.xp-a)/(b-a));
     statsLine.innerHTML = '<b style="color:var(--cyan)">LV '+lv+' · '+rankOf(lv)+'</b> &nbsp;·&nbsp; ⛁ '+profile.credits.toLocaleString()+
       '<br>Lifetime '+Math.floor(profile.lifetimeDistance).toLocaleString()+' · Badges '+profile.badges.length+'/'+Object.keys(BADGE_NAMES).length+
       '<div class="xp"><u style="width:'+Math.max(2,Math.min(100,pct))+'%"></u></div>';
+    updateSaveBadge();
   }
 
   // ================= AUDIO =================
@@ -1780,10 +1821,11 @@
   const shopOv=mkOv('shopOv','<div class="title" style="font-size:26px">GARAGE</div><div class="statsLine" id="shopCredits"></div><div style="display:flex;gap:8px;margin-bottom:12px"><button class="small" id="tabCars">CARS</button><button class="small" id="tabTune" style="background:linear-gradient(180deg,var(--purple),#5a3bb0)">TUNING</button></div><div class="list" id="shopList"></div><button class="small" id="shopBack">Back</button>');
   const badgeOv=mkOv('badgeOv','<div class="title" style="font-size:26px" id="badgeTitle">BADGES</div><div class="statsLine">Badges pay ⛁750 each · some unlock OP cars · score pays too</div><div class="list" id="badgeList"></div><button class="small" id="badgeBack">Back</button>');
   const dragOv=mkOv('dragOv','<div class="title" style="font-size:26px">DRAG RACE</div><div class="statsLine">402 m · hold gas on green · shift in the green zone</div><div class="statsLine" id="dragCar" style="color:var(--cyan)"></div><div class="list" id="dragList"></div><button class="small" id="dragBack">Back</button>');
+  const saveOv=mkOv('saveOv','<div class="title" style="font-size:26px">SAVE</div><div class="statsLine" id="saveInfo"></div><div class="list"><button class="small" id="saveDl">Download save file</button><button class="small" id="saveCopy" style="background:linear-gradient(180deg,var(--purple),#5a3bb0)">Copy save code</button><textarea id="saveCode" rows="3" placeholder="Paste a save code here to restore it" style="width:100%;border-radius:8px;border:1px solid rgba(138,92,255,.6);background:rgba(20,10,45,.8);color:#fff;padding:8px;font-size:11px"></textarea><button class="small" id="saveLoad" style="background:linear-gradient(180deg,var(--orange),#c2561a)">Load save code</button><label class="small" style="display:block;padding:10px 18px;border-radius:8px;border:1px dashed var(--cyan);color:var(--cyan);font-size:11px;letter-spacing:2px;cursor:pointer;font-family:Orbitron,sans-serif">Load save file<input type="file" id="saveFile" accept=".json,.txt" style="display:none"></label><button class="small" id="saveReset" style="background:linear-gradient(180deg,var(--pink),#b3195c)">Reset all progress</button></div><div class="statsLine" id="saveMsg" style="color:var(--yellow)"></div><button class="small" id="saveBack">Back</button>');
   const missionOv=mkOv('missionOv','<div class="title" style="font-size:26px">MISSIONS</div><div class="statsLine" id="missionSub"></div><div class="list" id="missionList"></div><button class="small" id="missionBack">Back</button>');
   const shiftBtn=$('shiftBtn'), nitroBtn=$('nitroBtn');
   function setHud(v){ ['hud','hpRow','multTag','comboRow'].forEach(i=>$(i).style.display = v ? '' : 'none'); }
-  function show(ov){ frame.classList.toggle('inmenu', !!ov); [startOverlay,endOverlay,pauseOverlay,shopOv,badgeOv,dragOv,missionOv].forEach(o=>o.classList.add('hidden')); if(ov) ov.classList.remove('hidden'); }
+  function show(ov){ frame.classList.toggle('inmenu', !!ov); [startOverlay,endOverlay,pauseOverlay,shopOv,badgeOv,dragOv,missionOv,saveOv].forEach(o=>o.classList.add('hidden')); if(ov) ov.classList.remove('hidden'); }
   function toMenu(){ running=false; paused=false; pauseBtn.textContent='⏸'; pauseCarPanel.classList.add('hidden'); changeCarBtn.textContent='Change Car'; mode='road'; setHud(true); shiftBtn.style.display='none'; topRightControls.classList.remove('show'); setEngine(0,false); reset(); renderPickers(); updateStatsLine(); show(startOverlay); draw(); }
   function again(){ lastMode==='drag' ? startDrag(lastTier) : start(); }
   function shopMsg(m){ const e=$('shopCredits'); e.textContent=m; e.style.color='var(--pink)'; setTimeout(()=>renderShop(shopTab),1200); }
@@ -1835,6 +1877,49 @@
       L.appendChild(r);
     });
   }
+  // ---- save / backup logic
+  const toCode = ()=> btoa(unescape(encodeURIComponent(JSON.stringify(profile))));
+  function fromCode(txt){
+    txt = (txt||'').trim(); if(!txt) throw new Error('empty');
+    let obj; try{ obj = JSON.parse(txt); }catch(e){ obj = JSON.parse(decodeURIComponent(escape(atob(txt)))); }
+    if(!obj || typeof obj !== 'object' || !Array.isArray(obj.unlockedShapes) || typeof obj.credits !== 'number') throw new Error('not a Neon Drift save');
+    return obj;
+  }
+  function saveSay(m){ $('saveMsg').textContent = m; }
+  function renderSave(){
+    const t = saveStatus.lastAt ? new Date(saveStatus.lastAt).toLocaleTimeString() : 'not yet';
+    $('saveInfo').innerHTML = 'Auto-saves every few seconds and when you leave.<br>Saving to: <b style="color:var(--cyan)">' + (saveStatus.names.length ? saveStatus.names.join(' + ') : 'checking…') + '</b> · last ' + t +
+      '<br>If this browser blocks storage, use <b>Download save file</b> as a backup.';
+    $('saveReset').textContent = 'Reset all progress'; saveSay('');
+  }
+  function updateSaveBadge(){ const e = document.getElementById('saveBadge'); if(!e) return; e.textContent = saveStatus.ok>0 ? '💾 saved' : '⚠ not saving – open Save'; e.style.color = saveStatus.ok>0 ? '#3dff8a' : '#ff8c42'; }
+  $('saveBtn').onclick = ()=>{ saveProfile().then(renderSave); renderSave(); show(saveOv); };
+  $('saveDl').onclick = ()=>{
+    try{
+      const blob = new Blob([JSON.stringify(profile)], {type:'application/json'}), a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'neon-drift-save.json'; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 2000); saveSay('Save file downloaded.');
+    }catch(e){ saveSay('Download blocked here – use Copy save code instead.'); }
+  };
+  $('saveCopy').onclick = async ()=>{
+    const code = toCode(); $('saveCode').value = code;
+    try{ await navigator.clipboard.writeText(code); saveSay('Save code copied. Paste it somewhere safe.'); }
+    catch(e){ $('saveCode').select(); try{ document.execCommand('copy'); saveSay('Save code copied. Paste it somewhere safe.'); }catch(e2){ saveSay('Select the code above and copy it.'); } }
+  };
+  function applyImport(obj){
+    profile = Object.assign(JSON.parse(DEFAULT_PROFILE), obj); normalizeProfile(); renderPickers(); updateStatsLine();
+    saveProfile().then(()=>{ renderSave(); saveSay('Save loaded ✓'); });
+  }
+  $('saveLoad').onclick = ()=>{ try{ applyImport(fromCode($('saveCode').value)); }catch(e){ saveSay('That code is not a valid Neon Drift save.'); } };
+  $('saveFile').onchange = e=>{
+    const f = e.target.files && e.target.files[0]; if(!f) return;
+    const r = new FileReader(); r.onload = ()=>{ try{ applyImport(fromCode(String(r.result))); }catch(err){ saveSay('That file is not a valid Neon Drift save.'); } }; r.readAsText(f); e.target.value = '';
+  };
+  $('saveReset').onclick = ()=>{
+    if($('saveReset').dataset.arm !== '1'){ $('saveReset').dataset.arm = '1'; $('saveReset').textContent = 'Tap again to erase everything'; setTimeout(()=>{ $('saveReset').dataset.arm = '0'; $('saveReset').textContent = 'Reset all progress'; }, 3000); return; }
+    $('saveReset').dataset.arm = '0'; profile = JSON.parse(DEFAULT_PROFILE); normalizeProfile(); renderPickers(); dailyInit(); saveProfile().then(()=>{ renderSave(); saveSay('Progress reset.'); });
+  };
+
   function renderMissions(){
     const L = $('missionList'); L.innerHTML = '';
     $('missionSub').textContent = 'New missions every day · streak ' + (profile.streak||1) + ' day' + ((profile.streak||1)>1?'s':'') + ' · completed ' + (profile.missionsDone||0);
@@ -1861,7 +1946,7 @@
   $('badgeBtn').onclick=()=>{ renderBadges(); show(badgeOv); };
   $('tabCars').onclick=()=>renderShop('cars');
   $('tabTune').onclick=()=>renderShop('tune');
-  ['shopBack','badgeBack','dragBack','menuBtn','missionBack'].forEach(i=>$(i).onclick=toMenu);
+  ['shopBack','badgeBack','dragBack','menuBtn','missionBack','saveBack'].forEach(i=>$(i).onclick=toMenu);
 
   // ---- nitro / drag input ----
   window.addEventListener('keydown', e=>{
