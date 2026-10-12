@@ -243,7 +243,7 @@ const SR=[[5,15,12,21,8],[14,15,21,21,17],[23,15,30,21,27],[32,15,39,21,36]];
 const SRfloor=['.','b','.','r'];
 function carve(x1,y1,x2,y2,ch){for(let y=y1;y<=y2;y++)for(let x=x1;x<=x2;x++)grid[y][x]=ch;}
 const WP=[[2,4],[2,10],[2,19],[46,4],[46,10],[46,19],[6,13],[12,12],[20,13],[26,12],[33,13],[40,12],[44,13],[8,6],[17,6],[27,6],[36,6],[8,18],[17,18],[27,18],[36,18],[4,24],[14,25],[24,24],[36,25],[46,24],[8,28],[23,28],[32,28],[42,6]];
-const LOCKER_DEFS=[[6,12,0,1],[11,12,0,1],[22,12,0,1],[32,12,0,1],[41,12,0,1],[10,13,0,-1],[20,13,0,-1],[30,13,0,-1],[40,13,0,-1],[1,5,1,0],[1,8,1,0],[1,16,1,0],[1,19,1,0],[47,5,-1,0],[47,9,-1,0],[47,16,-1,0],[47,19,-1,0],[3,24,0,1],[10,24,0,1],[40,24,0,1],[44,24,0,1]];
+const LOCKER_DEFS=[[6,12,0,1],[11,12,0,1],[22,12,0,1],[32,12,0,1],[41,12,0,1],[9,13,0,-1],[20,13,0,-1],[30,13,0,-1],[39,13,0,-1],[1,5,1,0],[1,8,1,0],[1,16,1,0],[1,19,1,0],[47,5,-1,0],[47,9,-1,0],[47,16,-1,0],[47,19,-1,0],[3,24,0,1],[10,24,0,1],[40,24,0,1],[44,24,0,1]];
 
 const LOCK_S=[[1,4,1,0],[1,12,1,0],[1,20,1,0],[1,26,1,0],[48,6,-1,0],[48,16,-1,0],[48,24,-1,0],[16,1,0,1],[26,28,0,-1],[36,1,0,1]];
 const WPS=[[6,8],[16,4],[16,24],[26,14],[26,26],[36,4],[36,24],[46,14],[46,4],[46,26],[6,24]];
@@ -327,7 +327,7 @@ function buildWorld(){
   buildDecor();
   buildFixtures();
   buildItems();
-  MONS=[];const c0=curCfg();for(let i=0;i<c0.n;i++){const w=WPc[(i*7+3)%WPc.length];const c=nearestPassable(w[0],w[1])||{x:46,y:5};spawnMonster(cw(c.x),cw(c.y));}
+  MONS=[];const c0=curCfg();for(let i=0;i<c0.n;i++){const pool=G.level==='S'?WPc:WPc.filter(q=>q[1]<22);const w=pool[(i*7+3)%pool.length];const c=nearestPassable(w[0],w[1])||{x:46,y:5};spawnMonster(cw(c.x),cw(c.y));}
   G.spawnT=c0.every;
 }
 
@@ -804,11 +804,12 @@ function spawnMonster(x,z){
      lockerTarget:null,checkLocker:null,searchT:0,searchPts:[],checked:new Set(),wait:0,doorWait:0,stepAcc:0,dead:false,respawn:0,clickT:1,phase:0,flash:0,stuck:0,heardT:99,senseT:0,mesh};
   mM=mesh;MONS.push(M);pickPatrol();
 }
+function canReach(q){const pc=nearestPassable(clamp(tc(P.x),0,W-1),clamp(tc(P.z),0,H-1));return !!pc&&bfs(q.x,q.y,pc.x,pc.y)!==null;}
 function setFocus(){let b=MONS[0],bd=1e9;for(const m of MONS){const d=m.dead?1e8:Math.hypot(m.x-P.x,m.z-P.z);if(d<bd){bd=d;b=m;}}M=b;mM=b.mesh;}
 function updateMonsters(dt){
   for(const m of MONS){M=m;mM=m.mesh;updateMonster(dt);if(G.state!=='play')return;}
   G.spawnT-=dt;const c=curCfg();
-  if(G.spawnT<=0&&MONS.length<c.max){G.spawnT=c.every;let best=null,bd=-1;WPc.forEach(w=>{const q=nearestPassable(w[0],w[1]);if(!q)return;const d=Math.hypot(cw(q.x)-P.x,cw(q.y)-P.z);if(d>bd){bd=d;best=q;}});if(best){spawnMonster(cw(best.x),cw(best.y));toast('ANOTHER ONE IS HUNTING NOW.');}}
+  if(G.spawnT<=0&&MONS.length<c.max){G.spawnT=c.every;let best=null,bd=-1;WPc.forEach(w=>{const q=nearestPassable(w[0],w[1]);if(!q||!canReach(q))return;const d=Math.hypot(cw(q.x)-P.x,cw(q.y)-P.z);if(d>bd){bd=d;best=q;}});if(best){spawnMonster(cw(best.x),cw(best.y));toast('ANOTHER ONE IS HUNTING NOW.');}}
   setFocus();
 }
 function pickWP(){if(P&&P.x!=null&&Math.random()<.7){const a=WPc.slice().sort((p,q)=>Math.hypot(cw(p[0])-P.x,cw(p[1])-P.z)-Math.hypot(cw(q[0])-P.x,cw(q[1])-P.z));return a[Math.floor(Math.random()*Math.min(4,a.length))];}return pick(WPc);}
@@ -883,6 +884,7 @@ function updateMonster(dt){
     if(dP<sr&&(dP<9||hasLOS(M.x,M.z,P.x,P.z))){M.senseT=.35;const was=M.state;if(mSetTarget(P.x,P.z)){M.noiseTarget={x:P.x,z:P.z};M.heardT=0;M.wait=0;if(was!=='chase')startChase();M.state='chase';}}
   }
   const spd=1.25*(1+.1*(diff()-1));
+  M.stk=(M.stk||0)+dt;if(M.stk>2){if(M.lx!=null&&Math.hypot(M.x-M.lx,M.z-M.lz)<.3&&M.pi<M.path.length&&M.state!=='stun'&&M.doorWait<=0){if(M.noiseTarget&&(M.state==='chase'||M.state==='investigate'))mSetTarget(M.noiseTarget.x,M.noiseTarget.z);else pickPatrol();}M.lx=M.x;M.lz=M.z;M.stk=0;}
   if(M.flash>0)M.flash-=dt;
   mM.skin.emissive.setHex(M.flash>0?0x440000:0x241a14);
   switch(M.state){
@@ -923,7 +925,8 @@ function hitMonster(dmg){
   if(dmg>=40){M.state='stun';M.stun=dmg>=100?1.6:.9;M.path=[];M.pi=0;}
 }
 function respawnMonster(){
-  let best=null,bd=-1;WPc.forEach(w=>{const c=nearestPassable(w[0],w[1]);if(!c)return;const d=Math.hypot(cw(c.x)-P.x,cw(c.y)-P.z);if(d>bd){bd=d;best=c;}});
+  let best=null,bd=-1;WPc.forEach(w=>{const c=nearestPassable(w[0],w[1]);if(!c||!canReach(c))return;const d=Math.hypot(cw(c.x)-P.x,cw(c.y)-P.z);if(d>bd){bd=d;best=c;}});
+  if(!best){M.respawn=3;return;}
   const keep=M.max*1.25;
   M.dead=false;M.hp=keep;M.max=keep;M.state='patrol';M.x=cw(best.x);M.z=cw(best.y);mM.g.rotation.z=0;mM.g.position.y=0;M.path=[];pickPatrol();
 }
@@ -936,7 +939,7 @@ function initPlayer(){
   P.codes=new Set();P.money=SAVE.money||0;P.compass=!!SAVE.compass;
   if(carry){P.unlocked=carry.unlocked;P.mag=carry.mag;P.reserve=carry.reserve;P.money=carry.money;P.codes=carry.codes;P.cans=carry.cans;P.wi=carry.wi;P.compass=carry.compass;}
   else{P.unlocked=SAVE.own.map(u=>!!u);P.unlocked[0]=true;P.mag=P.unlocked.map((u,i)=>u?WEAPONS[i].mag:0);P.unlocked.forEach((u,i)=>{if(u&&i)P.reserve[WEAPONS[i].ammo]+=AMMOAMT[WEAPONS[i].ammo];});}
-  {const sp={1:[2,19],2:[46,20],3:[24,24],S:[2,14]}[G.level]||[2,19];P.x=cw(sp[0]);P.z=cw(sp[1]);}
+  {const sp={1:[2,19],2:[46,20],3:[24,13],S:[2,14]}[G.level]||[2,19];P.x=cw(sp[0]);P.z=cw(sp[1]);}
   G.time=0;G.power=false;G.mode=null;G.reading=false;G.outage=0;G.dying=0;G.phantom=0;G.pw=0;
   G.next={amb:rnd(25,45),outage:rnd(80,140),phantom:rnd(70,140),scare:rnd(110,200),buzz:3};
   vmGun=null;setViewmodel();
