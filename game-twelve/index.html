@@ -385,13 +385,14 @@ function buildLockers(){
     interactables.push({x:px,z:pz,range:2.6,label:()=>P.hidden?'':'E — HIDE IN LOCKER',use:()=>enterLocker(L)});
   });
 }
+function scareAway(){for(const m of MONS){if(m.dead||!['chase','investigate','check','search'].includes(m.state))continue;m.lockerTarget=null;m.checkLocker=null;m.noiseTarget=null;m.pending=null;m.path=[];m.pi=0;m.state='listen';m.timer=rnd(1,2);}}
 function enterLocker(L){
   if(P.hidden)return;
   P.hidden=L;P.x=L.x;P.z=L.z;L.door.visible=false;
   P.hYaw=Math.atan2(-L.dx,-L.dz);P.yaw=P.hYaw;P.pitch=0;
   const pos={x:L.x,y:1.2,z:L.z};SND.locker(pos);
   emitNoise(L.x,L.z,P.crouch?7:14,'locker',L);
-  toast('HIDDEN — STAY QUIET');
+  scareAway();toast('HIDDEN — STAY QUIET');
 }
 function exitLocker(){
   const L=P.hidden;if(!L)return;
@@ -812,7 +813,7 @@ function updateMonsters(dt){
   if(G.spawnT<=0&&MONS.length<c.max){G.spawnT=c.every;let best=null,bd=-1;WPc.forEach(w=>{const q=nearestPassable(w[0],w[1]);if(!q||!canReach(q))return;const d=Math.hypot(cw(q.x)-P.x,cw(q.y)-P.z);if(d>bd){bd=d;best=q;}});if(best){spawnMonster(cw(best.x),cw(best.y));toast('ANOTHER ONE IS HUNTING NOW.');}}
   setFocus();
 }
-function pickWP(){if(P&&P.x!=null&&Math.random()<.5){const a=WPc.slice().sort((p,q)=>Math.hypot(cw(p[0])-P.x,cw(p[1])-P.z)-Math.hypot(cw(q[0])-P.x,cw(q[1])-P.z));return a[Math.floor(Math.random()*Math.min(4,a.length))];}return pick(WPc);}
+function pickWP(){if(P&&P.x!=null){const d=q=>Math.hypot(cw(q[0])-P.x,cw(q[1])-P.z);if(P.hidden){const a=WPc.slice().sort((p,q)=>d(q)-d(p));return a[Math.floor(Math.random()*Math.min(8,a.length))];}if(Math.random()<.5){const a=WPc.slice().sort((p,q)=>d(p)-d(q));return a[Math.floor(Math.random()*Math.min(4,a.length))];}}return pick(WPc);}
 function pickPatrol(){
   for(let i=0;i<10;i++){const w=pickWP();const c=nearestPassable(w[0],w[1]);if(!c)continue;if(mSetTarget(cw(c.x),cw(c.y)))return true;}
   M.path=[];return false;
