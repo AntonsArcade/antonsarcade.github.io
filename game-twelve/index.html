@@ -247,7 +247,7 @@ const LOCKER_DEFS=[[6,12,0,1],[11,12,0,1],[22,12,0,1],[32,12,0,1],[41,12,0,1],[9
 
 const LOCK_S=[[1,4,1,0],[1,12,1,0],[1,20,1,0],[1,26,1,0],[48,6,-1,0],[48,16,-1,0],[48,24,-1,0],[16,1,0,1],[26,28,0,-1],[36,1,0,1]];
 const WPS=[[6,8],[16,4],[16,24],[26,14],[26,26],[36,4],[36,24],[46,14],[46,4],[46,26],[6,24]];
-const LV={1:{n:2,max:5,every:50,fog:.052,lights:.55},2:{n:3,max:7,every:40,fog:.06,lights:.4},3:{n:4,max:9,every:30,fog:.068,lights:.3},S:{n:5,max:10,every:28,fog:.06,lights:.5}};
+const LV={1:{n:1,max:4,every:60,fog:.052,lights:.55},2:{n:2,max:6,every:48,fog:.06,lights:.4},3:{n:3,max:8,every:36,fog:.068,lights:.3},S:{n:4,max:9,every:30,fog:.06,lights:.5}};
 const lvlN=()=>G.level==='S'?3:(G.level||1);
 const curCfg=()=>LV[G.level||1];
 function carveSecret(){
@@ -733,7 +733,7 @@ function updateAudio(dt){
 
 /* ================= NOISE / HEARING ================= */
 function diff(){return clamp(1+G.time/60*.04+P.keys.size*.2+(G.power?.3:0)+(lvlN()-1)*.2,1,2.6);}
-function hearMul(){return 1.4+.35*(diff()-1);}
+function hearMul(){return 1.15+.3*(diff()-1);}
 let ringCool=0;
 function emitNoise(x,z,r,tag,locker){
   if(r>=24&&ringCool<=0){const e=$('nring');e.classList.remove('go');void e.offsetWidth;e.classList.add('go');ringCool=.25;}
@@ -812,7 +812,7 @@ function updateMonsters(dt){
   if(G.spawnT<=0&&MONS.length<c.max){G.spawnT=c.every;let best=null,bd=-1;WPc.forEach(w=>{const q=nearestPassable(w[0],w[1]);if(!q||!canReach(q))return;const d=Math.hypot(cw(q.x)-P.x,cw(q.y)-P.z);if(d>bd){bd=d;best=q;}});if(best){spawnMonster(cw(best.x),cw(best.y));toast('ANOTHER ONE IS HUNTING NOW.');}}
   setFocus();
 }
-function pickWP(){if(P&&P.x!=null&&Math.random()<.7){const a=WPc.slice().sort((p,q)=>Math.hypot(cw(p[0])-P.x,cw(p[1])-P.z)-Math.hypot(cw(q[0])-P.x,cw(q[1])-P.z));return a[Math.floor(Math.random()*Math.min(4,a.length))];}return pick(WPc);}
+function pickWP(){if(P&&P.x!=null&&Math.random()<.5){const a=WPc.slice().sort((p,q)=>Math.hypot(cw(p[0])-P.x,cw(p[1])-P.z)-Math.hypot(cw(q[0])-P.x,cw(q[1])-P.z));return a[Math.floor(Math.random()*Math.min(4,a.length))];}return pick(WPc);}
 function pickPatrol(){
   for(let i=0;i<10;i++){const w=pickWP();const c=nearestPassable(w[0],w[1]);if(!c)continue;if(mSetTarget(cw(c.x),cw(c.y)))return true;}
   M.path=[];return false;
@@ -832,7 +832,7 @@ function monsterHears1(x,z,r,tag,locker){
   const loud=r>=24||d<eff*.35;
   if(M.state==='stun'){M.pending={x,z};return;}
   const prev=M.state;
-  if(locker&&Math.random()<.85)M.lockerTarget=locker;
+  if(locker&&Math.random()<.65)M.lockerTarget=locker;
   if(M.state==='check'&&!locker&&r<24)return;
   if(mSetTarget(x,z)){
     M.noiseTarget={x,z};M.heardT=0;
@@ -843,9 +843,9 @@ function monsterHears1(x,z,r,tag,locker){
 }
 function startChase(){M.roarT=0;SND.mroar({x:M.x,y:1.8,z:M.z});}
 function startSearch(dur){
-  M.state='search';M.searchT=dur||(12+3*(diff()-1));M.checked=new Set();M.wait=rnd(.8,1.6);M.path=[];M.pi=0;
-  const pts=bfsReach(clamp(tc(M.x),0,W-1),clamp(tc(M.z),0,H-1),10);
-  M.searchPts=[];for(let i=0;i<6&&pts.length;i++)M.searchPts.push(pts.splice(Math.floor(Math.random()*pts.length),1)[0]);
+  M.state='search';M.searchT=dur||(9+2.5*(diff()-1));M.checked=new Set();M.wait=rnd(.8,1.6);M.path=[];M.pi=0;
+  const pts=bfsReach(clamp(tc(M.x),0,W-1),clamp(tc(M.z),0,H-1),8);
+  M.searchPts=[];for(let i=0;i<5&&pts.length;i++)M.searchPts.push(pts.splice(Math.floor(Math.random()*pts.length),1)[0]);
 }
 function followPath(dt,speed){
   if(M.pi>=M.path.length)return 'idle';
@@ -864,9 +864,9 @@ function followPath(dt,speed){
 function angDiff(a,b){let d=a-b;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;return d;}
 function mArrive(){
   if(M.lockerTarget){const L=M.lockerTarget;M.lockerTarget=null;M.state='check';M.checkLocker=L;if(mSetTarget(cw(L.front.x),cw(L.front.y)))return;M.checkLocker=null;}
-  if(M.state==='patrol'){if(Math.random()<.2){M.state='listen';M.timer=rnd(1,3);}else pickPatrol();return;}
+  if(M.state==='patrol'){if(Math.random()<.35){M.state='listen';M.timer=rnd(2,4);}else pickPatrol();return;}
   if(M.state==='investigate')startSearch();
-  else if(M.state==='chase')startSearch(16+4*(diff()-1));
+  else if(M.state==='chase')startSearch(12+3*(diff()-1));
 }
 function checkLockerNow(L){
   M.checked.add(L);SND.mlocker({x:L.x,y:1.2,z:L.z});L.door.visible=false;
@@ -880,10 +880,10 @@ function updateMonster(dt){
   const dP=Math.hypot(P.x-M.x,P.z-M.z);
   M.senseT-=dt;
   if(!P.hidden&&M.state!=='stun'&&G.state==='play'&&M.senseT<=0){
-    const sr=(P.run?32:P.crouch?10:19)*(1+.12*(lvlN()-1));
-    if(dP<sr&&(dP<9||hasLOS(M.x,M.z,P.x,P.z))){M.senseT=.35;const was=M.state;if(mSetTarget(P.x,P.z)){M.noiseTarget={x:P.x,z:P.z};M.heardT=0;M.wait=0;if(was!=='chase')startChase();M.state='chase';}}
+    const sr=(P.run?26:P.crouch?7:14)*(1+.08*(lvlN()-1));
+    if(dP<sr&&(dP<9||hasLOS(M.x,M.z,P.x,P.z))){M.senseT=.5;const was=M.state;if(mSetTarget(P.x,P.z)){M.noiseTarget={x:P.x,z:P.z};M.heardT=0;M.wait=0;if(was!=='chase')startChase();M.state='chase';}}
   }
-  const spd=1.25*(1+.1*(diff()-1));
+  const spd=1.1*(1+.1*(diff()-1));
   M.stk=(M.stk||0)+dt;if(M.stk>2){if(M.lx!=null&&Math.hypot(M.x-M.lx,M.z-M.lz)<.3&&M.pi<M.path.length&&M.state!=='stun'&&M.doorWait<=0){if(M.noiseTarget&&(M.state==='chase'||M.state==='investigate'))mSetTarget(M.noiseTarget.x,M.noiseTarget.z);else pickPatrol();}M.lx=M.x;M.lz=M.z;M.stk=0;}
   if(M.flash>0)M.flash-=dt;
   mM.skin.emissive.setHex(M.flash>0?0x440000:0x241a14);
@@ -891,13 +891,13 @@ function updateMonster(dt){
     case 'patrol':{const r=followPath(dt,1.9*spd);if(r==='arrived')mArrive();else if(r==='idle'){if(M.timer>0)M.timer-=dt;else{pickPatrol();M.timer=.5;}}break;}
     case 'listen':M.timer-=dt;if(M.timer<=0){M.state='patrol';pickPatrol();}break;
     case 'investigate':{const r=followPath(dt,2.7*spd);if(r==='arrived')mArrive();else if(r==='idle')startSearch();break;}
-    case 'chase':{M.roarCd=(M.roarCd||0)-dt;if(M.roarCd<=0&&dP<22){M.roarCd=6+Math.random()*3;SND.mroar({x:M.x,y:1.8,z:M.z});}const r=followPath(dt,(dP<7?5.6:4.4)*spd);if(r==='arrived')mArrive();else if(r==='idle')startSearch(9);break;}
+    case 'chase':{M.roarCd=(M.roarCd||0)-dt;if(M.roarCd<=0&&dP<22){M.roarCd=6+Math.random()*3;SND.mroar({x:M.x,y:1.8,z:M.z});}const r=followPath(dt,(dP<6?4.9:4.4)*spd);if(r==='arrived')mArrive();else if(r==='idle')startSearch(9);break;}
     case 'check':{const r=followPath(dt,3.0*spd);if(r==='arrived'){if(M.checkLocker){const L=M.checkLocker;M.checkLocker=null;checkLockerNow(L);}else startSearch(5);}else if(r==='idle'){if(M.checkLocker){const L=M.checkLocker;M.checkLocker=null;checkLockerNow(L);}else startSearch(5);}break;}
     case 'stun':M.stun-=dt;if(M.stun<=0){M.state='chase';startChase();const t=M.pending||M.noiseTarget;M.pending=null;if(!(t&&mSetTarget(t.x,t.z)))startSearch(10);}break;
     case 'search':{
       M.searchT-=dt;
       // random locker checks nearby
-      for(const L of lockers){if(M.checked.has(L))continue;if(Math.hypot(L.x-M.x,L.z-M.z)<7){M.checked.add(L);if(Math.random()<.35+.1*diff()){M.state='check';M.checkLocker=L;if(!mSetTarget(cw(L.front.x),cw(L.front.y))){M.state='search';M.checkLocker=null;}break;}}}
+      for(const L of lockers){if(M.checked.has(L))continue;if(Math.hypot(L.x-M.x,L.z-M.z)<5.5){M.checked.add(L);if(Math.random()<.2+.07*diff()){M.state='check';M.checkLocker=L;if(!mSetTarget(cw(L.front.x),cw(L.front.y))){M.state='search';M.checkLocker=null;}break;}}}
       if(M.state!=='search')break;
       if(M.wait>0){M.wait-=dt;M.yaw+=Math.sin(G.time*1.6)*dt*.9;break;}
       if(M.pi<M.path.length){const r=followPath(dt,2.2*spd);if(r==='arrived')M.wait=rnd(1,2.2);break;}
@@ -906,7 +906,7 @@ function updateMonster(dt){
       break;}
   }
   // touch attack: blind, so it only gets you if it bumps into you
-  if(!P.hidden&&G.state==='play'&&Math.hypot(M.x-P.x,M.z-P.z)<1.7)caught('TOUCH');
+  if(!P.hidden&&G.state==='play'&&Math.hypot(M.x-P.x,M.z-P.z)<1.45)caught('TOUCH');
   // animate
   const moving=(M.state==='patrol'||M.state==='investigate'||M.state==='chase'||M.state==='check'||(M.state==='search'&&M.wait<=0))&&M.pi<M.path.length;
   const sw=moving?Math.sin(M.phase):0,amp=M.state==='chase'?.9:.5;
@@ -1005,7 +1005,7 @@ function updatePlayer(dt){
 function doStep(mode){
   const cx=tc(P.x),cy=tc(P.z),surf=surfaceAt(cx,cy);
   SND.step(surf,mode,null);
-  let r=mode==='run'?34:mode==='walk'?18:8;
+  let r=mode==='run'?30:mode==='walk'?14:5;
   if(surf==='wood')r*=1.15;
   if(surf==='glass')r=mode==='crouch'?14:32;
   emitNoise(P.x,P.z,r,surf==='glass'?'glass':'step');
