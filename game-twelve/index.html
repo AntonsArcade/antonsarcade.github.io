@@ -247,7 +247,7 @@ const LOCKER_DEFS=[[6,12,0,1],[11,12,0,1],[22,12,0,1],[32,12,0,1],[41,12,0,1],[9
 
 const LOCK_S=[[1,4,1,0],[1,12,1,0],[1,20,1,0],[1,26,1,0],[48,6,-1,0],[48,16,-1,0],[48,24,-1,0],[16,1,0,1],[26,28,0,-1],[36,1,0,1]];
 const WPS=[[6,8],[16,4],[16,24],[26,14],[26,26],[36,4],[36,24],[46,14],[46,4],[46,26],[6,24]];
-const LV={1:{n:1,max:4,every:60,fog:.052,lights:.55},2:{n:2,max:6,every:48,fog:.06,lights:.4},3:{n:3,max:8,every:36,fog:.068,lights:.3},S:{n:4,max:9,every:30,fog:.06,lights:.5}};
+const LV={1:{n:1,max:4,every:70,fog:.052,lights:.55},2:{n:2,max:6,every:56,fog:.06,lights:.4},3:{n:3,max:8,every:44,fog:.068,lights:.3},S:{n:4,max:9,every:30,fog:.06,lights:.5}};
 const lvlN=()=>G.level==='S'?3:(G.level||1);
 const curCfg=()=>LV[G.level||1];
 function carveSecret(){
@@ -733,7 +733,7 @@ function updateAudio(dt){
 
 /* ================= NOISE / HEARING ================= */
 function diff(){return clamp(1+G.time/60*.04+P.keys.size*.2+(G.power?.3:0)+(lvlN()-1)*.2,1,2.6);}
-function hearMul(){return 1.15+.3*(diff()-1);}
+function hearMul(){return 1.1+.28*(diff()-1);}
 let ringCool=0;
 function emitNoise(x,z,r,tag,locker){
   if(r>=24&&ringCool<=0){const e=$('nring');e.classList.remove('go');void e.offsetWidth;e.classList.add('go');ringCool=.25;}
@@ -843,7 +843,7 @@ function monsterHears1(x,z,r,tag,locker){
 }
 function startChase(){M.roarT=0;SND.mroar({x:M.x,y:1.8,z:M.z});}
 function startSearch(dur){
-  M.state='search';M.searchT=dur||(9+2.5*(diff()-1));M.checked=new Set();M.wait=rnd(.8,1.6);M.path=[];M.pi=0;
+  M.state='search';M.searchT=dur||(8+2.5*(diff()-1));M.checked=new Set();M.wait=rnd(.8,1.6);M.path=[];M.pi=0;
   const pts=bfsReach(clamp(tc(M.x),0,W-1),clamp(tc(M.z),0,H-1),8);
   M.searchPts=[];for(let i=0;i<5&&pts.length;i++)M.searchPts.push(pts.splice(Math.floor(Math.random()*pts.length),1)[0]);
 }
@@ -871,7 +871,7 @@ function mArrive(){
 function checkLockerNow(L){
   M.checked.add(L);SND.mlocker({x:L.x,y:1.2,z:L.z});L.door.visible=false;
   setTimeout(()=>{if(P&&P.hidden!==L)L.door.visible=true;},900);
-  if(P.hidden===L){caught('LOCKER');return;}
+  if(P.hidden===L){M.state='search';M.wait=2.5;return;}
   M.state='search';M.wait=1.2;
 }
 function updateMonster(dt){
@@ -880,10 +880,10 @@ function updateMonster(dt){
   const dP=Math.hypot(P.x-M.x,P.z-M.z);
   M.senseT-=dt;
   if(!P.hidden&&M.state!=='stun'&&G.state==='play'&&M.senseT<=0){
-    const sr=(P.run?26:P.crouch?7:14)*(1+.08*(lvlN()-1));
+    const sr=(P.run?24:P.crouch?6:12)*(1+.08*(lvlN()-1));
     if(dP<sr&&(dP<9||hasLOS(M.x,M.z,P.x,P.z))){M.senseT=.5;const was=M.state;if(mSetTarget(P.x,P.z)){M.noiseTarget={x:P.x,z:P.z};M.heardT=0;M.wait=0;if(was!=='chase')startChase();M.state='chase';}}
   }
-  const spd=1.1*(1+.1*(diff()-1));
+  const spd=1.05*(1+.1*(diff()-1));
   M.stk=(M.stk||0)+dt;if(M.stk>2){if(M.lx!=null&&Math.hypot(M.x-M.lx,M.z-M.lz)<.3&&M.pi<M.path.length&&M.state!=='stun'&&M.doorWait<=0){if(M.noiseTarget&&(M.state==='chase'||M.state==='investigate'))mSetTarget(M.noiseTarget.x,M.noiseTarget.z);else pickPatrol();}M.lx=M.x;M.lz=M.z;M.stk=0;}
   if(M.flash>0)M.flash-=dt;
   mM.skin.emissive.setHex(M.flash>0?0x440000:0x241a14);
@@ -891,7 +891,7 @@ function updateMonster(dt){
     case 'patrol':{const r=followPath(dt,1.9*spd);if(r==='arrived')mArrive();else if(r==='idle'){if(M.timer>0)M.timer-=dt;else{pickPatrol();M.timer=.5;}}break;}
     case 'listen':M.timer-=dt;if(M.timer<=0){M.state='patrol';pickPatrol();}break;
     case 'investigate':{const r=followPath(dt,2.7*spd);if(r==='arrived')mArrive();else if(r==='idle')startSearch();break;}
-    case 'chase':{M.roarCd=(M.roarCd||0)-dt;if(M.roarCd<=0&&dP<22){M.roarCd=6+Math.random()*3;SND.mroar({x:M.x,y:1.8,z:M.z});}const r=followPath(dt,(dP<6?4.9:4.4)*spd);if(r==='arrived')mArrive();else if(r==='idle')startSearch(9);break;}
+    case 'chase':{M.roarCd=(M.roarCd||0)-dt;if(M.roarCd<=0&&dP<22){M.roarCd=6+Math.random()*3;SND.mroar({x:M.x,y:1.8,z:M.z});}const r=followPath(dt,(dP<6?4.7:4.4)*spd);if(r==='arrived')mArrive();else if(r==='idle')startSearch(9);break;}
     case 'check':{const r=followPath(dt,3.0*spd);if(r==='arrived'){if(M.checkLocker){const L=M.checkLocker;M.checkLocker=null;checkLockerNow(L);}else startSearch(5);}else if(r==='idle'){if(M.checkLocker){const L=M.checkLocker;M.checkLocker=null;checkLockerNow(L);}else startSearch(5);}break;}
     case 'stun':M.stun-=dt;if(M.stun<=0){M.state='chase';startChase();const t=M.pending||M.noiseTarget;M.pending=null;if(!(t&&mSetTarget(t.x,t.z)))startSearch(10);}break;
     case 'search':{
@@ -906,7 +906,7 @@ function updateMonster(dt){
       break;}
   }
   // touch attack: blind, so it only gets you if it bumps into you
-  if(!P.hidden&&G.state==='play'&&Math.hypot(M.x-P.x,M.z-P.z)<1.45)caught('TOUCH');
+  if(!P.hidden&&G.state==='play'&&Math.hypot(M.x-P.x,M.z-P.z)<1.35)caught('TOUCH');
   // animate
   const moving=(M.state==='patrol'||M.state==='investigate'||M.state==='chase'||M.state==='check'||(M.state==='search'&&M.wait<=0))&&M.pi<M.path.length;
   const sw=moving?Math.sin(M.phase):0,amp=M.state==='chase'?.9:.5;
@@ -1005,7 +1005,7 @@ function updatePlayer(dt){
 function doStep(mode){
   const cx=tc(P.x),cy=tc(P.z),surf=surfaceAt(cx,cy);
   SND.step(surf,mode,null);
-  let r=mode==='run'?30:mode==='walk'?14:5;
+  let r=mode==='run'?28:mode==='walk'?13:5;
   if(surf==='wood')r*=1.15;
   if(surf==='glass')r=mode==='crouch'?14:32;
   emitNoise(P.x,P.z,r,surf==='glass'?'glass':'step');
