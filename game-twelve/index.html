@@ -382,7 +382,7 @@ function useDoor(d){
 function toggleDoor(d,who){
   d.open=!d.open;const pos={x:cw(d.x),y:1.5,z:cw(d.y)};
   SND.door(pos,d.open);
-  if(who==='player')emitNoise(pos.x,pos.z,P.crouch?10:18,'door');
+  if(who==='player'){emitNoise(pos.x,pos.z,P.crouch?10:18,'door');if(d.open&&Math.random()<1/3)doorScare();}
 }
 function updateDoors(dt){
   for(const k in doors){const d=doors[k];const t=d.open?1:0;d.anim+=(t-d.anim)*Math.min(1,dt*6);
@@ -1172,7 +1172,7 @@ function faceURL(kind){
   }
   return FACES[kind]=c.toDataURL();
 }
-function jumpScare(kind,force){
+function jumpScare(kind,force,dmg){
   if(S.scare<.05||G.state!=='play')return;
   if(!force&&G.jumpCd>0)return;
   G.jumpCd=rnd(10,16);
@@ -1181,9 +1181,13 @@ function jumpScare(kind,force){
   el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');setTimeout(()=>el.classList.remove('pop'),620);
   const f=$('flash');f.style.background='#fff';f.style.opacity=.9;setTimeout(()=>{f.style.opacity=0;},70);
   SND.jump();shakeScreen();
+  if(dmg){P.hp=Math.max(1,P.hp-dmg);}
 }
+function doorScare(){if(G.doorCd>0||S.scare<.05)return;G.doorCd=5;setTimeout(()=>{if(G.state==='play'){toast('SOMETHING WAS BEHIND THE DOOR.');jumpScare(pick(['ghoul','clown','ghoul']),true,6+rint(0,4));}},120);}
 function updateDirector(dt){
-  const n=G.next;G.jumpCd-=dt;
+  const n=G.next;G.jumpCd-=dt;G.doorCd-=dt;
+  n.rj=(n.rj==null?rnd(25,50):n.rj)-dt;
+  if(n.rj<=0){n.rj=rnd(25,75);if(!P.hidden&&!G.paused&&G.mode==null&&G.jumpCd<=6){const r=Math.random();jumpScare(r<.4?'ghoul':r<.75?'clown':'dark',true);}}
   const sc=(id,kind)=>{G.fired=G.fired||{};if(G.fired[id]||G.jumpCd>0||G.paused||G.mode!=null)return;G.fired[id]=1;jumpScare(kind);};
   if(P.keys.size>0)sc('key','ghoul');
   if(P.notes.size>0)sc('note','clown');
@@ -1285,7 +1289,7 @@ function snap(){return {unlocked:P.unlocked.slice(),mag:P.mag.slice(),reserve:Ob
 function begin(lv,keep){
   initAudio();hideAll();
   carry=(keep&&P)?snap():null;
-  G.level=lv;G.nextLevel=0;G.jumpCd=15;G.clownT=0;G.fired={};scene.fog.density=curCfg().fog;
+  G.level=lv;G.nextLevel=0;G.jumpCd=15;G.doorCd=0;G.clownT=0;G.fired={};scene.fog.density=curCfg().fog;
   buildWorld();initPlayer();
   closeNote();closeKeypad();
   $('msgs').innerHTML='';$('lowhp').style.opacity=0;$('hud').classList.add('on');
