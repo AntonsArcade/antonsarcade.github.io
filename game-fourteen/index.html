@@ -392,7 +392,7 @@ for(let i=0;i<(MOB?80:130);i++)mkPed();
 // ---------- rules
 const RK=[[0,'Rookie'],[2000,'Petty Thief'],[6000,'Thug'],[15000,'Outlaw'],[35000,'Gangster'],[70000,'Enforcer'],[130000,'Crime Boss'],[220000,'Kingpin'],[350000,'Overlord'],[550000,'Legend'],[800000,'Mythic']];
 const rankI=()=>{let i=0;RK.forEach((r,j)=>{if(P.life>=r[0])i=j});return i};
-const stars=()=>{const p=P.pend;return p>=5000?5:p>=3000?4:p>=1500?3:p>=600?2:p>0?1:0};
+const stars=()=>{const p=P.pend;return p>=1e6?6:p>=5000?5:p>=3000?4:p>=1500?3:p>=600?2:p>0?1:0};
 const near=(x,z,r)=>(P.x-x)**2+(P.z-z)**2<r*r;
 const baseAt=()=>BASES.find(b=>b.on&&(b.ug||0)==(P.ug||0)&&near(b.x,b.z,b.r)&&(!P.fly||P.y<12));
 const clampB=o=>{o.x=cl(o.x,BX0,BX1);o.z=cl(o.z,BZ0,BZ1)};
@@ -552,7 +552,7 @@ function openMk(){mk=true;if(eg)eg.gain.value=0;renderMk();$('mk').style.display
 function openCm(){mk=true;if(eg)eg.gain.value=0;$('cr').textContent='';$('cm').style.display='flex';setTimeout(()=>$('ci').focus(),30)}
 function closeMk(){mk=false;$('mk').style.display='none';$('cm').style.display='none';$('ci').blur();$('cs').style.display='none';$('tw').style.display='none';CS.busy=0}
 function giveCar(id){P.owned[id]=1;setCar(id);P.hp=P.mx}
-const CODES={FREETANK:()=>giveCar('tank'),HYPER300:()=>giveCar('hyper'),GHOSTCAR:()=>giveCar('phantom'),NUKEIT:()=>{P.am[8]+=3},ALLBOMBS:()=>{for(let i=0;i<9;i++)P.am[i]+=10},RICHBOI:()=>{P.cash+=50000},SEWERS:()=>{},SUBWAY:()=>{},AREA51:()=>{},HACKERZ:()=>{toast('HACKERZ: +$100,000 passive income every second!')}};
+const CODES={FREETANK:()=>giveCar('tank'),HYPER300:()=>giveCar('hyper'),GHOSTCAR:()=>giveCar('phantom'),NUKEIT:()=>{P.am[8]+=3},ALLBOMBS:()=>{for(let i=0;i<9;i++)P.am[i]+=10},RICHBOI:()=>{P.cash+=50000},SEWERS:()=>{},SUBWAY:()=>{},AREA51:()=>{},HACKERZ:()=>{toast('HACKERZ: +$10,000 passive income every second!')}};
 function applyCode(){const s=$('ci').value.trim().toUpperCase();$('ci').value='';const f=CODES[s];if(!f){$('cr').textContent='Invalid code';return}if(P.codes[s]){$('cr').textContent='Already used';return}P.codes[s]=1;f();applyUnlocks();save();$('cr').textContent='CODE ACCEPTED: '+s;toast('Code accepted: '+s)}
 // ---------- update
 function update(dt){time+=dt;P.cd-=dt;P.noUG-=dt;P.grace-=dt;
@@ -569,9 +569,9 @@ function update(dt){time+=dt;P.cd-=dt;P.noUG-=dt;P.grace-=dt;
  const away=P.ug||P.grace>0;
  while(!away&&cops.length<(S?Math.min(18,S*2+1+(rankI()>>1)):0)){let x,z,v,n=0;do{[x,z,v]=roadPos();n++}while((Math.hypot(x-P.x,z-P.z)<Math.max(35,80-rankI()*6)||Math.hypot(x-P.x,z-P.z)>150)&&n<30);const c=mkCar('cop',x,z,Math.atan2(P.x-x,P.z-z),'c');c.sp=24+S*5+rankI()*1.5;c.hp=c.mx=80+rankI()*20}
  if((!S||P.ug)&&cops.length){[...cops].forEach(c=>{scene.remove(c.g);cars.splice(cars.indexOf(c),1)});cops.length=0}
- if(S>=4&&!away){const wh=S-2+(rankI()>>2),wf=S>=5?2+(rankI()>>2):0;let nh=air.filter(a=>a.ty=='h').length,nf=air.length-nh;if(!P.af&&(nh<wh)){P.af=1;toast('AIR FORCE DEPLOYED! Helicopters and fighters inbound!')}while(nh<wh){mkHeli();nh++}while(nf<wf){mkFighter();nf++}}
+ if(S>=4&&!away){const wh=(S>=6?5:S-2)+(rankI()>>2),wf=S>=6?5+(rankI()>>2):S>=5?2+(rankI()>>2):0;let nh=air.filter(a=>a.ty=='h').length,nf=air.length-nh;if(!P.af&&(nh<wh)){P.af=1;toast('AIR FORCE DEPLOYED! Helicopters and fighters inbound!')}while(nh<wh){mkHeli();nh++}while(nf<wf){mkFighter();nf++}}
  else if((S<4||P.ug)&&(air.length||mis.length))clearAir();
- for(const c of cops){const dx=P.x-c.x,dz=P.z-c.z,d=Math.hypot(dx,dz);c.sp=24+S*5+rankI()*1.5;
+ for(const c of cops){const dx=P.x-c.x,dz=P.z-c.z,d=Math.hypot(dx,dz);if(!c.army)c.sp=24+S*5+rankI()*1.5;
   if(c.stun>0){c.stun-=dt;step(c,dt,0,0,0)}
   else{if(d>220){c.x=P.x-dx*.5;c.z=P.z-dz*.5}
    let df=((Math.atan2(dx,dz)-c.h+3*PI)%(2*PI))-PI,s2=cl(df*2,-1,1),t2=1;const f=c.vx*Math.sin(c.h)+c.vz*Math.cos(c.h);
@@ -579,7 +579,7 @@ function update(dt){time+=dt;P.cd-=dt;P.noUG-=dt;P.grace-=dt;
    step(c,dt,t2,s2,0);
    if(P.fly&&d<110&&S>=2){c.sh=(c.sh||0)-dt;if(c.sh<=0){c.sh=R(.5,1);tracer(c.x,2,c.z,P.x+R(-4,4),P.y,P.z+R(-4,4),0xff8888);if(Math.random()<.3)hurtP(2+S)}}}
   const lb=c.g.userData.lb;if(lb){const on=Math.floor(time*6)%2;lb[0].color.setHex(on?0xff2020:0x330000);lb[1].color.setHex(on?0x001040:0x2060ff)}}
- airUpdate(dt,S);
+ airUpdate(dt,S);armyTick(dt,S);
  for(const w of [...wells]){w.t-=dt;if(Math.random()<.6)puff(w.x+R(-8,8),R(.5,3),w.z+R(-8,8),0,0,0,0x9922ff,R(2,5),.5,1);
   const pull=e=>{const dx=w.x-e.x,dz=w.z-e.z,d=Math.hypot(dx,dz);if(d<32&&d>1){const f=70*dt*(1-d/32);e.vx+=dx/d*f;e.vz+=dz/d*f}};cars.forEach(pull);if(!P.fly)pull(P);
   civs.forEach(n=>{if(Math.hypot(n.x-w.x,n.z-w.z)<30){n.x+=(w.x-n.x)*dt*1.5;n.z+=(w.z-n.z)*dt*1.5;n.fl=2}});
@@ -621,7 +621,7 @@ function mini(){const S=150,sc=S/2/120,s=Math.sin(ch),c=Math.cos(ch);mg.clearRec
   if(AH){AH.bg.forEach(g=>pt(g.position.x,g.position.z,'#ffd700',3));if(AH.st==1)pt(AH.vx,AH.vz,'#ff3333',4)}cops.forEach(n=>pt(n.x,n.z,'#ff4444',3));air.forEach(a=>pt(a.x,a.z,'#ff8800',4))}
  bombs.forEach(b=>pt(b.x,b.z,'#fa0',2));pt(P.x,P.z,'#fff',4);mg.restore()}
 function hud(){const s=stars(),ri=rankI(),nx=RK[ri+1],bs=baseAt();
- $('st').innerHTML='★'.repeat(s)+'<span style="opacity:.25">'+'★'.repeat(5-s)+'</span>'+(air.length?' <small style="color:#f90;font-size:13px">AIR FORCE</small>':'');$('hp').style.width=Math.max(0,P.hp/P.mx*100)+'%';
+ $('st').innerHTML='★'.repeat(Math.min(s,5))+(s>=6?'<span style="color:#ff2a2a;text-shadow:0 0 12px #f00">★</span> <small style="color:#f33;font-size:13px">ARMY</small>':'')+'<span style="opacity:.25">'+'★'.repeat(Math.max(0,5-s))+'</span>'+(air.length?' <small style="color:#f90;font-size:13px">AIR FORCE</small>':'');$('hp').style.width=Math.max(0,P.hp/P.mx*100)+'%';
  $('vg').style.boxShadow=s?'inset 0 0 '+(60+s*25)+'px '+(Math.floor(time*3)%2?'rgba(255,0,0,.55)':'rgba(0,80,255,.55)'):'none';$('nt').style.width=P.nit+'%';$('fb').style.display=P.fly?'block':'none';
  $('info').innerHTML=`Cash <b>$${P.cash}</b> · Pending <b style="color:#ffd23f">$${P.pend}</b><br>Rank <b>${RK[ri][1]}</b> (+${ri*10}%) · Threat ${ri}${nx?' · next $'+nx[0]:''}<br>${P.am.map((v,i)=>(v||i==P.bi)?(i==P.bi?'<b style="color:#ffd23f">':'<span>')+'['+(i+1)+']'+BD[i].n+' '+v+(i==P.bi?'</b>':'</span>'):'').join(' ')}<br>5★ claims ${P.five}${P.ug?' · UNDERGROUND':''}`;
  $('spd').innerHTML=Math.round((P.fly?P.v:Math.hypot(P.vx,P.vz))*3.6)+' <small>km/h</small>'+(P.fly?'<br><small>ALT '+Math.round(P.y)+'m · THR '+Math.round(P.thr*100)+'%</small>':'');
@@ -1039,15 +1039,15 @@ const FLRS=[{id:'wp',no:'1',n:'WEAPONS ROOM',ico:'💣',cost:8000,h:30,d:'Arsena
  {id:'ms',no:'3',n:'MISSION ROOM',ico:'📋',cost:5000,h:70,d:'Contracts for cash and reputation'},
  {id:'vt',no:'4',n:'MONEY VAULT',ico:'💰',cost:35000,h:90,d:'Passive income and cash storage'},
  {id:'ph',no:'5',n:'LUXURY PENTHOUSE',ico:'🥂',cost:120000,h:112,d:'Permanent boss perks'},
- {id:'cy',no:'6',n:'CYBER ATTACK',ico:'🖥️',cost:75000,h:0,d:'Hack targets for cash and run cyber operations that earn passive income every second'},
+ {id:'cy',no:'6',n:'CYBER ATTACK',ico:'🖥️',cost:150000,h:0,d:'Hack targets for cash and run cyber operations that earn passive income every second'},
  {id:'rf',no:'R',n:'ROOFTOP HELIPAD',ico:'🚁',cost:60000,h:0,d:'Land helicopters and jets on the roof'}];
 const FIDX={L:0,wp:1,sh:2,ms:3,vt:4,ph:5,cy:6,rf:7};const FHf=id=>14+FIDX[id]/7*(SEG0+SEGH*TW.n-18);
 const UPG={rad:{n:'Blast Radius',d:'+10% explosion size per level',b:6000,max:5,i:'💥'},cap:{n:'Bomb Capacity',d:'+6 free bombs on every resupply',b:4000,max:5,i:'🎒'},cd:{n:'Fast Reload',d:'-8% bomb cooldown per level',b:5000,max:5,i:'⚡'},
  eng:{n:'Engine Tuning',d:'+3% top speed per level (300 km/h cap)',b:7000,max:5,i:'🔧'},arm:{n:'Armor Plating',d:'-5% damage taken per level',b:6000,max:5,i:'🛡️'},nit:{n:'Nitro Tank',d:'+25% nitro regen per level',b:4000,max:5,i:'🧪'},crew:{n:'Heist Crew',d:'-1 vault hit needed per level',b:15000,max:3,i:'🕶️'}};
 const PRK=[{k:'bounty',n:'Trophy Wall',d:'+10% on every bounty you earn',c:150000,i:'🏆'},{k:'ins',n:'Panic Room Insurance',d:'Dying no longer costs you cash',c:200000,i:'🛟'},{k:'cham',n:'Champagne Cellar',d:'+25% passive income',c:100000,i:'🍾'},{k:'med',n:'Private Medic',d:'Healing at the tower is 3x faster',c:80000,i:'⚕️'}];
 const BIZ=[{id:'rk',n:'Protection Racket',i:'🤝',r:4,b:4000},{id:'ch',n:'Chop Shop',i:'🔩',r:8,b:9000},{id:'lw',n:'Laundromat Front',i:'🧺',r:15,b:20000},{id:'sm',n:'Smuggling Route',i:'🚢',r:27,b:45000},{id:'cr',n:'Crypto Server Farm',i:'🖥️',r:50,b:100000}];
-const CYB=[{id:'c1',n:'Phishing Farm',i:'🎣',r:60,b:25000},{id:'c2',n:'Ransomware Crew',i:'🔒',r:140,b:60000},{id:'c3',n:'Botnet Network',i:'🕸️',r:300,b:140000},{id:'c4',n:'Dark Web Market',i:'🕶️',r:650,b:320000},{id:'c5',n:'Zero-Day Exchange',i:'💀',r:1400,b:800000}];
-const ATK=[{n:'Local Business',i:'🏪',p:.8,rw:15000,cd:20,heat:0},{n:'Megacorp Server',i:'🏢',p:.55,rw:90000,cd:40,heat:1500},{n:'Federal Reserve',i:'🏛️',p:.35,rw:350000,cd:90,heat:4000}];
+const CYB=[{id:'c1',n:'Phishing Farm',i:'🎣',r:5,b:40000},{id:'c2',n:'Ransomware Crew',i:'🔒',r:11,b:100000},{id:'c3',n:'Botnet Network',i:'🕸️',r:24,b:240000},{id:'c4',n:'Dark Web Market',i:'🕶️',r:50,b:550000},{id:'c5',n:'Zero-Day Exchange',i:'💀',r:100,b:1300000}];
+const ATK=[{n:'Local Business',i:'🏪',p:.7,rw:3000,cd:45,heat:500},{n:'Megacorp Server',i:'🏢',p:.4,rw:15000,cd:90,heat:3000},{n:'Federal Reserve',i:'🏛️',p:.25,rw:60000,cd:180,heat:10000}];
 const VC=[50000,100000,250000,600000,1500000,4000000],VCC=[0,25000,60000,150000,400000,1000000];
 const CARS=[{id:'muscle',n:'Muscle Car',c:1500,d:'151 km/h · tough'},{id:'sports',n:'Sports Car',c:4000,d:'194 km/h'},{id:'super',n:'Supercar',c:9000,d:'223 km/h'},{id:'hyper',n:'Hypercar',c:20000,d:'252 km/h · 300 with nitro'},{id:'truck',n:'Armored Truck',c:8000,d:'Cops barely scratch it'},{id:'tank',n:'TANK',c:30000,d:'900 HP · crushes everything'},
  {id:'limo',n:'Boss Limo',c:45000,d:'Armored stretch limo · 450 HP · 200 km/h',x:1},{id:'raptor',n:'Raptor GT',c:85000,d:'Track hypercar · 248 km/h · 300 with nitro',x:1},{id:'phantom',n:'Phantom',c:0,d:'Secret stealth supercar',sec:1}];
@@ -1059,7 +1059,7 @@ const RTI=[[0,'STREET THUG'],[50,'CAPO'],[150,'UNDERBOSS'],[350,'BOSS'],[700,'GO
 const rtitle=()=>{let t=RTI[0][1];for(const r of RTI)if(P.tw.rep>=r[0])t=r[1];return t};
 const upl=k=>P.up[k]||0,upc=k=>Math.round(UPG[k].b*Math.pow(1+upl(k),1.6)/100)*100;
 const twRate=()=>{let r=0;for(const b of BIZ.concat(CYB))r+=b.r*(P.tw.biz[b.id]||0);return r*(1+P.tw.rep/500)*(1+.25*(P.up.cham||0))};
-const twHack=()=>P.codes.HACKERZ?100000:0,twTotal=()=>twRate()+twHack(),cybLv=()=>CYB.reduce((a,b)=>a+(P.tw.biz[b.id]||0),0);
+const twHack=()=>P.codes.HACKERZ?10000:0,twTotal=()=>twRate()+twHack(),cybLv=()=>CYB.reduce((a,b)=>a+(P.tw.biz[b.id]||0),0);
 const bizc=b=>Math.round(b.b*Math.pow(1+(P.tw.biz[b.id]||0),1.5)/100)*100;
 const TUI={cur:'L',roof:0,busy:0,pre:null};
 // ----- aircraft & helipad
@@ -1102,6 +1102,14 @@ function twTick(dt){TW.door+=((near(0,14,11)&&!P.fly&&!P.ug?1:0)-TW.door)*Math.m
  const m=P.tw.ms;if(m&&m.t=='run'){m.tl-=dt;if(!P.fly&&!P.ug&&Math.hypot(P.x-m.wp.x,P.z-m.wp.z)<12)msnDone();else if(m.tl<=0)msnFail()}
  twSv+=dt;if(twSv>30){twSv=0;save()}
  const mo=$t('mob');if(P.tw.ms){const q=P.tw.ms;mo.style.display='block';mo.innerHTML='<b>MISSION</b> '+q.txt+(q.t=='spd'?'':' · '+q.got+'/'+q.need)+(q.tl?' · '+Math.ceil(q.tl)+'s':'')+' · '+twm(q.rw)}else mo.style.display='none'}
+let armyMsg=0;
+function armyTick(dt,S){const away=P.ug||P.grace>0;
+ if(S<6||away){for(const c of [...cops])if(c.army){scene.remove(c.g);cars.splice(cars.indexOf(c),1);cops.splice(cops.indexOf(c),1)}armyMsg=0;return}
+ if(!armyMsg){armyMsg=1;toast('SIX STARS! THE ARMY HAS BEEN DEPLOYED!');sfx('alarm')}
+ const want=3+(rankI()>>2);let n=cops.filter(c=>c.army).length;
+ while(n<want){let x,z,v,k=0;do{[x,z,v]=roadPos();k++}while((Math.hypot(x-P.x,z-P.z)<90||Math.hypot(x-P.x,z-P.z)>170)&&k<30);const c=mkCar('tank',x,z,Math.atan2(P.x-x,P.z-z),'c');c.army=1;c.sp=26;c.hp=c.mx=650+rankI()*40;n++}
+ for(const c of cops){if(!c.army)continue;const d=Math.hypot(P.x-c.x,P.z-c.z);c.sh2=(c.sh2||0)-dt;
+  if(c.sh2<=0&&d<120&&d>10){c.sh2=R(2.2,3.4);const py=P.fly?P.y:1;tracer(c.x,2.4,c.z,P.x,py,P.z,0xffaa33);puff(P.x,py,P.z,0,2,0,0xff8822,5,.5,1);hurtP(18+rankI());sfx('boom')}}}
 // ----- UI
 function openTower(roof){if(P.fly&&!roof)return;if(roof&&!P.tw.fl.rf){toast('Helipad access is locked. Unlock floor R inside the tower.');return}
  mk=true;if(eg)eg.gain.value=0;TUI.roof=!!roof;TUI.cur=roof?'rf':'L';TUI.pre=null;TUI.busy=0;TW.cabT=FHf(TUI.cur);$t('tw').style.display='block';twTone(660,.12,'sine');setTimeout(()=>twTone(990,.2,'sine'),140);twRender()}
@@ -1118,7 +1126,7 @@ function twHeli(){if(P.owned.heli||P.cash<60000)return;P.cash-=60000;P.owned.hel
 function twBiz(id){const b=BIZ.concat(CYB).find(x=>x.id==id),l=P.tw.biz[id]||0,c=bizc(b);if(l>=5||P.cash<c)return;P.cash-=c;P.tw.biz[id]=l+1;sfx('coin');toast(b.n+' level '+(l+1));save();twRender()}
 function twVcap(){const l=P.tw.vl||0;if(l>=5||P.cash<VCC[l+1])return;P.cash-=VCC[l+1];P.tw.vl=l+1;sfx('coin');toast('Vault capacity upgraded');save();twRender()}
 function twCollect(){const v=Math.floor(P.tw.vault);if(v<1)return;P.cash+=v;P.tw.vault=0;TW.full=0;sfx('coin');toast('Collected '+twm(v)+' from the vault');save();twRender()}
-async function twAtk(i){if(TW.atkBusy)return;const a=ATK[i];if(!TW.atkCd)TW.atkCd=[0,0,0];if(TW.atkCd[i]>0)return;TW.atkBusy=1;TW.log=[];const p=Math.min(.95,a.p+Math.min(.25,cybLv()*.01)),L=['> target: '+a.n.toUpperCase(),'> spoofing address ...','> scanning open ports ...','> injecting payload ...','> bypassing firewall ...','> escalating privileges ...'];
+async function twAtk(i){if(TW.atkBusy)return;const a=ATK[i];if(!TW.atkCd)TW.atkCd=[0,0,0];if(TW.atkCd[i]>0)return;TW.atkBusy=1;TW.log=[];const p=Math.min(.95,a.p+Math.min(.12,cybLv()*.005)),L=['> target: '+a.n.toUpperCase(),'> spoofing address ...','> scanning open ports ...','> injecting payload ...','> bypassing firewall ...','> escalating privileges ...'];
  const put=t=>{TW.log.push(t);const e=$t('term');if(e){e.textContent=TW.log.join('\n');e.scrollTop=1e5}twTone(300+TW.log.length*60,.05,'square',.03)};twRender();
  for(const l of L){put(l);await twSleep(450)}const ok=Math.random()<p;TW.atkBusy=0;TW.atkCd[i]=a.cd;
  if(ok){put('> ACCESS GRANTED. transferring '+twm(a.rw)+' ...');P.cash+=a.rw;P.tw.rep+=3;sfx('coin');toast('HACK SUCCESS: +'+twm(a.rw))}
@@ -1148,9 +1156,9 @@ function twRender(){$t('tw-cash').textContent='CASH '+twm(P.cash);
  else if(c=='vt'){const l=P.tw.vl||0,cap=VC[l],r=twRate();
   h=head(f.ico,f.n,f.d)+`<div class=vlt><div class=vb><i style="width:${Math.min(100,P.tw.vault/cap*100)}%"></i></div><div class=vt>${twm(P.tw.vault)} / ${twm(cap)}</div><div class=vr>+${twm(twTotal())} per second${twHack()?' (incl. HACKERZ)':''}</div></div><div class=row2>${tBtn('COLLECT '+twm(P.tw.vault),'twCollect()',P.tw.vault>=1)}${l<5?tBtn('UPGRADE VAULT '+twm(VCC[l+1]),'twVcap()',P.cash>=VCC[l+1]):tBtn('VAULT MAXED','',0)}</div>`
    +tSec('CRIME OPERATIONS')+`<div class=fg>${BIZ.map(b=>{const lv=P.tw.biz[b.id]||0;return tCard(b.i,b.n,'+'+twm(b.r)+'/sec per level · reputation boosts income',lv>=5?tBtn('MAXED','',0):tBtn((lv?'UPGRADE ':'BUY ')+twm(bizc(b)),`twBiz('${b.id}')`,P.cash>=bizc(b)),pipsH(lv,5))}).join('')}</div>`}
- else if(c=='cy'){const tl=cybLv(),bonus=Math.min(.25,tl*.01);if(!TW.atkCd)TW.atkCd=[0,0,0];
+ else if(c=='cy'){const tl=cybLv(),bonus=Math.min(.12,tl*.005);if(!TW.atkCd)TW.atkCd=[0,0,0];
   h=head(f.ico,f.n,f.d)+`<div class=stats><div><b>${twm(twTotal())}/sec</b><small>TOTAL PASSIVE</small></div><div><b>${tl}/25</b><small>OPERATION LEVELS</small></div><div><b>+${Math.round(bonus*100)}%</b><small>ATTACK SUCCESS BONUS</small></div><div><b>${twm(P.tw.vault)}</b><small>VAULT</small></div></div>`+(P.tw.vault>=1?`<div class=row2>${tBtn('COLLECT '+twm(P.tw.vault),'twCollect()',1)}</div>`:'')
-   +tSec('LAUNCH A CYBER ATTACK')+`<div class=fg>${ATK.map((a,i)=>{const cd=Math.ceil(TW.atkCd[i]||0);return tCard(a.i,a.n,'Success '+Math.round(Math.min(.95,a.p+bonus)*100)+'% · Reward '+twm(a.rw)+(a.heat?' · Fail = +'+twm(a.heat)+' bounty':' · No heat'),tBtn(TW.atkBusy?'HACKING...':cd>0?'COOLDOWN '+cd+'s':'LAUNCH',`twAtk(${i})`,!TW.atkBusy&&cd<=0))}).join('')}</div><div class=term id=term>${(TW.log||['> terminal ready. choose a target.']).join('\n')}</div>`
+   +tSec('LAUNCH A CYBER ATTACK')+`<div class=fg>${ATK.map((a,i)=>{const cd=Math.ceil(TW.atkCd[i]||0);return tCard(a.i,a.n,'Success '+Math.round(Math.min(.95,a.p+bonus)*100)+'% · Reward '+twm(a.rw)+(' · Fail = +'+twm(a.heat)+' bounty'),tBtn(TW.atkBusy?'HACKING...':cd>0?'COOLDOWN '+cd+'s':'LAUNCH',`twAtk(${i})`,!TW.atkBusy&&cd<=0))}).join('')}</div><div class=term id=term>${(TW.log||['> terminal ready. choose a target.']).join('\n')}</div>`
    +tSec('CYBER OPERATIONS · PASSIVE INCOME PER SECOND')+`<div class=fg>${CYB.map(b=>{const lv=P.tw.biz[b.id]||0;return tCard(b.i,b.n,'+'+twm(b.r)+'/sec per level · reputation boosts income',lv>=5?tBtn('MAXED','',0):tBtn((lv?'UPGRADE ':'BUY ')+twm(bizc(b)),`twBiz('${b.id}')`,P.cash>=bizc(b)),pipsH(lv,5))}).join('')}</div>`}
  else if(c=='ph')h=head(f.ico,f.n,f.d)+`<div class=sky><div class=moon2></div><div class=city></div><div class=ptxt>${rtitle()} · ${P.tw.rep} REP</div></div><div class=row2>${tBtn('SLEEP IT OFF (FULL HEAL)','twRest()',1)}</div>`+tSec('BOSS PERKS')+`<div class=fg>${PRK.map(p=>tCard(p.i,p.n,p.d,P.up[p.k]?tBtn('OWNED','',0):tBtn(twm(p.c),`twPerk('${p.k}')`,P.cash>=p.c))).join('')}</div>`;
  else if(c=='rf')h=head(f.ico,f.n,f.d)+`<div class=pdv><div class=hp>H</div><p>Jets and helicopters can land on the pad. For a jet, cut the throttle and descend slowly over the H. Hold <b>↑</b> near the pad for a vertical lift-off.</p></div><div class=fg>${tCard('✈️','Empire Jet','500 km/h fighter. Summoned from the airport to the helipad.',tBtn('BOARD JET','boardAircraft(\'jet\')',!TUI.roof))}${tCard('🚁','Empire Helicopter',P.owned.heli?'Hover and land anywhere.':'Buy it in the Vehicle Showroom.',tBtn('BOARD HELICOPTER','boardAircraft(\'heli\')',!!P.owned.heli&&!TUI.roof))}</div>`+(TUI.roof?`<div class=row2>${tBtn('TAKE ELEVATOR TO STREET','twStreet()',1)}</div>`:'');
