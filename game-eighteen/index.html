@@ -112,6 +112,7 @@ h2{margin:0 0 10px;font-size:clamp(22px,5vw,38px);letter-spacing:3px}
 .hcard .sw{display:flex;justify-content:center;gap:3px;margin:3px 0}.hcard .sw i{width:12px;height:8px;border-radius:2px;border:1px solid #0006}
 .hcard.owned .st{color:#7dff9a}.hcard.equipped .st{color:#ffd84a}
 .hcard.legendary{animation:glowL 1.8s infinite alternate}
+.hcard.infinity{animation:glowI 1s infinite alternate;background:linear-gradient(160deg,rgba(127,232,255,.22),rgba(176,75,255,.22))}@keyframes glowI{from{box-shadow:0 0 8px #7fe8ff}to{box-shadow:0 0 24px 5px #b04bff}}
 .hcard.godly{animation:glowG 1.2s infinite alternate;background:linear-gradient(160deg,rgba(255,200,58,.14),var(--rbg))}
 .hdetail{flex:1;min-width:260px}
 #prevHold{width:100%;height:210px;border-radius:12px;background:radial-gradient(circle at 50% 70%,var(--rbg),#080a14 75%);border:2px solid var(--rc);display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -238,7 +239,7 @@ const V3=(x,y,z)=>new THREE.Vector3(x,y,z);
 
 /* ================= SAVE ================= */
 const SAVE_KEY='cityOfHeroes_save_v1';
-const defaultSave=()=>({skins:[],skinEq:{},ults:[],ult:null,v:1,level:1,xp:0,cash:0,up:{hp:0,dmg:0,energy:0,speed:0},mission:0,boss:false,kills:0,sens:1,sound:true,shadows:!isTouch,started:false,heroes:['rookie'],hero:'rookie',cores:0,w2m:0,w2boss:false,world:1});
+const defaultSave=()=>({r3:false,w3m:0,w3boss:false,skins:[],skinEq:{},ults:[],ult:null,v:1,level:1,xp:0,cash:0,up:{hp:0,dmg:0,energy:0,speed:0},mission:0,boss:false,kills:0,sens:1,sound:true,shadows:!isTouch,started:false,heroes:['rookie'],hero:'rookie',cores:0,w2m:0,w2boss:false,world:1});
 let save=defaultSave();
 function loadSave(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));if(s&&s.v===1){const d=defaultSave();return Object.assign(d,s,{up:Object.assign(d.up,s.up||{})});}}catch(e){}return null;}
 function writeSave(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(save));}catch(e){}}
@@ -297,7 +298,7 @@ const cNight=new THREE.Color(0x050919),cDay=new THREE.Color(0x86c8ff),cDusk=new 
 const sunDir=new THREE.Vector3();
 function updateSky(dt,center){
  if(world===2){
-  nightK=0.55;scene.background.setRGB(0.2,0.045,0.035);scene.fog.color.copy(scene.background);
+  nightK=0.55;if(realm3)scene.background.setRGB(0.035,0.015,0.09);else scene.background.setRGB(0.2,0.045,0.035);scene.fog.color.copy(scene.background);
   hemi.intensity=0.75;sun.intensity=0.7;sun.color.setHex(0xff7a4a);sunDir.set(0.55,0.4,0.3).normalize();
   sun.position.copy(center).addScaledVector(sunDir,110);sun.target.position.copy(center);
   sunMesh.position.copy(camera.position).addScaledVector(sunDir,430);stars.material.opacity=0;lampMat.color.setRGB(0.5,0.3,0.15);heroLight.intensity=0.9;return;
@@ -466,7 +467,8 @@ const RARITY={
  common:{name:'COMMON',col:'#aab2c0',hex:0xaab2c0,order:0},
  rare:{name:'RARE',col:'#3b9bff',hex:0x3b9bff,order:1},
  legendary:{name:'LEGENDARY',col:'#c26bff',hex:0xc26bff,gold:0xffd84a,order:2},
- godly:{name:'GODLY',col:'#ff4040',hex:0xff3b3b,gold:0xffc83a,order:3}
+ godly:{name:'GODLY',col:'#ff4040',hex:0xff3b3b,gold:0xffc83a,order:3},
+ infinity:{name:'INFINITY',col:'#7fe8ff',hex:0x7fe8ff,gold:0xb04bff,order:4}
 };
 const HEROES=[
  {id:'rookie',name:'Rookie',rarity:'common',price:0,cores:0,hpM:1,dmgM:1,spdM:1,enM:1,role:'Balanced starter',
@@ -533,34 +535,45 @@ const HEROES=[
    {name:'Shatter Punch',short:'Shatter',icon:'👊',cost:22,cd:2.2,fn:'shatter',o:{dmg:95,reach:6,knock:24,color:0xff6a2a,waveDmg:60},desc:'Lunge forward with a ground-shattering punch that sends a crack tearing through enemies.'},
    {name:'Quake Stomp',short:'Quake',icon:'🌍',cost:40,cd:7,fn:'slam',o:{R:15,D:110,color:0xff6a2a,stun:1.2,knock:22,waves:3},desc:'Leap and stomp, unleashing three rolling earthquakes that stun and crush.'},
    {name:'Unstoppable Rage',short:'Rampage',icon:'🔥',cost:55,cd:24,fn:'buff',o:{name:'UNSTOPPABLE',dur:12,dmg:2.0,dr:0.5,scale:1.4,unstop:true,spd:1.2,col:0xff4a1a,shock:4.5},desc:'12s unstoppable form: double damage, half damage taken, immune to knockback, earth-shaking punches.'}]}
-,{id:'voidsov',name:'VOID SOVEREIGN',rarity:'godly',price:45000,cores:40,hpM:2.3,dmgM:2.3,spdM:1.3,enM:2.4,role:'Untouchable sovereign',
-  blurb:'Untouchable and calm. Compresses space into weapons, folds it into a shield and steps through rifts. The strongest hero in the game.',
+,{id:'voidsov',name:'VOID SOVEREIGN',rarity:'infinity',price:45000,cores:40,hpM:2.3,dmgM:2.3,spdM:1.3,enM:2.4,role:'Untouchable sovereign',
+  blurb:'Untouchable and calm. Press R for his exclusive domain, STARLESS DOMINION: every enemy inside is erased (bosses lose 35% max health). The strongest hero in the game.',
   look:{skin:0xf2d8c0,shirt:0x111111,sleeve:0x111111,pants:0xf4f4f4,boot:0xe8e8e8,belt:0x050505,hair:0xffffff,visor:0x9a5cff,glow:true,wide:1.3,scale:1.2},
   punch:{cd:0.28,dmg:1.2,reach:2.9,knock:1.1,quake:0},
   powers:[
    {name:'Violet Singularity',short:'Violet',icon:'🟣',cost:28,cd:1.5,fn:'bolt',o:{dmg:230,speed:42,r:1.5,color:0xb04bff,aoe:9.5,life:2,slow:2.5,pierce:true},desc:'Fire a huge purple singularity that tears through enemies and detonates at the end of its flight.'},
    {name:'Spatial Guard',short:'Guard',icon:'🛡',cost:26,cd:10,fn:'guard',o:{dur:7,dr:0.93},desc:'Fold space into a barrier for 7s: take 93% less damage and ignore knockback.'},
-   {name:'Rift Step',short:'Rift',icon:'🌌',cost:14,cd:2,fn:'blink',o:{dist:26,dmg:60,r:6,color:0x4fd8ff},desc:'Instantly teleport a short distance, jolting enemies at both ends. Any ultimate you fire also triggers his Stillness Field.'}]}
+   {name:'Rift Step',short:'Rift',icon:'🌌',cost:14,cd:2,fn:'blink',o:{dist:26,dmg:60,r:6,color:0x4fd8ff},desc:'Instantly teleport a short distance, jolting enemies at both ends.'}]}
+,{id:'inferno',name:'Inferno Overlord',rarity:'godly',price:38000,cores:35,hpM:2.0,dmgM:2.1,spdM:1.1,enM:1.5,role:'Molten warlord',blurb:'Armour of living magma. Burns everything near him, then detonates the sky. End-game power, but Void Sovereign is still stronger.',
+ look:{skin:0xdcc0a8,hair:0x222222,shirt:0x2a1210,sleeve:0x3a1a14,pants:0x1a0c0a,boot:0xff5a1a,armor:0xff6a1a,spikes:0xffc83a,horns:0xffc83a,hornGlow:true,mask:0xffee33,glow:true,cape:0x8a1a0a,emblem:0xffee33,wide:1.3,scale:1.3},
+ punch:{cd:0.32,dmg:1.4,reach:3.1,knock:1.3,quake:0.3},
+ powers:[{name:'Magma Bolt',short:'Magma',icon:'🔥',cost:22,cd:1.0,fn:'bolt',o:{dmg:85,speed:48,r:1.0,color:0xff6a1a,aoe:6,life:1.8,pierce:true},desc:'A molten bolt that pierces and bursts into flame.'},
+  {name:'Flame Burst',short:'Burst',icon:'💥',cost:35,cd:8,fn:'aoe',o:{dmg:120,r:14,knock:14,stun:1,color:0xff6a1a,rings:3},desc:'A fiery shockwave that blasts everything around you.'},
+  {name:'Solar Inferno',short:'Solar',icon:'☀️',cost:80,cd:28,fn:'ultimate',o:{delay:1.1,r:24,dmg:400,color:0xff8a1a,knock:20,stun:2},desc:'ULTIMATE: gather the sun, then erupt in a massive firestorm.'}]}
+,{id:'aegis',name:'Celestial Aegis',rarity:'godly',price:36000,cores:30,hpM:2.2,dmgM:1.7,spdM:1.1,enM:1.8,role:'Radiant guardian',blurb:'Winged holy armour. The toughest hero after the juggernauts, with a strong barrier.',
+ look:{skin:0xdcc0a8,hair:0xfff0b0,shirt:0xf8f0d0,sleeve:0xe8d890,pants:0xc8a840,boot:0xfff0a0,armor:0xffd84a,halo:0xffe36b,wings:0xfff2b0,pads:0xffd84a,glow:true,cape:0xffffff,wide:1.25,scale:1.3},
+ punch:{cd:0.3,dmg:1.3,reach:3.0,knock:1.2,quake:0},
+ powers:[{name:'Radiant Lance',short:'Lance',icon:'✨',cost:20,cd:0.9,fn:'bolt',o:{dmg:75,speed:60,r:0.9,color:0xffe36b,aoe:5,life:1.6,pierce:true},desc:'A fast beam of light that pierces enemies.'},
+  {name:'Holy Guard',short:'Guard',icon:'🛡',cost:30,cd:14,fn:'guard',o:{dur:5,dr:0.8},desc:'A golden barrier: take 80% less damage for 5s.'},
+  {name:'Judgement',short:'Judge',icon:'⚖️',cost:80,cd:28,fn:'ultimate',o:{delay:1.1,r:22,dmg:340,color:0xffe36b,knock:16,stun:2},desc:'ULTIMATE: a divine blast of light around you.'}]}
+,{id:'phantom',name:'Quantum Phantom',rarity:'legendary',price:34000,cores:25,hpM:1.6,dmgM:2.0,spdM:1.45,enM:1.6,role:'Phase assassin',blurb:'The fastest hero in the game. Fragile but deadly.',
+ look:{skin:0xdcc0a8,hair:0x0a2a30,shirt:0x0a2a30,sleeve:0x0e3a44,pants:0x061a20,boot:0x4ff0d0,belt:0x4ff0d0,mask:0x4ff0d0,fins:0x4ff0d0,emblem:0x4ff0d0,glove:0x4ff0d0,glow:true,cape:0x0a4a50,wide:1.1,scale:1.2},
+ punch:{cd:0.22,dmg:1.2,reach:2.8,knock:0.9,quake:0},
+ powers:[{name:'Phase Shots',short:'Shots',icon:'🔹',cost:18,cd:1.0,fn:'bolt',o:{dmg:45,speed:58,r:0.7,color:0x4ff0d0,aoe:3.5,life:1.6,count:3,spread:0.15},desc:'Three quantum shots in a fan.'},
+  {name:'Phase Step',short:'Step',icon:'🌀',cost:14,cd:2.5,fn:'blink',o:{dist:22,dmg:40,r:5,color:0x4ff0d0},desc:'Teleport a short distance, damaging enemies you pass.'},
+  {name:'Quantum Barrage',short:'Barrage',icon:'💠',cost:80,cd:28,fn:'ultimate',o:{delay:0.9,r:20,dmg:380,color:0x4ff0d0,knock:14,stun:2},desc:'ULTIMATE: a burst of phase energy tears space around you.'}]}
+,{id:'voidw',name:'Void Walker',rarity:'godly',price:45000,cores:40,hpM:2.1,dmgM:2.2,spdM:1.2,enM:1.7,role:'Dark-matter conqueror',blurb:'Crowned and winged in dark matter. The strongest hero in the game apart from Void Sovereign.',
+ look:{skin:0xdcc0a8,hair:0x120a2a,shirt:0x120a2a,sleeve:0x1c1040,pants:0x0a0618,boot:0xa05cff,armor:0x2a1a5a,crown:0xc08cff,wings:0x7a3cff,pads:0xa05cff,mask:0xe0c8ff,glow:true,cape:0x1a0a40,emblem:0xe0c8ff,glove:0xa05cff,wide:1.25,scale:1.3},
+ punch:{cd:0.3,dmg:1.4,reach:3.1,knock:1.3,quake:0},
+ powers:[{name:'Dark Matter',short:'Matter',icon:'🟣',cost:24,cd:1.1,fn:'bolt',o:{dmg:110,speed:46,r:1.1,color:0xa05cff,aoe:7,life:1.8,slow:2},desc:'A dark-matter orb that bursts and slows enemies.'},
+  {name:'Gravity Well',short:'Well',icon:'🌌',cost:40,cd:9,fn:'zone',o:{type:'gravity',r:12,dur:4,tick:0.3,dmg:16,pull:14,follow:false,ahead:14,collapse:{dmg:120,r:12},color:0xa05cff},desc:'Drag enemies together, then crush them.'},
+  {name:'Event Horizon',short:'Horizon',icon:'🕳',cost:80,cd:28,fn:'ultimate',o:{delay:1.1,r:25,dmg:400,color:0xa05cff,knock:18,stun:2},desc:'ULTIMATE: a collapsing void explosion all around you.'}]}
+
 ];
 const HERO_BY_ID={};HEROES.forEach(h=>HERO_BY_ID[h.id]=h);
 
 /* ===== UPDATE: SKINS & ULTIMATES DATA ===== */
-let prevSkin;
-const SKINS=[
- {id:'rust',name:'Rusty Rags',tier:'weak',price:120,lv:1,m:{dmg:0.97},desc:'Cheap patched-up gear. Slightly weaker punches.',look:{shirt:0x6a4a3a,sleeve:0x5a3c30,pants:0x3a2a22,boot:0x2a1c16}},
- {id:'gray',name:'Street Gray',tier:'weak',price:180,lv:1,m:{hp:0.96},desc:'Plain gray hoodie look. A little less sturdy.',look:{shirt:0x8a8f99,sleeve:0x70757f,pants:0x3a3d46,boot:0x20222a}},
- {id:'pink',name:'Neon Pink',tier:'weak',price:250,lv:1,m:{en:0.95},desc:'Loud and proud. Slightly smaller energy pool.',look:{shirt:0xff4aa8,sleeve:0xd8368c,pants:0x4a1a46,boot:0xffffff,glove:0xff4aa8}},
- {id:'camo',name:'Camo Scout',tier:'weak',price:400,lv:2,m:{dmg:0.98,spd:1.02},desc:'Sneaky and quick, hits a touch softer.',look:{shirt:0x4f6b3a,sleeve:0x3f5a2e,pants:0x3a4a2a,boot:0x2a2a1a,belt:0x8a7a4a}},
- {id:'crimson',name:'Crimson Guard',tier:'bal',price:1800,lv:4,m:{hp:1.06},desc:'Red plated guard armour.',look:{shirt:0xb01e2a,sleeve:0x8a1620,pants:0x2a2a34,boot:0x151515,armor:0x8a1620,pads:0xd8d8e0,cape:0x6a0f18}},
- {id:'jade',name:'Jade Ranger',tier:'bal',price:2200,lv:4,m:{spd:1.05},desc:'Light green ranger suit. Faster on foot.',look:{shirt:0x2fae6a,sleeve:0x1f8a52,pants:0x1a3a2a,boot:0xd8f0d8,cape:0x1f8a52,mask:0xffffff}},
- {id:'gold',name:'Golden Hour',tier:'bal',price:3000,lv:5,m:{dmg:1.05},desc:'Gilded suit that hits harder.',look:{shirt:0xe8b830,sleeve:0xc89a20,pants:0x6a4a10,boot:0xfff0a0,crown:0xffd84a,glow:true}},
- {id:'arctic',name:'Arctic Ops',tier:'bal',price:3500,lv:5,m:{en:1.1,hp:1.02},desc:'White-and-ice tactical kit with a bigger energy pool.',look:{shirt:0xe8f4ff,sleeve:0xbcd8ee,pants:0x4a6a8a,boot:0xffffff,helmet:0xcfefff,visor:0x6fd0ff}},
- {id:'shadowops',name:'Shadow Ops',tier:'bal',price:4500,lv:6,m:{dmg:1.04,spd:1.04},desc:'Stealth black with violet trim.',look:{shirt:0x16121f,sleeve:0x1c1428,pants:0x100c18,boot:0x000000,belt:0x7a2cff,hood:0x0d0914,mask:0xb04bff,glow:true}},
- {id:'inferno',name:'Inferno Overlord',tier:'op',price:20000,lv:10,m:{dmg:1.16,hp:1.05},fx:0xff6a1a,desc:'Molten armour wreathed in living flame.',look:{shirt:0x2a1210,sleeve:0x3a1a14,pants:0x1a0c0a,boot:0xff5a1a,armor:0xff6a1a,spikes:0xffc83a,horns:0xffc83a,hornGlow:true,mask:0xffee33,glow:true,cape:0x8a1a0a,emblem:0xffee33}},
- {id:'aegis',name:'Celestial Aegis',tier:'op',price:26000,lv:11,m:{hp:1.2,en:1.12},fx:0xffe36b,desc:'Radiant holy armour with a golden halo and wings.',look:{shirt:0xf8f0d0,sleeve:0xe8d890,pants:0xc8a840,boot:0xfff0a0,armor:0xffd84a,halo:0xffe36b,wings:0xfff2b0,pads:0xffd84a,glow:true,cape:0xffffff}},
- {id:'phantom',name:'Quantum Phantom',tier:'op',price:32000,lv:12,cores:10,m:{spd:1.14,dmg:1.1},fx:0x4ff0d0,desc:'Phase-shifted suit that crackles with teal energy.',look:{shirt:0x0a2a30,sleeve:0x0e3a44,pants:0x061a20,boot:0x4ff0d0,belt:0x4ff0d0,mask:0x4ff0d0,fins:0x4ff0d0,emblem:0x4ff0d0,glove:0x4ff0d0,glow:true,cape:0x0a4a50}},
- {id:'voidw',name:'Void Walker',tier:'op',price:45000,lv:14,cores:25,m:{dmg:1.18,hp:1.1,en:1.1},fx:0xa05cff,desc:'Armour woven from dark matter. Crowned, winged, humming with power.',look:{shirt:0x120a2a,sleeve:0x1c1040,pants:0x0a0618,boot:0xa05cff,armor:0x2a1a5a,crown:0xc08cff,wings:0x7a3cff,pads:0xa05cff,mask:0xe0c8ff,glow:true,cape:0x1a0a40,emblem:0xe0c8ff,glove:0xa05cff}}
-];
+let prevSkin,realm3=false;
+const SKINS=[];
 const SKIN_BY_ID={};SKINS.forEach(s=>SKIN_BY_ID[s.id]=s);
 const TIERS={weak:{n:'BASIC',c:'#aab2c0'},bal:{n:'BALANCED',c:'#3b9bff'},op:{n:'OVERPOWERED',c:'#ffd84a'}};
 const skOf=()=>SKIN_BY_ID[save.skinEq&&save.skinEq[save.hero]];
@@ -572,13 +585,15 @@ const ULTS=[
  {id:'collapse',name:'Void Collapse',icon:'🕳',cd:60,dmg:200,R:24,price:16000,lv:9,desc:'Drags every nearby enemy into a collapsing void, then crushes them together.'},
  {id:'storm',name:'Thunderstorm',icon:'⛈',cd:65,dmg:120,R:42,price:24000,lv:11,desc:'Dark storm clouds call down 14 lightning bolts on enemies around you.'},
  {id:'breaker',name:'Worldbreaker',icon:'🌋',cd:80,dmg:380,R:22,price:40000,lv:13,w2m:3,reqTxt:'Defeat Mini-Boss Ashfang in World 2',desc:'The ground erupts in a colossal shockwave with massive knockback and a long stun.'}
+,{id:'singularity',name:'Singularity Cataclysm',icon:'🌑',cd:95,dmg:520,R:34,price:90000,lv:15,w3boss:true,reqTxt:'Defeat the Void Monarch in The Void Realm',desc:'Void Realm exclusive. A singularity drags in everything nearby, then the ground detonates in a world-ending blast. Requires: defeat the Void Monarch.'}
 ];
 const ULT_BY_ID={};ULTS.forEach(u=>ULT_BY_ID[u.id]=u);
 (function(){const ids=(a,M)=>Array.isArray(a)?a.filter((x,i)=>M[x]&&a.indexOf(x)===i):[];
- save.skins=ids(save.skins,SKIN_BY_ID);save.ults=ids(save.ults,ULT_BY_ID);
+ {const RF={rust:[120,0],gray:[180,0],pink:[250,0],camo:[400,0],crimson:[1800,0],jade:[2200,0],gold:[3000,0],arctic:[3500,0],shadowops:[4500,0],inferno:[20000,0],aegis:[26000,0],phantom:[32000,10],voidw:[45000,25]};
+ if(Array.isArray(save.skins))save.skins.forEach(id=>{if(RF[id]){save.cash+=RF[id][0];save.cores+=RF[id][1];}});save.skins=[];save.skinEq={};}save.ults=ids(save.ults,ULT_BY_ID);
  if(!save.skinEq||typeof save.skinEq!=='object'||Array.isArray(save.skinEq))save.skinEq={};
  for(const h in save.skinEq){if(!HERO_BY_ID[h]||!save.skins.includes(save.skinEq[h]))delete save.skinEq[h];}
- if(!save.ults.includes(save.ult))save.ult=null;})();
+ if(!save.ults.includes(save.ult))save.ult=null;save.w3m=Math.max(0,Math.floor(Number(save.w3m)||0));save.w3boss=!!save.w3boss;save.r3=!!save.r3;})();
 (function sanitizeSave(){
  const n=(v,d)=>Number.isFinite(v)?v:d;
  save.cash=Math.max(0,Math.floor(n(save.cash,0)));save.cores=Math.max(0,Math.floor(n(save.cores,0)));
@@ -732,7 +747,7 @@ function aimDir(from){
 function camForward(){const cp=Math.cos(cam.pitch);return V3(-Math.sin(cam.yaw)*cp,Math.sin(cam.pitch),-Math.cos(cam.yaw)*cp);}
 function hurtHero(amount,srcPos,big){
  if(hero.dead||hero.inv>0||hero.dash>0||state!=='play'||(world===2&&inHaven(hero.pos)))return;
- {const bf=buffNow();amount*=(world===2?1.12:1.05)*(save.level>=8?0.8:1)*(bf&&bf.dr?1-bf.dr:1);}hero.hp-=amount;hero.inv=big?0.5:0.22;
+ {const bf=buffNow();amount*=(realm3?1.3:world===2?1.12:1.05)*(save.level>=8?0.8:1)*(bf&&bf.dr?1-bf.dr:1);}hero.hp-=amount;hero.inv=big?0.5:0.22;
  $('hurt').style.opacity=String(Math.min(1,0.5+amount/40));sfx.hurt();shake=Math.max(shake,big?0.5:0.2);
  floaty(V3(hero.pos.x,hero.pos.y+2.2,hero.pos.z),'-'+Math.round(amount),'#ff6b6b');
  if(srcPos&&big&&!(buffNow()&&buffNow().unstop)){const d=V3(hero.pos.x-srcPos.x,0,hero.pos.z-srcPos.z).normalize();hero.vel.x+=d.x*9;hero.vel.z+=d.z*9;hero.vel.y=Math.max(hero.vel.y,5);hero.onGround=false;}
@@ -1071,16 +1086,16 @@ function setPowerUI(){
 }
 function heroAura(dt){
  const H=curHero(),R=RARITY[H.rarity],r=H.rarity,p=hero.pos;
- auraRing.position.set(p.x,p.y+0.14,p.z);auraRing.rotation.z+=dt*(r==='godly'?2.5:1.2);
- auraRing.material.opacity=0.3+0.25*Math.sin(performance.now()*0.004);auraRing.scale.setScalar(H.look.scale*(r==='godly'?1.2:0.95));
- heroLight.intensity=Math.max(nightK*1.1,r==='legendary'?0.7:r==='godly'?1.3:r==='rare'?0.35:0);
+ auraRing.position.set(p.x,p.y+0.14,p.z);auraRing.rotation.z+=dt*(r==='godly'||r==='infinity'?2.5:1.2);
+ auraRing.material.opacity=0.3+0.25*Math.sin(performance.now()*0.004);auraRing.scale.setScalar(H.look.scale*(r==='infinity'?1.5:r==='godly'?1.2:0.95));
+ heroLight.intensity=Math.max(nightK*1.1,r==='legendary'?0.7:r==='infinity'?1.9:r==='godly'?1.3:r==='rare'?0.35:0);
  if(hero.dead||r==='common')return;
  hero.auraT=(hero.auraT||0)-dt;
  if(hero.auraT>0)return;
  const sc=H.look.scale;
  if(r==='rare'){hero.auraT=0.15;emit(V3(p.x+rand(-0.6,0.6)*sc,p.y+rand(0.2,2)*sc,p.z+rand(-0.6,0.6)*sc),1,R.hex,0.6,0.12,0.8,-1,1.2);}
  else if(r==='legendary'){hero.auraT=0.07;const a=performance.now()*0.004;emit(V3(p.x+Math.cos(a)*0.9*sc,p.y+1.2*sc+Math.sin(a*2)*0.7,p.z+Math.sin(a)*0.9*sc),1,Math.random()<0.5?R.hex:R.gold,0.5,0.16,0.7,-1,1.5);}
- else{hero.auraT=0.035;emit(V3(p.x+rand(-0.5,0.5)*sc,p.y+rand(0.1,1.4)*sc,p.z+rand(-0.5,0.5)*sc),1,Math.random()<0.5?R.hex:R.gold,1,0.22,0.8,-2,4);
+ else{hero.auraT=r==='infinity'?0.02:0.035;emit(V3(p.x+rand(-0.5,0.5)*sc,p.y+rand(0.1,1.4)*sc,p.z+rand(-0.5,0.5)*sc),1,Math.random()<0.5?R.hex:R.gold,1,0.22,0.8,-2,4);
   hero.pulseT=(hero.pulseT||0)-0.035;if(hero.pulseT<=0){hero.pulseT=2.2;ring(p,3.2*sc,R.gold,0.9,0.1);}}
 }
 function updateAbilities(dt){
@@ -1156,7 +1171,7 @@ function spawnEnemy(type,x,z,act,y,fixed){
  const bg=new THREE.Mesh(planeG,new THREE.MeshBasicMaterial({color:0x000000,depthTest:false,transparent:true,opacity:0.7})),fill=new THREE.Mesh(planeL,new THREE.MeshBasicMaterial({color:type==='elite'?0xff9a2a:0xff3344,depthTest:false}));
  bg.scale.set(1.24,0.2,1);fill.position.set(-0.58,0,0.01);fill.scale.set(1.16,0.12,1);bg.renderOrder=20;fill.renderOrder=21;
  const bar=new THREE.Group();bar.add(bg,fill);bar.visible=false;scene.add(bar);
- const hm=(1+0.07*(save.level-1))*(world===2?1.25:1.12);
+ const hm=(1+0.07*(save.level-1))*(realm3?1.6:world===2?1.25:1.12);
  const e={type,T,mdl,pos:V3(x,y||0,z),kv:V3(0,0,0),hp:T.hp*(T.isBoss?1.05+0.04*(save.level-1):hm),hpMax:0,r:0.55*T.scale,h:1.9*T.scale,face:rand(0,TAU),act:act||null,fixed:!!fixed,
   dead:false,deathT:0,stun:0,wind:0,cd:rand(0.3,1.2),shoot:rand(0.5,2),tT:0,tgt:null,anim:rand(0,6),move:0,stuck:0,detour:0,detDir:1,wander:0,wDir:rand(0,TAU),sh,bar,fill,flash:0,boss:!!T.isBoss,atkA:0,freezeT:0,slowT:0,nr:false,aimT:0};
  e.hpMax=e.hp;
@@ -1436,8 +1451,38 @@ const MISSIONS2=[
  {w2:true,bossKey:'calamity',boss:true,final:true,name:'Final Boss: Lord Calamity',pos:[0,150],desc:'The master of the Apocalypse waits at the Ruined Throne.',xp:4000,cash:30000,cores:40}
 ];
 const REMATCH2={w2:true,bossKey:'calamity',boss:true,final:true,rematch:true,name:'Lord Calamity — Rematch',pos:[0,150],desc:'Lord Calamity has risen again!',xp:1500,cash:10000,cores:15};
-const curML=()=>world===2?MISSIONS2:MISSIONS;
-const curMI=()=>world===2?save.w2m:save.mission;
+
+/* ===== WORLD 3: THE VOID REALM — DATA ===== */
+const W3_LV=15,w3Unlocked=()=>!!save.w2boss&&save.level>=W3_LV;
+Object.assign(ETYPES,{
+ voidling:{w2:true,hp:170,speed:8.2,dmg:22,range:2.0,xp:55,cash:70,scale:1.05,wind:0.28,cd:0.8,look:{skin:0x6a5a9a,shirt:0x120a2a,sleeve:0x1c1040,pants:0x0a0618,boot:0xa05cff,hair:0xe0c8ff,mask:0xb04bff,glow:true,fins:0xa05cff}},
+ rifter:{w2:true,ranged:true,burst:3,hp:125,speed:6,dmg:17,range:1.5,xp:60,cash:80,scale:1.05,wind:0.28,cd:1.0,look:{skin:0x5a4a8a,shirt:0x0e1030,pants:0x080a20,boot:0x4fd8ff,hair:0x111133,mask:0x4fd8ff,glow:true,gun:true,hood:0x14163a}},
+ sentinel:{w2:true,hp:800,speed:6.2,dmg:52,range:3.0,aoe:5.2,core:0.45,xp:150,cash:210,scale:1.7,wind:0.6,cd:1.2,look:{skin:0x3a3a5a,shirt:0x14142a,sleeve:0x14142a,pants:0x0c0c1c,boot:0x0a0a14,hair:0x0a0a14,mask:0xa05cff,glow:true,armor:0x2a2a5a,pads:0x7a3cff,horns:0x5a4a9a,wide:1.5}},
+ devourer:{w2:true,elite:true,hp:1500,speed:6.8,dmg:72,range:3.4,aoe:6.2,core:0.4,xp:320,cash:420,scale:2.0,wind:0.55,cd:1.1,look:{skin:0x2a1a4a,shirt:0x0a0418,sleeve:0x1a0a38,pants:0x08030f,boot:0x000000,hair:0x050208,mask:0xff4aff,glow:true,armor:0x3a1a6a,spikes:0xb04bff,horns:0xb04bff,hornGlow:true,wings:0x5a2aaa,wide:1.7}},
+ warden:{w2:true,elite:true,ranged:true,burst:4,hp:700,speed:5.6,dmg:30,range:1.5,xp:300,cash:400,scale:1.4,wind:0.25,cd:0.9,look:{skin:0x4a4a8a,shirt:0x0a0a2a,pants:0x06061a,boot:0xffffff,hair:0xffffff,mask:0xffffff,glow:true,gun:true,halo:0x4fd8ff,cape:0x14146a,armor:0x2a2a8a}}
+});
+Object.assign(BOSSDEF,{
+ riftwarden:{name:'RIFT WARDEN',hp:15000,scale:2.5,thr:[0.6,0.3],dm:2.1,spd:1.25,col:0x4fd8ff,
+  atk:[['volley','charge','slam'],['volley','charge','nova','meteor'],['volley','charge','nova','meteor','summon','slam']],adds:[null,[['voidling',3],['rifter',2]],[['sentinel',1],['warden',1]]],phaseNames:['','PHASE 2 — FRACTURE','PHASE 3 — COLLAPSE'],
+  look:{skin:0x4a4a8a,shirt:0x0a0a2a,sleeve:0x14146a,pants:0x06061a,boot:0x4fd8ff,belt:0x4fd8ff,hair:0xffffff,mask:0x4fd8ff,glow:true,halo:0x4fd8ff,cape:0x14146a,armor:0x2a2a8a,wings:0x4fd8ff,pads:0x4fd8ff,emblem:0xffffff,glove:0x4fd8ff,wide:1.4}},
+ monarch:{name:'THE VOID MONARCH',hp:60000,scale:3.6,thr:[0.8,0.6,0.4,0.2],dm:2.6,spd:1.3,col:0xb04bff,
+  atk:[['volley','slam','meteor'],['volley','charge','meteor','summon'],['nova','charge','meteor','summon','slam'],['volley','nova','charge','meteor','meteor','summon','slam'],['volley','nova','charge','meteor','meteor','summon','slam','nova','charge']],
+  adds:[null,[['voidling',4],['rifter',3]],[['sentinel',2],['warden',1]],[['devourer',1],['warden',2]],[['devourer',2],['sentinel',2],['warden',2]]],phaseNames:['','PHASE 2 — RIFT HUNGER','PHASE 3 — VOID RUPTURE','PHASE 4 — STARLESS SKY','PHASE 5 — THE END OF ALL THINGS'],
+  look:{skin:0x0a0418,shirt:0x05020f,sleeve:0x14082a,pants:0x05020f,boot:0x000000,belt:0xb04bff,hair:0xffffff,mask:0xff4aff,glow:true,crown:0xb04bff,wings:0x7a3cff,cape:0x1a0a40,halo:0xb04bff,spikes:0xb04bff,horns:0xe0c8ff,hornGlow:true,armor:0x2a1a5a,emblem:0xe0c8ff,glove:0x7a3cff,wide:1.6}}
+});
+['riftwarden','monarch'].forEach(k=>{const d=BOSSDEF[k];ETYPES['b_'+k]={isBoss:true,hp:d.hp,speed:4.6*d.spd,dmg:25*d.dm,range:3.2,xp:0,cash:0,scale:d.scale,wind:0.8,cd:1,look:d.look};});
+const MISSIONS3=[
+ {w2:true,w3:true,name:'Rift Scouts',pos:[25,-75],desc:'Void creatures are pouring out of a tear in space.',waves:[[['voidling',5],['rifter',3]],[['voidling',4],['rifter',3],['sentinel',1]]],xp:1500,cash:15000,cores:6},
+ {w2:true,w3:true,name:'Broken Causeway',pos:[-75,-25],desc:'Stranded survivors cling to a shattered bridge. Protect them!',civs:4,maxLost:1,waves:[[['voidling',5],['rifter',3]],[['sentinel',2],['rifter',3]]],xp:2000,cash:20000,cores:8},
+ {w2:true,w3:true,bossKey:'riftwarden',boss:true,name:'Mini-Boss: Rift Warden',pos:[-125,75],desc:'A guardian of the Void gate. Watch the warnings!',xp:3500,cash:35000,cores:20},
+ {w2:true,w3:true,name:'Elite Purge',pos:[125,25],desc:'Devourers and Wardens hold the floating ruins.',waves:[[['sentinel',2],['warden',1],['voidling',4]],[['devourer',1],['warden',2],['rifter',4]],[['devourer',2],['sentinel',2],['warden',2]]],xp:4500,cash:45000,cores:15},
+ {w2:true,w3:true,name:'The Last Gate',pos:[125,125],desc:'An endless horde guards the way to the Monarch.',waves:[[['devourer',2],['sentinel',3],['voidling',5]],[['devourer',2],['warden',3],['rifter',5]],[['devourer',3],['sentinel',3],['warden',3]]],xp:6000,cash:60000,cores:20},
+ {w2:true,w3:true,bossKey:'monarch',boss:true,final:true,name:'Final Boss: The Void Monarch',pos:[0,150],desc:'The ruler of the Void Realm. Five phases. Unlocks the Singularity Cataclysm ultimate.',xp:12000,cash:150000,cores:80}
+];
+const REMATCH3={w2:true,w3:true,bossKey:'monarch',boss:true,final:true,rematch:true,name:'Void Monarch — Rematch',pos:[0,150],desc:'The Void Monarch has returned!',xp:4000,cash:50000,cores:30};
+
+const curML=()=>realm3?MISSIONS3:(world===2?MISSIONS2:MISSIONS);
+const curMI=()=>realm3?save.w3m:(world===2?save.w2m:save.mission);
 const REMATCH={name:'Baron Blackout',pos:[-150,150],desc:'Baron Blackout has returned for a rematch!',boss:true,rematch:true,xp:500,cash:1500};
 function makeMarker(color){const g=new THREE.Group();
  const beam=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.2,70,16,1,true),new THREE.MeshBasicMaterial({color,transparent:true,opacity:0.28,side:THREE.DoubleSide,depthWrite:false,fog:false}));beam.position.y=35;
@@ -1447,7 +1492,7 @@ const mainMarker=makeMarker(0xffd84a),evMarker=makeMarker(0xff7a2a);
 let act=null,ev=null,evTimer=40;
 function mkAct(def,main,pos){return{def,main,pos:pos?V3(pos.x,0,pos.z):V3(def.pos[0],0,def.pos[1]),state:'pending',wave:0,enemies:[],civs:[],lost:0,t:def.limit||0,age:0,immediate:false};}
 function nextMission(){
- const L=curML(),i=curMI();act=mkAct(i<L.length?L[i]:(world===2?REMATCH2:REMATCH),true);
+ const L=curML(),i=curMI();act=mkAct(i<L.length?L[i]:(realm3?REMATCH3:world===2?REMATCH2:REMATCH),true);
  toast(i<L.length?'NEW MISSION':'BOSS REMATCH',act.def.name,'');
 }
 function spawnWave(a){
@@ -1480,11 +1525,11 @@ function completeAct(a){
  a.enemies.forEach(e=>{if(!e.dead&&!e.boss){e.nr=true;killEnemy(e);}});
  const civList=a.civs.slice();setTimeout(()=>civList.forEach(removeCiv),3500);
  if(a.main){
-  if(d.w2){if(!d.rematch)save.w2m++;if(d.final)save.w2boss=true;}
+  if(d.w3){if(!d.rematch)save.w3m++;if(d.final)save.w3boss=true;}else if(d.w2){if(!d.rematch)save.w2m++;if(d.final)save.w2boss=true;}
   else{if(!d.rematch)save.mission++;if(d.boss)save.boss=true;}
   writeSave();
   if(d.final||(d.boss&&!d.w2))setTimeout(()=>{if(state==='play')winGame(!!d.w2);},3200);
-  setTimeout(()=>{if(act===a)nextMission();},(d.final||(d.boss&&!d.w2))?9000:4200);
+  setTimeout(()=>{if(act===a)nextMission();},(d.final||(d.boss&&!d.w2&&!d.w3))?9000:4200);
  }else{ev=null;evTimer=rand(45,80);writeSave();}
 }
 function updateAct(a,dt){
@@ -1540,8 +1585,8 @@ function updateAmbient(dt){
  let n=0;for(const e of enemies)if(!e.act&&!e.dead&&!e.fixed)n++;
  if(n>=cap)return;
  const s=freeSpot(hero.pos.x,hero.pos.z,45,85);if(!s||Math.hypot(s.x,s.z+128)<28||inHaven(s,12))return;
- if(world===2){const r=Math.random(),t=r<0.45?'raider':r<0.7?'marksman':r<0.85?'bomber':'brute';spawnEnemy(t,s.x,s.z,null);
-  for(let k=0;k<2&&t!=='brute';k++){if(Math.random()<0.6){const s2=freeSpot(s.x,s.z,2,5);if(s2)spawnEnemy(Math.random()<0.6?'raider':'marksman',s2.x,s2.z,null);}}
+ if(world===2){const r=Math.random(),t=realm3?(r<0.3?'voidling':r<0.55?'rifter':r<0.75?'sentinel':r<0.9?'devourer':'warden'):(r<0.45?'raider':r<0.7?'marksman':r<0.85?'bomber':'brute');spawnEnemy(t,s.x,s.z,null);
+  for(let k=0;k<2&&t!=='brute'&&t!=='devourer'&&t!=='warden'&&t!=='sentinel';k++){if(Math.random()<0.6){const s2=freeSpot(s.x,s.z,2,5);if(s2)spawnEnemy(realm3?(Math.random()<0.6?'voidling':'rifter'):(Math.random()<0.6?'raider':'marksman'),s2.x,s2.z,null);}}
   return;}
  const r=Math.random(),t=r<0.6?'thug':r<0.9?'shooter':(save.level>=4?'elite':'thug');
  spawnEnemy(t,s.x,s.z,null);
@@ -1710,7 +1755,7 @@ function updateWorldFX(dt){
 const W2_LV=12;
 const w2Unlocked=()=>save.level>=W2_LV&&save.boss;
 let shopSel=null,shopTab='all',prev=null,prevRun=false,prevLast=0,menuFrom='base',worldWarn=false;
-const RBG={common:'rgba(120,130,150,.22)',rare:'rgba(59,155,255,.24)',legendary:'rgba(194,107,255,.26)',godly:'rgba(255,64,64,.28)'};
+const RBG={common:'rgba(120,130,150,.22)',rare:'rgba(59,155,255,.24)',legendary:'rgba(194,107,255,.26)',godly:'rgba(255,64,64,.28)',infinity:'rgba(127,232,255,.3)'};
 const rcss=r=>'--rc:'+RARITY[r].col+';--rbg:'+RBG[r];
 const hexs=c=>'#'+c.toString(16).padStart(6,'0');
 const fmt=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,',');
@@ -1748,13 +1793,13 @@ function previewSet(id){
  prev.model=makeHuman(lookOf(id,prevSkin));prev.sc.add(prev.model.g);prev.id=id;
  const sc=H.look.scale;prev.cm.position.set(0,1.25*sc+0.25,4.2+sc*2.9);prev.cm.lookAt(0,1.05*sc+0.2,0);
  const R=RARITY[H.rarity];prev.rg.material.color.set(R.hex);prev.rg.scale.setScalar(sc*1.15);
- prev.sparks.forEach((s,i)=>{s.m.visible=H.rarity==='legendary'||H.rarity==='godly'||(H.rarity==='rare'&&i<6);s.m.material.color.set(H.rarity==='godly'||H.rarity==='legendary'?(i%2?R.gold:R.hex):R.hex);});
+ prev.sparks.forEach((s,i)=>{s.m.visible=H.rarity==='legendary'||H.rarity==='godly'||H.rarity==='infinity'||(H.rarity==='rare'&&i<6);s.m.material.color.set(H.rarity==='godly'||H.rarity==='legendary'||H.rarity==='infinity'?(i%2?R.gold:R.hex):R.hex);});
 }
 function previewLoop(now){
  if(!prevRun||!prev)return;requestAnimationFrame(previewLoop);
  const dt=Math.min(0.05,(now-prevLast)/1000||0.016);prevLast=now;prev.t+=dt;
  if(prev.model){prev.model.g.rotation.y+=dt*0.9;animHuman(prev.model,prev.t*1.5,0,0,0);prev.model.body.position.y=0.9+Math.sin(prev.t*2)*0.015;
-  const sc=prev.H.look.scale;prev.rg.rotation.z+=dt*(prev.H.rarity==='godly'?2.5:1);
+  const sc=prev.H.look.scale;prev.rg.rotation.z+=dt*(prev.H.rarity==='godly'||prev.H.rarity==='infinity'?2.5:1);
   prev.sparks.forEach(s=>{s.a+=dt*s.s;s.m.position.set(Math.cos(s.a)*0.95*sc,(s.h*0.7+prev.t*0.4*s.s)%(2.2*sc)+0.1,Math.sin(s.a)*0.95*sc);});}
  prev.r.render(prev.sc,prev.cm);
 }
@@ -1765,7 +1810,8 @@ function openShop(){
  if(state!=='play'&&state!=='menu')return;state='menu';menuFrom='base';clearInput();releaseLock();
  shopSel=shopSel&&HERO_BY_ID[shopSel]?shopSel:save.hero;renderShop();show('shopScr',true);startPreview();
 }
-function closeShop(){stopPreview();show('shopScr',false);renderBase();show('baseScr',true);}
+let shopDirect=false;
+function closeShop(){stopPreview();show('shopScr',false);if(shopDirect){shopDirect=false;state='play';clearInput();requestLock();}else{renderBase();show('baseScr',true);}}
 function renderShop(){
  const list=HEROES.slice().sort((a,b)=>RARITY[a.rarity].order-RARITY[b.rarity].order||a.price-b.price).filter(h=>shopTab==='all'||ownsHero(h.id));
  if(!list.find(h=>h.id===shopSel)&&list.length)shopSel=list[0].id;
@@ -1812,7 +1858,7 @@ function renderWorlds(){
   (world===1?'<button class="btn alt" disabled style="margin-top:8px">You are here</button>':'<button class="btn" data-w="1" style="margin-top:8px">Return to World 1</button>')+'</div>';
  h+='<div class="wcard w2"><h3 style="color:#ff7a5a">WORLD 2 — THE APOCALYPSE</h3><div class="diff" style="color:#ff7a5a">Difficulty: ☠☠☠☠☠ EXTREME</div><div style="font-size:13px;opacity:.9">A ruined, burning city. Lava, mini-bosses, huge hordes and Lord Calamity. Best cash and XP, exclusive ◆ cores needed for Godly heroes.</div>'+
   '<div class="req '+(lvOk?'ok':'no')+'">'+(lvOk?'✔':'✘')+' Reach level '+W2_LV+' (you are level '+save.level+')</div><div class="req '+(bossOk?'ok':'no')+'">'+(bossOk?'✔':'✘')+' Defeat Baron Blackout in World 1</div>';
- if(world===2)h+='<button class="btn alt" disabled style="margin-top:8px">You are here</button>';
+ if(world===2&&!realm3)h+='<button class="btn alt" disabled style="margin-top:8px">You are here</button>';
  else if(!ok)h+='<button class="btn alt" disabled style="margin-top:8px">🔒 LOCKED</button>';
  else if(!worldWarn)h+='<button class="btn red" data-w="warn" style="margin-top:8px">ENTER THE APOCALYPSE</button>';
  else h+='<div class="warn"><b>⚠ WARNING — EXTREME DANGER</b><br>• Enemies have far more health, hit much harder and swarm you in groups.<br>• Lava burns, mini-bosses roam and Lord Calamity rules the throne.<br>• Recommended: level 15 and a Rare+ hero.<br>• You arrive at the safe Sanctuary; checkpoints (cyan beacons) set your respawn point.<br>• You can leave any time through the portal in the Sanctuary.</div><button class="btn red" data-w="2">I understand — ENTER</button><button class="btn alt" data-w="cancel">Cancel</button>';
@@ -1822,7 +1868,7 @@ function renderWorlds(){
 $('worldPanel').addEventListener('click',e=>{
  const w=e.target.dataset&&e.target.dataset.w;if(!w)return;
  if(w==='close')closeWorlds();else if(w==='warn'){worldWarn=true;renderWorlds();sfx.denied();}else if(w==='cancel'){worldWarn=false;renderWorlds();}
- else if(w==='1'||w==='2')enterWorld(+w);
+ else if(w==='1'||w==='2'||w==='3')enterWorld(+w);
 });
 function usePortal(){if(world===1)openWorlds('portal');else enterWorld(1);}
 function enterWorld(n){
@@ -1892,7 +1938,7 @@ const UPS=[['hp','Max Health','+20 max HP per rank'],['dmg','Damage','+12% damag
 const upCost=n=>Math.round(100*Math.pow(n+1,1.5)/10)*10;
 function renderBase(){
  const need=save.level>=MAXLV?'MAX':save.xp+' / '+xpNeed(save.level);
- let h='<h2>'+(world===2?'🛡 SANCTUARY':'🏠 HERO BASE')+'</h2><div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px"><button class="btn sm" data-act="shop">🦸 Hero Shop &amp; Collection</button><button class="btn sm" data-act="skins">🎨 Skins</button><button class="btn sm" data-act="ults">⚡ Ultimate Moves</button><button class="btn sm" data-act="worlds">🌍 World Portal</button></div><div class="card"><b>Level '+save.level+'</b> &nbsp; XP '+need+' &nbsp; <b style="color:#7dff9a">$'+fmt(save.cash)+'</b> &nbsp; <b style="color:#ff9ad0">◆ '+save.cores+'</b> &nbsp; Hero: <b>'+curHero().name+'</b> &nbsp; Max HP '+maxHP()+' · Energy '+maxEN()+' · Damage ×'+dmgMul().toFixed(2)+'</div><div class="cols"><div><b>UPGRADES</b>';
+ let h='<h2>'+(world===2?'🛡 SANCTUARY':'🏠 HERO BASE')+'</h2><div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px"><button class="btn sm" data-act="shop">🦸 Hero Shop &amp; Collection</button><button class="btn sm" data-act="ults">⚡ Ultimate Moves</button><button class="btn sm" data-act="worlds">🌍 World Portal</button></div><div class="card"><b>Level '+save.level+'</b> &nbsp; XP '+need+' &nbsp; <b style="color:#7dff9a">$'+fmt(save.cash)+'</b> &nbsp; <b style="color:#ff9ad0">◆ '+save.cores+'</b> &nbsp; Hero: <b>'+curHero().name+'</b> &nbsp; Max HP '+maxHP()+' · Energy '+maxEN()+' · Damage ×'+dmgMul().toFixed(2)+'</div><div class="cols"><div><b>UPGRADES</b>';
  UPS.forEach(([k,n,d])=>{const r=save.up[k],max=r>=5,c=upCost(r);let pips='';for(let i=0;i<5;i++)pips+='<i class="'+(i<r?'on':'')+'"></i>';
   h+='<div class="up"><div class="nm">'+n+'<small>'+d+'</small><div class="pips">'+pips+'</div></div><button class="btn sm" data-buy="'+k+'" '+(max||save.cash<c?'disabled':'')+'>'+(max?'MAX':'$'+c)+'</button></div>';});
  h+='<button class="btn alt" id="bHeal" style="margin-top:10px">Heal &amp; Recharge (free)</button></div><div><b>ABILITIES</b>';
@@ -1937,7 +1983,7 @@ addEventListener('keydown',e=>{
  keys[e.code]=true;
  if(e.code==='Space'){input.jump=true;jumpPress();}
  else if(e.code==='Digit1')usePower(1);else if(e.code==='Digit2')usePower(2);else if(e.code==='Digit3')usePower(3);
- else if(e.code==='KeyE'){if(nearPortal())usePortal();else if(nearBase())openBase();}
+ else if(e.code==='KeyE'){if(nearPortal())usePortal();else if(nearShop()&&world===1)openShopDirect();else if(nearBase())openBase();}
  else if(e.code==='KeyC')input.walkT=!input.walkT;else if(e.code==='KeyR'||e.code==='KeyQ')useUlt();
 });
 addEventListener('keyup',e=>{keys[e.code]=false;if(e.code==='Space')input.jump=false;});
@@ -1969,7 +2015,7 @@ if(isTouch){
  bind($('tJump'),()=>{input.jump=true;jumpPress();},()=>{input.jump=false;});
  bind($('t1'),()=>usePower(1));bind($('t2'),()=>usePower(2));bind($('t3'),()=>usePower(3));bind($('tUlt'),()=>useUlt());
  bind($('tSprint'),()=>{input.sprintT=!input.sprintT;$('tSprint').classList.toggle('on',input.sprintT);});
- bind($('tBase'),()=>{if(nearBase())openBase();});
+ bind($('tBase'),()=>{if(nearShop()&&world===1)openShopDirect();else if(nearBase())openBase();});
  bind($('tPortal'),()=>{if(nearPortal())usePortal();});
  $('pauseBtn').addEventListener('pointerdown',e=>{e.preventDefault();pauseGame();});
 }
@@ -2014,9 +2060,9 @@ function updateHUD(dt){
  }
  if(act&&act.state==='pending')arrowT=act.pos;
  const ar=$('objArrow');if(ar){ar.style.visibility=arrowT?'visible':'hidden';if(arrowT)ar.style.transform='rotate('+dirArrow(arrowT)+'rad)';}
- const nb=nearBase()&&state==='play',np=nearPortal()&&state==='play';
- const pr=$('prompt');if(!isTouch){pr.style.display=(nb||np)?'block':'none';pr.textContent=np?(world===2?'Press E — Return to the City (World 1)':'Press E — World Portal'):('Press E — '+(world===2?'Sanctuary':'Hero Base'));}
- if(isTouch){$('tBase').style.display=nb&&!np?'block':'none';$('tPortal').style.display=np?'block':'none';$('tPortal').textContent=world===2?'🌀 RETURN TO CITY':'🌀 WORLD PORTAL';}
+ const nb=nearBase()&&state==='play',np=nearPortal()&&state==='play',ns=nearShop()&&state==='play'&&world===1;
+ const pr=$('prompt');if(!isTouch){pr.style.display=(nb||np||ns)?'block':'none';pr.textContent=ns?'Press E — Hero Shop':np?(world===2?'Press E — Return to the City (World 1)':'Press E — World Portal'):('Press E — '+(world===2?'Sanctuary':'Hero Base'));}
+ if(isTouch){$('tBase').style.display=(nb||ns)&&!np?'block':'none';$('tBase').textContent=ns?'🛒 HERO SHOP':'🏠 HERO BASE';$('tPortal').style.display=np?'block':'none';$('tPortal').textContent=world===2?'🌀 RETURN TO CITY':'🌀 WORLD PORTAL';}
 }
 const mmc=$('minimap').getContext('2d');
 function drawMinimap(){
@@ -2039,7 +2085,8 @@ function drawMinimap(){
 /* ===== UPDATE: SKINS / ULTIMATES / VOID SOVEREIGN LOGIC ===== */
 let ultCtx=false,skinSel='default',skinTab='shop';const ultFx=[];
 hero.uc=0;
-const curUlt=()=>ULT_BY_ID[save.ult]||null;
+const DOM={id:'domain',name:'Starless Dominion',icon:'🌌',cd:90,R:30};
+const curUlt=()=>save.hero==='voidsov'?DOM:(ULT_BY_ID[save.ult]||null);
 const _he=hitEnemy;
 hitEnemy=function(e,dmg,kb,pow,col,big){
  if(ultCtx&&e.boss)dmg=Math.min(dmg,e.hpMax*0.07);
@@ -2052,6 +2099,16 @@ function uDrop(m){const i=ultFx.indexOf(m);if(i>=0)ultFx.splice(i,1);scene.remov
 ABIL.guard=function(n,P){const o=P.o;hero.buff={name:'SPATIAL GUARD',t:o.dur,dur:o.dur,dr:o.dr,unstop:true,col:0x6fd0ff};banner('SPATIAL GUARD');sfx.lvl();ring(hero.pos,5,0x6fd0ff,0.6);emit(heroChest(),30,0x6fd0ff,7,0.25,0.8,0,2);hero.atkAnim=1;return true;};
 const shieldM=new THREE.Mesh(new THREE.IcosahedronGeometry(2.3,1),new THREE.MeshBasicMaterial({color:0x6fd0ff,transparent:true,opacity:0.25,wireframe:true,fog:false,depthWrite:false}));shieldM.visible=false;scene.add(shieldM);
 const UCAST={
+ domain(u){
+  const c=V3(hero.pos.x,hero.pos.y+1.5,hero.pos.z),R=u.R,m=uMesh(0x05020f,0.78),m2=uMesh(0xb04bff,0.16);m.material.side=THREE.BackSide;m.position.copy(c);m2.position.copy(c);
+  hero.inv=Math.max(hero.inv,2.4);ring(hero.pos,R,0xb04bff,1.4,0.2);ring(hero.pos,R*0.6,0xffffff,1.4,0.4);
+  for(let i=1;i<=12;i++){const k=i;schedule(k*0.08,()=>{m.scale.setScalar(R*k/12);m2.scale.setScalar(R*k/12*1.02);emit(V3(c.x+rand(-R,R)*0.7,c.y+rand(-3,R*0.5),c.z+rand(-R,R)*0.7),5,0xffffff,0.5,0.1,1,0);});}
+  for(let i=0;i<8;i++)schedule(0.5+i*0.12,()=>emit(V3(c.x+rand(-R,R)*0.8,c.y+rand(0,R*0.6),c.z+rand(-R,R)*0.8),6,0xb04bff,3,0.2,0.8,0));
+  schedule(1.4,()=>{for(const e of enemies.slice()){if(e.dead||Math.hypot(e.pos.x-c.x,e.pos.z-c.z)>R)continue;
+    if(e.boss){_he(e,e.hpMax*(realm3?0.2:0.35),0,2,0xb04bff,true);e.stun=Math.max(e.stun,2.5);}else _he(e,e.hp+99999,0,2,0xb04bff,true);}
+   ring(hero.pos,R,0xffffff,0.6,0.5);emit(c,120,0xb04bff,26,0.7,1.4,0,3);emit(c,60,0xffffff,18,0.5,1,0);sfx.boom();shake=2.4;});
+  schedule(2.4,()=>{uDrop(m);uDrop(m2);});
+ },
  meteor(u,D){
   const t=pickTarget(60),f=camForward(),tp=t?V3(t.pos.x,0,t.pos.z):V3(hero.pos.x+f.x*18,0,hero.pos.z+f.z*18);
   tp.x=clamp(tp.x,-EXT+3,EXT-3);tp.z=clamp(tp.z,-EXT+3,EXT-3);
@@ -2075,6 +2132,7 @@ const UCAST={
    ring(p,3.8,0xfff06a,0.3,0.2);lineFx(V3(p.x,36,p.z),V3(p.x,1,p.z),0xfff06a,16);lineFx(V3(p.x,36,p.z),V3(p.x,1,p.z),0xffffff,8);
    emit(V3(p.x,1,p.z),20,0xfff06a,9,0.35,0.5,0);uArea(p.x,0,p.z,3.8,D,8,{stun:0.6});sfx.boom();shake=Math.max(shake,0.5);});
  },
+ singularity(u,D){UCAST.collapse({R:u.R},D);schedule(1.7,()=>UCAST.breaker({R:u.R*0.8},D));},
  breaker(u,D){
   const c=V3(hero.pos.x,hero.pos.y,hero.pos.z);
   for(let k=0;k<4;k++)ring(c,u.R*(0.4+k*0.2),0xff6a2a,0.9,0.2);
@@ -2096,7 +2154,6 @@ function useUlt(){
  hero.uc=0;hero.inv=Math.max(hero.inv,1.2);hero.atkAnim=1;hero.castT=0.6;
  banner(u.name.toUpperCase());sfx.lvl();
  UCAST[u.id](u,u.dmg*dmgMul());
- if(save.hero==='voidsov')domainFx();
 }
 const _ua=updateAbilities;
 updateAbilities=function(dt){_ua(dt);
@@ -2162,7 +2219,7 @@ $('skinPanel').addEventListener('click',e=>{let t=e.target;while(t&&t!==$('skinP
  else if(d.skeq){equipSkin(d.skeq==='default'?null:d.skeq);renderSkins();}
  else if(d.close)closeSkins();});
 /* ---- ultimates ---- */
-function ultReqOk(u){return save.level>=u.lv&&(!u.w2m||save.w2m>=u.w2m);}
+function ultReqOk(u){return save.level>=u.lv&&(!u.w2m||save.w2m>=u.w2m)&&(!u.w3boss||save.w3boss);}
 function buyUlt(id){const u=ULT_BY_ID[id];if(!u||save.ults.includes(id))return false;
  if(!ultReqOk(u)){sfx.denied();toast('Requirements not met',u.reqTxt||('Reach level '+u.lv),'bad');return false;}
  if(!(save.cash>=u.price)){sfx.denied();toast('Not enough cash','Need $'+fmt(u.price-save.cash)+' more.','bad');return false;}
@@ -2171,7 +2228,7 @@ function equipUlt(id){if(!save.ults.includes(id))return false;save.ult=id;hero.u
 function openUlts(){if(state!=='play'&&state!=='menu')return;state='menu';menuFrom='base';clearInput();releaseLock();renderUlts();show('ultScr',true);}
 function closeUlts(){show('ultScr',false);renderBase();show('baseScr',true);}
 function renderUlts(){
- let h='<h2>⚡ ULTIMATE MOVES</h2><div class="small" style="text-align:center;margin:0 0 8px">Unlocked ultimates work with <b>any hero</b>. Equip one at a time. Press <b>R</b> (or the ULT button) when the meter is full. The meter charges over time and by fighting. Bosses resist ultimate damage.</div><div class="card"><b style="color:#7dff9a">$'+fmt(save.cash)+'</b> &nbsp; Level '+save.level+' &nbsp; Damage ×'+dmgMul().toFixed(2)+'</div>';
+ let h='<h2>⚡ ULTIMATE MOVES</h2><div class="small" style="text-align:center;margin:0 0 8px">Unlocked ultimates work with <b>any hero</b>. Equip one at a time. Press <b>R</b> (or the ULT button) when the meter is full. (Void Sovereign always uses his own Starless Dominion instead.) The meter charges over time and by fighting. Bosses resist ultimate damage.</div><div class="card"><b style="color:#7dff9a">$'+fmt(save.cash)+'</b> &nbsp; Level '+save.level+' &nbsp; Damage ×'+dmgMul().toFixed(2)+'</div>';
  ULTS.forEach(u=>{const o=save.ults.includes(u.id),eq=save.ult===u.id,ok=ultReqOk(u);
   h+='<div class="wcard"><h3>'+u.icon+' '+u.name+(eq?' <span style="color:#ffd84a">· EQUIPPED</span>':'')+'</h3><div style="font-size:13px;opacity:.9">'+u.desc+'</div><div class="req">Damage ~'+Math.round(u.dmg*dmgMul())+' · Radius '+u.R+'m · Full charge '+u.cd+'s</div>';
   if(!o){h+='<div class="req '+(save.level>=u.lv?'ok':'no')+'">'+(save.level>=u.lv?'✔':'✘')+' Level '+u.lv+'</div>'+(u.w2m?'<div class="req '+(save.w2m>=u.w2m?'ok':'no')+'">'+(save.w2m>=u.w2m?'✔':'✘')+' '+u.reqTxt+'</div>':'')+'<button class="btn" style="margin-top:6px" data-ub="'+u.id+'" '+(!ok||save.cash<u.price?'disabled':'')+'>UNLOCK — $'+fmt(u.price)+'</button>';}
@@ -2182,6 +2239,89 @@ function renderUlts(){
 }
 $('ultPanel').addEventListener('click',e=>{const d=e.target.dataset;if(!d)return;
  if(d.ub){buyUlt(d.ub);renderUlts();}else if(d.ue){equipUlt(d.ue);renderUlts();}else if(d.close)closeUlts();});
+
+
+/* ===== WALK-IN HERO SHOP (World 1) ===== */
+const SHOP_X=-22,SHOP_Z=-128,shopG=new THREE.Group();
+const nearShop=()=>Math.hypot(hero.pos.x-(SHOP_X+8),hero.pos.z-SHOP_Z)<4.5&&hero.pos.y<8;
+function openShopDirect(){if(state!=='play')return;shopDirect=true;openShop();menuFrom='shop';}
+(function(){
+ const bx=(w,h,d,c,x,y,z,basic)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),basic?new THREE.MeshBasicMaterial({color:c}):new THREE.MeshLambertMaterial({color:c}));m.position.set(x,y,z);shopG.add(m);return m;};
+ bx(14,0.3,12,0x2a2f3a,0,0.15,0);bx(0.6,6,12,0x1f4f8a,-6.7,3,0);bx(14,6,0.6,0x1f4f8a,0,3,-5.7);bx(14,6,0.6,0x1f4f8a,0,3,5.7);
+ bx(15,0.7,13,0xd8342a,0,6.4,0);bx(1.6,1.3,9,0x8a5a2a,3,0.8,0);bx(1.7,0.2,9.2,0xd8b878,3,1.5,0);
+ [[-6.5,-5.5],[-6.5,5.5],[6.5,-5.5],[6.5,5.5]].forEach(q=>bx(0.5,6,0.5,0xcfd6e0,q[0],3,q[1]));
+ [0xff4a4a,0xffd84a,0x4fd8ff,0xb04bff,0x7dff9a].forEach((c,i)=>{const cy=new THREE.Mesh(new THREE.CylinderGeometry(0.55,0.55,1.6,12),new THREE.MeshBasicMaterial({color:c}));cy.position.set(-6.1,3.2,-4+i*2);shopG.add(cy);bx(0.5,0.15,1.4,0xcfd6e0,-6.0,2.3,-4+i*2);});
+ for(let i=0;i<7;i++)bx(0.12,0.9,13,i%2?0xffffff:0xd8342a,6.8,5.7,0).scale.set(1,1,1);
+ const sg=new THREE.Mesh(new THREE.PlaneGeometry(11,2.6),new THREE.MeshBasicMaterial({map:canvasTex(512,128,(g,w,h)=>{g.fillStyle='#0a1a38';g.fillRect(0,0,w,h);g.strokeStyle='#ffd84a';g.lineWidth=6;g.strokeRect(6,6,w-12,h-12);g.fillStyle='#ffd84a';g.font='bold 62px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('🛒 HERO SHOP',w/2,h/2+4);}),side:THREE.DoubleSide}));
+ sg.position.set(7.2,8.2,0);sg.rotation.y=Math.PI/2;shopG.add(sg);
+ const mk=new THREE.Mesh(new THREE.RingGeometry(2.8,3.6,32),new THREE.MeshBasicMaterial({color:0xffd84a,side:THREE.DoubleSide}));mk.rotation.x=-Math.PI/2;mk.position.set(8,0.12,0);shopG.add(mk);
+ shopG.position.set(SHOP_X,0,SHOP_Z);scene.add(shopG);
+})();
+const _uh2=updateHUD;updateHUD=function(dt){_uh2(dt);shopG.visible=world===1;};
+
+
+/* ===== WORLD 3: THE VOID REALM — LOGIC ===== */
+WORLD_NAMES[3]='THE VOID REALM';
+const w3g=new THREE.Group();w3g.visible=false;scene.add(w3g);
+(function(){
+ const rr=mulberry(333),R=(a,b)=>a+rr()*(b-a);
+ const rock=new THREE.MeshLambertMaterial({color:0x1c1636}),top=new THREE.MeshLambertMaterial({color:0x2e2458}),glow=c=>new THREE.MeshBasicMaterial({color:c,fog:false});
+ for(let i=0;i<16;i++){const a=R(0,TAU),d=R(70,200),y=R(18,60),sc=R(0.7,1.8),g=new THREE.Group();
+  const cone=new THREE.Mesh(new THREE.ConeGeometry(9*sc,16*sc,7),rock);cone.rotation.x=Math.PI;cone.position.y=-8*sc;
+  const disc=new THREE.Mesh(new THREE.CylinderGeometry(9*sc,9*sc,1.6,7),top);
+  g.add(cone,disc);
+  for(let k=0;k<3;k++){const cr=new THREE.Mesh(new THREE.ConeGeometry(0.8*sc,R(3,6)*sc,5),glow(k%2?0xb04bff:0x4fd8ff));cr.position.set(R(-5,5)*sc,2.5*sc,R(-5,5)*sc);cr.rotation.z=R(-0.4,0.4);g.add(cr);}
+  g.position.set(Math.cos(a)*d,y,Math.sin(a)*d);g.userData.by=y;g.userData.ph=R(0,6);w3g.add(g);}
+ for(let i=0;i<22;i++){const a=R(0,TAU),d=R(40,190),m=new THREE.Mesh(new THREE.BoxGeometry(R(1.5,3),R(8,18),R(1.5,3)),rock);
+  m.position.set(Math.cos(a)*d,R(12,45),Math.sin(a)*d);m.rotation.set(R(-0.6,0.6),R(0,TAU),R(-0.6,0.6));m.userData.by=m.position.y;m.userData.ph=R(0,6);w3g.add(m);}
+ [[0,95,175,60],[-120,70,120,36],[130,80,90,40]].forEach(q=>{const t=new THREE.Mesh(new THREE.TorusGeometry(q[3],2.4,8,48),glow(0xb04bff));t.position.set(q[0],q[1],q[2]);t.rotation.x=Math.PI/2.4;w3g.add(t);
+  const c=new THREE.Mesh(new THREE.SphereGeometry(q[3]*0.55,16,12),glow(0x05020f));c.position.copy(t.position);w3g.add(c);});
+})();
+const _sw=setWorld;
+setWorld=function(n){
+ realm3=n===2&&!!save.r3&&w3Unlocked();save.r3=realm3;_sw(n);
+ w3g.visible=realm3;
+ const g0=w2g.children[0],g1=w2g.children[1];if(g0&&g0.material)g0.material.color.setHex(realm3?0x120c24:0x1b1514);if(g1&&g1.material)g1.material.color.setHex(realm3?0x08040f:0x120a09);
+ if(realm3){hemi.color.setHex(0x8a6bff);hemi.groundColor.setHex(0x120a30);sunMesh.material.color.setHex(0xb04bff);scene.fog.near=25;scene.fog.far=170;}
+};
+const _ew=enterWorld;
+enterWorld=function(n){
+ if(n===3){if(!w3Unlocked()){sfx.denied();return;}save.r3=true;_ew(2);banner('THE VOID REALM');toast('THE VOID REALM','Floating islands, elite enemies and the Void Monarch await.','bad');return;}
+ save.r3=false;_ew(n);
+};
+const _uw=updateWorldFX;
+updateWorldFX=function(dt){_uw(dt);if(!realm3||world!==2)return;
+ const t=performance.now()*0.001;lavaMat.color.setRGB(0.5+0.15*Math.sin(t*2),0.12,1);
+ if(Math.random()<dt*14)emit(V3(hero.pos.x+rand(-25,25),rand(1,18),hero.pos.z+rand(-25,25)),1,Math.random()<0.5?0xb04bff:0x4fd8ff,1,0.2,2.5,-1,3);
+ w3g.children.forEach(o=>{if(o.userData.by!==undefined)o.position.y=o.userData.by+Math.sin(t*0.5+o.userData.ph)*1.6;});
+};
+let rupT=0;
+const _ua3=updateAbilities;
+updateAbilities=function(dt){_ua3(dt);
+ if(!realm3||!boss||boss.dead||!boss.bd||boss.bd.name!=='THE VOID MONARCH'||boss.phase<3){rupT=3;return;}
+ rupT-=dt;if(rupT>0)return;rupT=Math.max(3.5,9-boss.phase*1.2);
+ for(let i=0;i<boss.phase-1;i++){const a=rand(0,TAU),rd=i?rand(4,16):0,pt=V3(hero.pos.x+Math.cos(a)*rd,0,hero.pos.z+Math.sin(a)*rd);
+  ring(pt,5,0xb04bff,1.3,0.2);ring(pt,3,0xffffff,1.3,0.4);
+  schedule(1.3,()=>{emit(V3(pt.x,1,pt.z),40,0xb04bff,12,0.5,0.9,4,3);sfx.boom();shake=Math.max(shake,0.8);
+   if(!hero.dead&&Math.hypot(hero.pos.x-pt.x,hero.pos.z-pt.z)<5&&hero.pos.y<4)hurtHero(70*boss.bd.dm,pt,true);});}
+ feed('⚠ VOID RUPTURE — MOVE!','#b04bff');
+};
+const _uh3=updateHUD;
+updateHUD=function(dt){_uh3(dt);const wt=$('worldTag'),tx=realm3?'THE VOID REALM':WORLD_NAMES[world];if(wt.textContent!==tx)wt.textContent=tx;};
+const _rw=renderWorlds;
+let worldWarn3=false;
+renderWorlds=function(){_rw();
+ const ok=w3Unlocked(),lv=save.level>=W3_LV,bo=!!save.w2boss;
+ let h='<div class="wcard" style="border-color:#b04bff"><h3 style="color:#c08cff">WORLD 3 — THE VOID REALM</h3><div class="diff" style="color:#c08cff">Difficulty: ☠☠☠☠☠☠ ENDGAME</div><div style="font-size:13px;opacity:.9">A broken cosmic dimension of floating islands and dark skies. Elite enemies, the Rift Warden and the five-phase Void Monarch. Biggest cash, XP and cores, plus the exclusive Singularity Cataclysm ultimate.</div>'+
+  '<div class="req '+(lv?'ok':'no')+'">'+(lv?'✔':'✘')+' Reach level '+W3_LV+' (you are level '+save.level+')</div><div class="req '+(bo?'ok':'no')+'">'+(bo?'✔':'✘')+' Defeat Lord Calamity in World 2</div>';
+ if(realm3)h+='<button class="btn alt" disabled style="margin-top:8px">You are here</button>';
+ else if(!ok)h+='<button class="btn alt" disabled style="margin-top:8px">🔒 LOCKED</button>';
+ else if(!worldWarn3)h+='<button class="btn red" data-w="w3warn" style="margin-top:8px">ENTER THE VOID REALM</button>';
+ else h+='<div class="warn"><b>⚠ WARNING — ENDGAME DANGER</b><br>• Enemies have far more health and hit much harder than World 2.<br>• Elite Devourers and Wardens, telegraphed Void Ruptures and a five-phase boss.<br>• Recommended: level 15, a Godly hero and upgrades.<br>• Use the Sanctuary beacons as checkpoints.</div><button class="btn red" data-w="3" style="margin-top:8px">⚠ I\'M READY — ENTER</button> <button class="btn alt" data-w="w3cancel">Cancel</button>';
+ h+='</div>';
+ const cb=$('worldPanel').querySelector('[data-w="close"]');if(cb&&cb.parentNode)cb.parentNode.insertAdjacentHTML('beforebegin',h);
+};
+$('worldPanel').addEventListener('click',e=>{const w=e.target.dataset&&e.target.dataset.w;if(w==='w3warn'){worldWarn3=true;renderWorlds();sfx.denied();}else if(w==='w3cancel'){worldWarn3=false;renderWorlds();}});
 
 /* ================= MAIN LOOP ================= */
 let last=performance.now(),saveT=0,gameTime=0;
@@ -2220,7 +2360,7 @@ refreshTitle();
 if(isTouch){$('titleNote').textContent='Tip: rotate your phone to landscape for the best view.';}
 camera.position.set(150,70,0);
 requestAnimationFrame(frame);
-window.__game={curHero,buyHero,equipHero,enterWorld,setWorld,usePortal,openShop,openWorlds,w2Unlocked,get world(){return world;},get beacons(){return beacons.map(b=>[b.x,b.z,b.on]);},get checkpoint(){return checkpoint;},applyHeroModel,heroes:HEROES,BOSSDEF,MISSIONS2,hero,enemies,civs,save,get state(){return state;},set state(v){state=v;},startGame,usePower,get act(){return act;},get ev(){return ev;},get boss(){return boss;},spawnEnemy,cam,addXP,addCash,jumpPress,punch,input,keys,createEvent,MISSIONS,nextMission,updateGame,openBase,pauseGame,buySkin,equipSkin,buyUlt,equipUlt,useUlt,SKINS,ULTS,openSkins,openUlts};
+window.__game={curHero,buyHero,equipHero,enterWorld,setWorld,usePortal,openShop,openWorlds,w2Unlocked,get world(){return world;},get beacons(){return beacons.map(b=>[b.x,b.z,b.on]);},get checkpoint(){return checkpoint;},applyHeroModel,heroes:HEROES,BOSSDEF,MISSIONS2,hero,enemies,civs,save,get state(){return state;},set state(v){state=v;},startGame,usePower,get act(){return act;},get ev(){return ev;},get boss(){return boss;},spawnEnemy,cam,addXP,addCash,jumpPress,punch,input,keys,createEvent,MISSIONS,nextMission,updateGame,openBase,pauseGame,w3Unlocked,buySkin,equipSkin,buyUlt,equipUlt,useUlt,SKINS,ULTS,openSkins,openUlts};
 </script>
 </body>
 </html>
