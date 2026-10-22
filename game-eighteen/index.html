@@ -129,7 +129,7 @@ h2{margin:0 0 10px;font-size:clamp(22px,5vw,38px);letter-spacing:3px}
 @keyframes glowL{from{box-shadow:0 0 5px rgba(194,107,255,.4)}to{box-shadow:0 0 16px rgba(255,216,74,.8)}}
 @keyframes glowG{from{box-shadow:0 0 8px rgba(255,64,64,.5)}to{box-shadow:0 0 22px rgba(255,200,58,.95)}}
 @media (max-width:640px){.hgrid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr))}.hcard .ic{font-size:22px}#prevHold{height:170px}}
-#tUlt{right:3vmin;bottom:49vmin;background:radial-gradient(#ffb24a,#7a2a00)}
+#t4{right:19vmin;bottom:43vmin}#t5{right:35vmin;bottom:37vmin}#tUlt{right:3vmin;bottom:49vmin;background:radial-gradient(#ffb24a,#7a2a00)}
 .pw.ready{box-shadow:0 0 14px 4px #ffd84a;border-color:#ffd84a}
 .panel.ults .wcard{border-color:#ffb24a}.tierTag{font-size:10px;font-weight:bold;letter-spacing:1px}
 </style>
@@ -159,6 +159,8 @@ h2{margin:0 0 10px;font-size:clamp(22px,5vw,38px);letter-spacing:3px}
     <div class="pw" data-p="1"><em>1</em><b>⚡</b><small>Blast</small><div class="cd"></div><div class="lk"></div></div>
     <div class="pw" data-p="2"><em>2</em><b>💨</b><small>Dash</small><div class="cd"></div><div class="lk"></div></div>
     <div class="pw" data-p="3"><em>3</em><b>💥</b><small>Slam</small><div class="cd"></div><div class="lk"></div></div>
+    <div class="pw" data-p="4" style="display:none"><em>4</em><b>🔴</b><small>Ruin</small><div class="cd"></div><div class="lk"></div></div>
+    <div class="pw" data-p="5" style="display:none"><em>5</em><b>🔵</b><small>Anchor</small><div class="cd"></div><div class="lk"></div></div>
     <div class="pw" id="ultBtn" data-u="1" style="border-color:#ffb24a"><em>R</em><b>☄</b><small>ULT</small><div class="cd"></div></div>
   </div>
 </div>
@@ -171,6 +173,8 @@ h2{margin:0 0 10px;font-size:clamp(22px,5vw,38px);letter-spacing:3px}
   <div class="tb pw" id="t1" data-p="1"><b>⚡</b><small>Blast</small><div class="cd"></div><div class="lk"></div></div>
   <div class="tb pw" id="t2" data-p="2"><b>💨</b><small>Dash</small><div class="cd"></div><div class="lk"></div></div>
   <div class="tb pw" id="t3" data-p="3"><b>💥</b><small>Slam</small><div class="cd"></div><div class="lk"></div></div>
+  <div class="tb pw" id="t4" data-p="4" style="display:none"><b>🔴</b><small>Ruin</small><div class="cd"></div><div class="lk"></div></div>
+  <div class="tb pw" id="t5" data-p="5" style="display:none"><b>🔵</b><small>Anchor</small><div class="cd"></div><div class="lk"></div></div>
   <div class="tb pw" id="tUlt" data-u="1"><b>☄</b><small>ULT</small><div class="cd"></div></div>
   <div class="tb" id="tSprint">SPRINT</div>
   <div class="tb" id="tBase">🏠 HERO BASE</div>
@@ -239,7 +243,7 @@ const V3=(x,y,z)=>new THREE.Vector3(x,y,z);
 
 /* ================= SAVE ================= */
 const SAVE_KEY='cityOfHeroes_save_v1';
-const defaultSave=()=>({r3:false,w3m:0,w3boss:false,skins:[],skinEq:{},ults:[],ult:null,v:1,level:1,xp:0,cash:0,up:{hp:0,dmg:0,energy:0,speed:0},mission:0,boss:false,kills:0,sens:1,sound:true,shadows:!isTouch,started:false,heroes:['rookie'],hero:'rookie',cores:0,w2m:0,w2boss:false,world:1});
+const defaultSave=()=>({dom:false,r3:false,w3m:0,w3boss:false,skins:[],skinEq:{},ults:[],ult:null,v:1,level:1,xp:0,cash:0,up:{hp:0,dmg:0,energy:0,speed:0},mission:0,boss:false,kills:0,sens:1,sound:true,shadows:!isTouch,started:false,heroes:['rookie'],hero:'rookie',cores:0,w2m:0,w2boss:false,world:1});
 let save=defaultSave();
 function loadSave(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));if(s&&s.v===1){const d=defaultSave();return Object.assign(d,s,{up:Object.assign(d.up,s.up||{})});}}catch(e){}return null;}
 function writeSave(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(save));}catch(e){}}
@@ -536,13 +540,15 @@ const HEROES=[
    {name:'Quake Stomp',short:'Quake',icon:'🌍',cost:40,cd:7,fn:'slam',o:{R:15,D:110,color:0xff6a2a,stun:1.2,knock:22,waves:3},desc:'Leap and stomp, unleashing three rolling earthquakes that stun and crush.'},
    {name:'Unstoppable Rage',short:'Rampage',icon:'🔥',cost:55,cd:24,fn:'buff',o:{name:'UNSTOPPABLE',dur:12,dmg:2.0,dr:0.5,scale:1.4,unstop:true,spd:1.2,col:0xff4a1a,shock:4.5},desc:'12s unstoppable form: double damage, half damage taken, immune to knockback, earth-shaking punches.'}]}
 ,{id:'voidsov',name:'VOID SOVEREIGN',rarity:'infinity',price:45000,cores:40,hpM:2.3,dmgM:2.3,spdM:1.3,enM:2.4,role:'Untouchable sovereign',
-  blurb:'Untouchable and calm. Press R for his exclusive domain, STARLESS DOMINION: every enemy inside is erased (bosses lose 35% max health). The strongest hero in the game.',
+  blurb:'Untouchable and calm. Buy his exclusive domain, STARLESS DOMINION, in Ultimate Moves: then R erases every enemy inside it (bosses lose a big chunk of max health). The strongest hero in the game.',
   look:{skin:0xf2d8c0,shirt:0x111111,sleeve:0x111111,pants:0xf4f4f4,boot:0xe8e8e8,belt:0x050505,hair:0xffffff,visor:0x9a5cff,glow:true,wide:1.3,scale:1.2},
   punch:{cd:0.28,dmg:1.2,reach:2.9,knock:1.1,quake:0},
   powers:[
    {name:'Violet Singularity',short:'Violet',icon:'🟣',cost:28,cd:1.5,fn:'bolt',o:{dmg:230,speed:42,r:1.5,color:0xb04bff,aoe:9.5,life:2,slow:2.5,pierce:true},desc:'Fire a huge purple singularity that tears through enemies and detonates at the end of its flight.'},
    {name:'Spatial Guard',short:'Guard',icon:'🛡',cost:26,cd:10,fn:'guard',o:{dur:7,dr:0.93},desc:'Fold space into a barrier for 7s: take 93% less damage and ignore knockback.'},
-   {name:'Rift Step',short:'Rift',icon:'🌌',cost:14,cd:2,fn:'blink',o:{dist:26,dmg:60,r:6,color:0x4fd8ff},desc:'Instantly teleport a short distance, jolting enemies at both ends.'}]}
+   {name:'Rift Step',short:'Rift',icon:'🌌',cost:14,cd:2,fn:'blink',o:{dist:26,dmg:60,r:6,color:0x4fd8ff},desc:'Instantly teleport a short distance, jolting enemies at both ends.'},
+   {name:'Ruin Burst',short:'Ruin',icon:'🔴',cost:34,cd:5,fn:'ruin',o:{dmg:210,r:11},desc:'Fire a crimson sphere that detonates on impact and hurls enemies away. (key 4)'},
+   {name:'Anchor Orb',short:'Anchor',icon:'🔵',cost:34,cd:7,fn:'anchor',o:{dmg:190,r:16},desc:'Plant a blue sphere that drags enemies in, then crushes them together. (key 5)'}]}
 ,{id:'inferno',name:'Inferno Overlord',rarity:'godly',price:38000,cores:35,hpM:2.0,dmgM:2.1,spdM:1.1,enM:1.5,role:'Molten warlord',blurb:'Armour of living magma. Burns everything near him, then detonates the sky. End-game power, but Void Sovereign is still stronger.',
  look:{skin:0xdcc0a8,hair:0x222222,shirt:0x2a1210,sleeve:0x3a1a14,pants:0x1a0c0a,boot:0xff5a1a,armor:0xff6a1a,spikes:0xffc83a,horns:0xffc83a,hornGlow:true,mask:0xffee33,glow:true,cape:0x8a1a0a,emblem:0xffee33,wide:1.3,scale:1.3},
  punch:{cd:0.32,dmg:1.4,reach:3.1,knock:1.3,quake:0.3},
@@ -593,7 +599,7 @@ const ULT_BY_ID={};ULTS.forEach(u=>ULT_BY_ID[u.id]=u);
  if(Array.isArray(save.skins))save.skins.forEach(id=>{if(RF[id]){save.cash+=RF[id][0];save.cores+=RF[id][1];}});save.skins=[];save.skinEq={};}save.ults=ids(save.ults,ULT_BY_ID);
  if(!save.skinEq||typeof save.skinEq!=='object'||Array.isArray(save.skinEq))save.skinEq={};
  for(const h in save.skinEq){if(!HERO_BY_ID[h]||!save.skins.includes(save.skinEq[h]))delete save.skinEq[h];}
- if(!save.ults.includes(save.ult))save.ult=null;save.w3m=Math.max(0,Math.floor(Number(save.w3m)||0));save.w3boss=!!save.w3boss;save.r3=!!save.r3;})();
+ if(!save.ults.includes(save.ult))save.ult=null;save.w3m=Math.max(0,Math.floor(Number(save.w3m)||0));save.w3boss=!!save.w3boss;save.r3=!!save.r3;save.dom=!!save.dom;})();
 (function sanitizeSave(){
  const n=(v,d)=>Number.isFinite(v)?v:d;
  save.cash=Math.max(0,Math.floor(n(save.cash,0)));save.cores=Math.max(0,Math.floor(n(save.cores,0)));
@@ -1061,7 +1067,7 @@ function usePower(n){
  if(state!=='play'||hero.dead)return;
  const i=n-1,H=curHero(),P=H.powers[i],els=document.querySelectorAll('[data-p="'+n+'"]');
  const nope=()=>{sfx.denied();els.forEach(e=>{e.classList.add('nope');setTimeout(()=>e.classList.remove('nope'),250);});};
- if(!powerUnlocked(n)||hero.cd[i]>0||hero.channel||hero.charge||hero.en<P.cost)return nope();
+ if(!P)return;if(!powerUnlocked(n)||hero.cd[i]>0||hero.channel||hero.charge||hero.en<P.cost)return nope();
  if(ABIL[P.fn](n,P)===false)return nope();
  hero.cd[i]=hero.cdMax[i]=P.cd*(n===2&&save.level>=5?0.7:1);
  hero.en-=P.cost;hero.enDelay=0.7;
@@ -1082,7 +1088,7 @@ function clearAbilities(){
 }
 function setPowerUI(){
  const H=curHero();
- document.querySelectorAll('.pw[data-p]').forEach(el=>{const n=+el.dataset.p,P=H.powers[n-1];el.querySelector('b').textContent=P.icon;el.querySelector('small').textContent=P.short;el.title=P.name+' — '+P.desc;});
+ document.querySelectorAll('.pw[data-p]').forEach(el=>{const n=+el.dataset.p,P=H.powers[n-1];if(!P){el.style.display='none';return;}el.style.display='';el.querySelector('b').textContent=P.icon;el.querySelector('small').textContent=P.short;el.title=P.name+' — '+P.desc;});
 }
 function heroAura(dt){
  const H=curHero(),R=RARITY[H.rarity],r=H.rarity,p=hero.pos;
@@ -1982,7 +1988,7 @@ addEventListener('keydown',e=>{
  if(state!=='play')return;
  keys[e.code]=true;
  if(e.code==='Space'){input.jump=true;jumpPress();}
- else if(e.code==='Digit1')usePower(1);else if(e.code==='Digit2')usePower(2);else if(e.code==='Digit3')usePower(3);
+ else if(e.code==='Digit1')usePower(1);else if(e.code==='Digit2')usePower(2);else if(e.code==='Digit3')usePower(3);else if(e.code==='Digit4')usePower(4);else if(e.code==='Digit5')usePower(5);
  else if(e.code==='KeyE'){if(nearPortal())usePortal();else if(nearShop()&&world===1)openShopDirect();else if(nearBase())openBase();}
  else if(e.code==='KeyC')input.walkT=!input.walkT;else if(e.code==='KeyR'||e.code==='KeyQ')useUlt();
 });
@@ -2013,7 +2019,7 @@ if(isTouch){
  const bind=(el,down,up)=>{el.addEventListener('pointerdown',e=>{e.preventDefault();try{el.setPointerCapture(e.pointerId);}catch(x){}el.classList.add('act');if(state==='play')down();});const u=()=>{el.classList.remove('act');if(up)up();};el.addEventListener('pointerup',u);el.addEventListener('pointercancel',u);};
  bind($('tAtk'),()=>{input.atk=true;},()=>{input.atk=false;});
  bind($('tJump'),()=>{input.jump=true;jumpPress();},()=>{input.jump=false;});
- bind($('t1'),()=>usePower(1));bind($('t2'),()=>usePower(2));bind($('t3'),()=>usePower(3));bind($('tUlt'),()=>useUlt());
+ bind($('t1'),()=>usePower(1));bind($('t2'),()=>usePower(2));bind($('t3'),()=>usePower(3));bind($('tUlt'),()=>useUlt());bind($('t4'),()=>usePower(4));bind($('t5'),()=>usePower(5));
  bind($('tSprint'),()=>{input.sprintT=!input.sprintT;$('tSprint').classList.toggle('on',input.sprintT);});
  bind($('tBase'),()=>{if(nearShop()&&world===1)openShopDirect();else if(nearBase())openBase();});
  bind($('tPortal'),()=>{if(nearPortal())usePortal();});
@@ -2038,7 +2044,7 @@ function updateHUD(dt){
  {const bf=buffNow(),bb=$('buffBar');bb.style.display=bf?'block':'none';if(bf){setT('buffName',bf.name+' '+Math.ceil(bf.t)+'s');setW('buffI',bf.t/bf.dur);}}
  powerEls.forEach(el=>{const n=+el.dataset.p,i=n-1,lk=!powerUnlocked(n);el.classList.toggle('locked',lk);const l=el.querySelector('.lk');if(lk&&l.textContent!=='LV '+n)l.textContent='LV '+n;
   el.querySelector('.cd').style.height=lk?'0':(hero.cd[i]>0?(hero.cd[i]/cdTotal(n)*100)+'%':'0');
-  const cost=curHero().powers[i].cost;el.style.opacity=(!lk&&hero.en<cost)?'0.55':'1';});
+  const PP=curHero().powers[i];if(!PP)return;const cost=PP.cost;el.style.opacity=(!lk&&hero.en<cost)?'0.55':'1';});
  const op=parseFloat($('hurt').style.opacity)||0;if(op>0)$('hurt').style.opacity=String(Math.max(0,op-dt*1.6));
  // objective (throttled text, live arrow)
  let arrowT=null;
@@ -2086,7 +2092,7 @@ function drawMinimap(){
 let ultCtx=false,skinSel='default',skinTab='shop';const ultFx=[];
 hero.uc=0;
 const DOM={id:'domain',name:'Starless Dominion',icon:'🌌',cd:90,R:30};
-const curUlt=()=>save.hero==='voidsov'?DOM:(ULT_BY_ID[save.ult]||null);
+const curUlt=()=>(save.hero==='voidsov'&&save.dom)?DOM:(ULT_BY_ID[save.ult]||null);
 const _he=hitEnemy;
 hitEnemy=function(e,dmg,kb,pow,col,big){
  if(ultCtx&&e.boss)dmg=Math.min(dmg,e.hpMax*0.07);
@@ -2228,7 +2234,7 @@ function equipUlt(id){if(!save.ults.includes(id))return false;save.ult=id;hero.u
 function openUlts(){if(state!=='play'&&state!=='menu')return;state='menu';menuFrom='base';clearInput();releaseLock();renderUlts();show('ultScr',true);}
 function closeUlts(){show('ultScr',false);renderBase();show('baseScr',true);}
 function renderUlts(){
- let h='<h2>⚡ ULTIMATE MOVES</h2><div class="small" style="text-align:center;margin:0 0 8px">Unlocked ultimates work with <b>any hero</b>. Equip one at a time. Press <b>R</b> (or the ULT button) when the meter is full. (Void Sovereign always uses his own Starless Dominion instead.) The meter charges over time and by fighting. Bosses resist ultimate damage.</div><div class="card"><b style="color:#7dff9a">$'+fmt(save.cash)+'</b> &nbsp; Level '+save.level+' &nbsp; Damage ×'+dmgMul().toFixed(2)+'</div>';
+ let h='<h2>⚡ ULTIMATE MOVES</h2><div class="small" style="text-align:center;margin:0 0 8px">Unlocked ultimates work with <b>any hero</b>. Equip one at a time. Press <b>R</b> (or the ULT button) when the meter is full. (Once you buy Starless Dominion below, Void Sovereign uses it instead.) The meter charges over time and by fighting. Bosses resist ultimate damage.</div><div class="card"><b style="color:#7dff9a">$'+fmt(save.cash)+'</b> &nbsp; Level '+save.level+' &nbsp; Damage ×'+dmgMul().toFixed(2)+'</div>';
  ULTS.forEach(u=>{const o=save.ults.includes(u.id),eq=save.ult===u.id,ok=ultReqOk(u);
   h+='<div class="wcard"><h3>'+u.icon+' '+u.name+(eq?' <span style="color:#ffd84a">· EQUIPPED</span>':'')+'</h3><div style="font-size:13px;opacity:.9">'+u.desc+'</div><div class="req">Damage ~'+Math.round(u.dmg*dmgMul())+' · Radius '+u.R+'m · Full charge '+u.cd+'s</div>';
   if(!o){h+='<div class="req '+(save.level>=u.lv?'ok':'no')+'">'+(save.level>=u.lv?'✔':'✘')+' Level '+u.lv+'</div>'+(u.w2m?'<div class="req '+(save.w2m>=u.w2m?'ok':'no')+'">'+(save.w2m>=u.w2m?'✔':'✘')+' '+u.reqTxt+'</div>':'')+'<button class="btn" style="margin-top:6px" data-ub="'+u.id+'" '+(!ok||save.cash<u.price?'disabled':'')+'>UNLOCK — $'+fmt(u.price)+'</button>';}
@@ -2323,6 +2329,31 @@ renderWorlds=function(){_rw();
 };
 $('worldPanel').addEventListener('click',e=>{const w=e.target.dataset&&e.target.dataset.w;if(w==='w3warn'){worldWarn3=true;renderWorlds();sfx.denied();}else if(w==='w3cancel'){worldWarn3=false;renderWorlds();}});
 
+/* ===== VOID SOVEREIGN: RUIN BURST, ANCHOR ORB, BUYABLE DOMAIN ===== */
+ABIL.ruin=function(n,P){const o=P.o,f=camForward(),t=pickTarget(50),tp=t?V3(t.pos.x,0,t.pos.z):V3(hero.pos.x+f.x*14,0,hero.pos.z+f.z*14),sp=V3(hero.pos.x,hero.pos.y+1.8,hero.pos.z);
+ hero.atkAnim=1;hero.castT=0.4;sfx.lvl();ring(tp,o.r,0xff2a3a,0.7,0.2);const m=uMesh(0xff2a3a,1);m.scale.setScalar(1.4);
+ for(let i=0;i<=5;i++){const k=i;schedule(k*0.1,()=>{m.position.set(lerp(sp.x,tp.x,k/5),lerp(sp.y,1.5,k/5),lerp(sp.z,tp.z,k/5));emit(m.position,4,0xff2a3a,3,0.4,0.4,0);});}
+ schedule(0.55,()=>{uDrop(m);areaHit(tp.x,0,tp.z,o.r,o.dmg*dmgMul(),30,{stun:0.8},0.35);[0,1].forEach(k=>ring(tp,o.r*(0.6+k*0.4),k?0xffffff:0xff2a3a,0.5,0.2));emit(V3(tp.x,1.5,tp.z),70,0xff2a3a,22,0.5,0.9,2,4);sfx.boom();shake=1.2;});
+ return true;};
+ABIL.anchor=function(n,P){const o=P.o,f=camForward(),t=pickTarget(50),c=t?V3(t.pos.x,0,t.pos.z):V3(hero.pos.x+f.x*12,0,hero.pos.z+f.z*12);
+ hero.atkAnim=1;hero.castT=0.4;sfx.lvl();ring(c,o.r,0x2a6bff,1.7,0.2);const m=uMesh(0x2a6bff,0.9);m.position.set(c.x,2.4,c.z);
+ for(let i=0;i<16;i++){const k=i;schedule(k*0.1,()=>{m.scale.setScalar(1.2+Math.sin(k)*0.2);for(const e of enemies){if(e.dead)continue;const dx=c.x-e.pos.x,dz=c.z-e.pos.z,d=Math.hypot(dx,dz);if(d<o.r&&d>1.2){const fo=e.boss?3:16;e.kv.x+=dx/d*fo;e.kv.z+=dz/d*fo;}}emit(V3(c.x+rand(-o.r,o.r)*0.6,rand(0.5,4),c.z+rand(-o.r,o.r)*0.6),2,0x4fa8ff,-5,0.3,0.5,0);});}
+ schedule(1.7,()=>{uDrop(m);areaHit(c.x,0,c.z,o.r*0.7,o.dmg*dmgMul(),6,{stun:1.4},0.35);ring(c,o.r*0.7,0xffffff,0.5,0.3);emit(V3(c.x,2.4,c.z),60,0x4fa8ff,16,0.5,0.9,0,3);sfx.boom();shake=1;});
+ return true;};
+const _ua5=updateAbilities;updateAbilities=function(dt){_ua5(dt);for(let i=3;i<5;i++)if(hero.cd[i]>0)hero.cd[i]=Math.max(0,hero.cd[i]-dt);};
+const DOM_PRICE=120000,DOM_CORES=60;
+function buyDomain(){if(save.dom)return false;
+ if(!save.heroes.includes('voidsov')){sfx.denied();toast('Requires Void Sovereign','Buy him in the Hero Shop first.','bad');return false;}
+ if(save.level<15){sfx.denied();toast('Level 15 required','','bad');return false;}
+ if(!(save.cash>=DOM_PRICE)||!(save.cores>=DOM_CORES)){sfx.denied();toast('Not enough funds','Needs $'+fmt(DOM_PRICE)+' + ◆'+DOM_CORES,'bad');return false;}
+ save.cash-=DOM_PRICE;save.cores-=DOM_CORES;save.dom=true;writeSave();sfx.lvl();toast('DOMAIN UNLOCKED!','Starless Dominion — Void Sovereign\'s ultimate (R)','lvl');return true;}
+const _ru=renderUlts;
+renderUlts=function(){_ru();const own=save.heroes.includes('voidsov'),ok=own&&save.level>=15;
+ const c='<div class="wcard" style="border-color:#7fe8ff"><h3>🌌 Starless Dominion <span style="color:#7fe8ff">· VOID SOVEREIGN ONLY</span>'+(save.dom?' <span style="color:#ffd84a">· OWNED</span>':'')+'</h3><div style="font-size:13px;opacity:.9">His exclusive domain. A dark dome erases every regular enemy inside 30m; bosses lose a large share of max health. Replaces your universal ultimate while you play him.</div>'+
+  (save.dom?'':'<div class="req '+(own?'ok':'no')+'">'+(own?'✔':'✘')+' Own Void Sovereign</div><div class="req '+(save.level>=15?'ok':'no')+'">'+(save.level>=15?'✔':'✘')+' Level 15</div><button class="btn" style="margin-top:6px" data-bdom="1" '+(!ok||save.cash<DOM_PRICE||save.cores<DOM_CORES?'disabled':'')+'>UNLOCK — $'+fmt(DOM_PRICE)+' + ◆'+DOM_CORES+'</button>')+'</div>';
+ const pn=$('ultPanel'),k='<div style="text-align:center"><button class="btn alt" data-close="1">';pn.innerHTML=pn.innerHTML.replace(k,c+k);};
+$('ultPanel').addEventListener('click',e=>{if(e.target.dataset&&e.target.dataset.bdom){buyDomain();renderUlts();}});
+
 /* ================= MAIN LOOP ================= */
 let last=performance.now(),saveT=0,gameTime=0;
 function updateMarkers(){
@@ -2360,7 +2391,7 @@ refreshTitle();
 if(isTouch){$('titleNote').textContent='Tip: rotate your phone to landscape for the best view.';}
 camera.position.set(150,70,0);
 requestAnimationFrame(frame);
-window.__game={curHero,buyHero,equipHero,enterWorld,setWorld,usePortal,openShop,openWorlds,w2Unlocked,get world(){return world;},get beacons(){return beacons.map(b=>[b.x,b.z,b.on]);},get checkpoint(){return checkpoint;},applyHeroModel,heroes:HEROES,BOSSDEF,MISSIONS2,hero,enemies,civs,save,get state(){return state;},set state(v){state=v;},startGame,usePower,get act(){return act;},get ev(){return ev;},get boss(){return boss;},spawnEnemy,cam,addXP,addCash,jumpPress,punch,input,keys,createEvent,MISSIONS,nextMission,updateGame,openBase,pauseGame,w3Unlocked,buySkin,equipSkin,buyUlt,equipUlt,useUlt,SKINS,ULTS,openSkins,openUlts};
+window.__game={curHero,buyHero,equipHero,enterWorld,setWorld,usePortal,openShop,openWorlds,w2Unlocked,get world(){return world;},get beacons(){return beacons.map(b=>[b.x,b.z,b.on]);},get checkpoint(){return checkpoint;},applyHeroModel,heroes:HEROES,BOSSDEF,MISSIONS2,hero,enemies,civs,save,get state(){return state;},set state(v){state=v;},startGame,usePower,get act(){return act;},get ev(){return ev;},get boss(){return boss;},spawnEnemy,cam,addXP,addCash,jumpPress,punch,input,keys,createEvent,MISSIONS,nextMission,updateGame,openBase,pauseGame,buyDomain,w3Unlocked,buySkin,equipSkin,buyUlt,equipUlt,useUlt,SKINS,ULTS,openSkins,openUlts};
 </script>
 </body>
 </html>
