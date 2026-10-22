@@ -540,7 +540,7 @@ const HEROES=[
    {name:'Quake Stomp',short:'Quake',icon:'🌍',cost:40,cd:7,fn:'slam',o:{R:15,D:110,color:0xff6a2a,stun:1.2,knock:22,waves:3},desc:'Leap and stomp, unleashing three rolling earthquakes that stun and crush.'},
    {name:'Unstoppable Rage',short:'Rampage',icon:'🔥',cost:55,cd:24,fn:'buff',o:{name:'UNSTOPPABLE',dur:12,dmg:2.0,dr:0.5,scale:1.4,unstop:true,spd:1.2,col:0xff4a1a,shock:4.5},desc:'12s unstoppable form: double damage, half damage taken, immune to knockback, earth-shaking punches.'}]}
 ,{id:'voidsov',name:'VOID SOVEREIGN',rarity:'infinity',price:45000,cores:40,hpM:2.3,dmgM:2.3,spdM:1.3,enM:2.4,role:'Untouchable sovereign',
-  blurb:'Untouchable and calm. Buy his exclusive domain, STARLESS DOMINION, in Ultimate Moves: then R erases every enemy inside it (bosses lose a big chunk of max health). The strongest hero in the game.',
+  blurb:'Untouchable and calm. Buy his exclusive domain, STARLESS DOMINION, in Ultimate Moves: then R erases every enemy inside it (it also instantly kills bosses). The strongest hero in the game.',
   look:{skin:0xf2d8c0,shirt:0x111111,sleeve:0x111111,pants:0xf4f4f4,boot:0xe8e8e8,belt:0x050505,hair:0xffffff,visor:0x9a5cff,glow:true,wide:1.3,scale:1.2},
   punch:{cd:0.28,dmg:1.2,reach:2.9,knock:1.1,quake:0},
   powers:[
@@ -2110,8 +2110,8 @@ const UCAST={
   hero.inv=Math.max(hero.inv,2.4);ring(hero.pos,R,0xb04bff,1.4,0.2);ring(hero.pos,R*0.6,0xffffff,1.4,0.4);
   for(let i=1;i<=12;i++){const k=i;schedule(k*0.08,()=>{m.scale.setScalar(R*k/12);m2.scale.setScalar(R*k/12*1.02);emit(V3(c.x+rand(-R,R)*0.7,c.y+rand(-3,R*0.5),c.z+rand(-R,R)*0.7),5,0xffffff,0.5,0.1,1,0);});}
   for(let i=0;i<8;i++)schedule(0.5+i*0.12,()=>emit(V3(c.x+rand(-R,R)*0.8,c.y+rand(0,R*0.6),c.z+rand(-R,R)*0.8),6,0xb04bff,3,0.2,0.8,0));
-  schedule(1.4,()=>{for(const e of enemies.slice()){if(e.dead||Math.hypot(e.pos.x-c.x,e.pos.z-c.z)>R)continue;
-    if(e.boss){_he(e,e.hpMax*(realm3?0.2:0.35),0,2,0xb04bff,true);e.stun=Math.max(e.stun,2.5);}else _he(e,e.hp+99999,0,2,0xb04bff,true);}
+  schedule(1.4,()=>{for(const e of enemies.slice()){if(e.dead||(!e.boss&&Math.hypot(e.pos.x-c.x,e.pos.z-c.z)>R))continue;
+    if(e.boss)e.invuln=0;_he(e,e.hp+99999,V3(0,0,0),0,0xb04bff,true);}
    ring(hero.pos,R,0xffffff,0.6,0.5);emit(c,120,0xb04bff,26,0.7,1.4,0,3);emit(c,60,0xffffff,18,0.5,1,0);sfx.boom();shake=2.4;});
   schedule(2.4,()=>{uDrop(m);uDrop(m2);});
  },
@@ -2349,7 +2349,7 @@ function buyDomain(){if(save.dom)return false;
  save.cash-=DOM_PRICE;save.cores-=DOM_CORES;save.dom=true;writeSave();sfx.lvl();toast('DOMAIN UNLOCKED!','Starless Dominion — Void Sovereign\'s ultimate (R)','lvl');return true;}
 const _ru=renderUlts;
 renderUlts=function(){_ru();const own=save.heroes.includes('voidsov'),ok=own&&save.level>=15;
- const c='<div class="wcard" style="border-color:#7fe8ff"><h3>🌌 Starless Dominion <span style="color:#7fe8ff">· VOID SOVEREIGN ONLY</span>'+(save.dom?' <span style="color:#ffd84a">· OWNED</span>':'')+'</h3><div style="font-size:13px;opacity:.9">His exclusive domain. A dark dome erases every regular enemy inside 30m; bosses lose a large share of max health. Replaces your universal ultimate while you play him.</div>'+
+ const c='<div class="wcard" style="border-color:#7fe8ff"><h3>🌌 Starless Dominion <span style="color:#7fe8ff">· VOID SOVEREIGN ONLY</span>'+(save.dom?' <span style="color:#ffd84a">· OWNED</span>':'')+'</h3><div style="font-size:13px;opacity:.9">His exclusive domain. A dark dome erases every enemy and boss inside 30m in one hit. Replaces your universal ultimate while you play him.</div>'+
   (save.dom?'':'<div class="req '+(own?'ok':'no')+'">'+(own?'✔':'✘')+' Own Void Sovereign</div><div class="req '+(save.level>=15?'ok':'no')+'">'+(save.level>=15?'✔':'✘')+' Level 15</div><button class="btn" style="margin-top:6px" data-bdom="1" '+(!ok||save.cash<DOM_PRICE||save.cores<DOM_CORES?'disabled':'')+'>UNLOCK — $'+fmt(DOM_PRICE)+' + ◆'+DOM_CORES+'</button>')+'</div>';
  const pn=$('ultPanel'),k='<div style="text-align:center"><button class="btn alt" data-close="1">';pn.innerHTML=pn.innerHTML.replace(k,c+k);};
 $('ultPanel').addEventListener('click',e=>{if(e.target.dataset&&e.target.dataset.bdom){buyDomain();renderUlts();}});
