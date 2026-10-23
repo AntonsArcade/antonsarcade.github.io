@@ -62,6 +62,13 @@ body.touch #spd{top:110px;bottom:auto;font-size:24px}body.touch #mm{width:100px;
 @keyframes dcl{from{transform:translateX(-100%)}to{transform:none}}@keyframes dop{to{transform:translateX(-100%)}}@keyframes dopr{to{transform:translateX(100%)}}
 #tw-ride.on .rdr{animation-name:dclr}@keyframes dclr{from{transform:translateX(100%)}to{transform:none}}
 .rdn{position:relative;z-index:2;text-align:center;font-family:Bungee,Impact,sans-serif;font-size:min(30vw,170px);color:#ffd27a;text-shadow:0 0 30px #ff2a4a}.rdn small{display:block;font-size:.3em;color:#ff6b86}
+#pob{display:none;position:fixed;right:12px;top:162px;width:260px;background:rgba(8,10,14,.84);border:1px solid #9aa4b5;border-left:4px solid #ffcc33;border-radius:8px;padding:8px 10px;font-size:12px;color:#e6ebf5;pointer-events:none;z-index:2;line-height:1.5}
+#pob b.t{display:block;font-family:Bungee,Impact,sans-serif;color:#ffcc33;font-size:13px;letter-spacing:1px;margin-bottom:4px}
+#pob .lk{color:#ff4b4b;font-weight:800;animation:pbl .6s infinite alternate}@keyframes pbl{to{opacity:.35}}
+#pob .st{opacity:.55}#pob .st.on{opacity:1;color:#fff}#pob .st.dn{color:#7dff8a;opacity:.9}
+#pob .hb{height:6px;background:#333;border-radius:3px;margin:4px 0;overflow:hidden}#pob .hb i{display:block;height:100%;background:#4af}
+#prvg{display:none;position:fixed;inset:0;pointer-events:none;box-shadow:inset 0 0 120px 20px rgba(255,0,0,.45);animation:prv .5s infinite alternate;z-index:1}@keyframes prv{to{opacity:.3}}
+@media(max-width:760px),(max-height:520px){#pob{top:118px;width:185px;font-size:10px}}
 #mob{display:none;position:fixed;left:12px;top:150px;max-width:300px;background:rgba(10,4,6,.8);border:1px solid #d4af37;border-left:4px solid #ff2a4a;border-radius:8px;padding:6px 10px;font-size:12px;color:#ffe9b8;pointer-events:none;z-index:2}#mob b{color:#ff6b86;margin-right:4px}
 @media(max-width:760px),(max-height:520px){#mob{top:112px;max-width:210px;font-size:11px}}
 .term{background:#020a04;border:1px solid #2a8a3a;color:#4dff7a;font-family:'Courier New',monospace;min-height:110px;max-height:190px;overflow:auto;padding:10px;border-radius:8px;font-size:12px;white-space:pre-wrap;margin-top:10px;text-shadow:0 0 6px #2f6}
@@ -197,11 +204,11 @@ input[type=range].czr{width:100%;accent-color:#ff7ad9;-webkit-user-select:none}
 <canvas id="mm" width="150" height="150"></canvas><canvas id="bm" width="620" height="520"></canvas><div id="spd"></div><div id="tt"></div><div id="hint"></div><div id="vg"></div><button id="cbtn">🔑 Codes (C)</button>
 <div id="ov" class="md"><h1>OUTLAW CITY</h1><b style="letter-spacing:6px;color:#ffd23f">CAR CHAOS</b>
 <button id="play">▶ PLAY</button>
-<p>Huge open city. You live in your car. Cruise, bomb, rob the <span style="color:#fd4">JEWELRY STORE</span>, the <span style="color:#6cf">BANK</span> and the <span style="color:#fa5">AIRPORT</span> on the east edge of the map (bomb the vault open, grab the loot), and bank your bounty at the <span style="color:#ffd27a">EMPIRE TOWER</span> (it grows taller every time you upgrade it) or the <span style="color:#c6f">purple BLACK MARKET</span> shop. At ★★★★ the <b>AIR FORCE</b> shows up. Cops can shoot you out of the sky. Hunt the gold <b>VIP</b> car for big cash. Blow your cash at the neon <b>CASINO</b> across from the base: roulette, blackjack, slots, video poker and baccarat. The richer you get, the harder it gets. Secret codes unlock hidden bases, sewers and subway tunnels for quick escapes.</p>
+<p>Huge open city. You live in your car. Cruise, bomb, rob the <span style="color:#fd4">JEWELRY STORE</span>, the <span style="color:#6cf">BANK</span> and the <span style="color:#fa5">AIRPORT</span> on the east edge of the map (bomb the vault open, grab the loot), and bank your bounty at the <span style="color:#ffd27a">EMPIRE TOWER</span> (it grows taller every time you upgrade it) or the <span style="color:#c6f">purple BLACK MARKET</span> shop. At ★★★★ the <b>AIR FORCE</b> shows up. Cops can shoot you out of the sky. Hunt the gold <b>VIP</b> car for big cash. Break into the maximum-security <b>PRISON</b> on the south-east edge of the map: it is a <b>6-star</b> robbery, so the army will come. Buildings you blow up rebuild after a minute. Blow your cash at the neon <b>CASINO</b> across from the base: roulette, blackjack, slots, video poker and baccarat. The richer you get, the harder it gets. Secret codes unlock hidden bases, sewers and subway tunnels for quick escapes.</p>
 <p class="dk"><kbd>WASD</kbd> drive · <kbd>Shift</kbd> nitro · <kbd>Mouse</kbd> aim · <kbd>Click/Space</kbd> bomb · <kbd>1-9 / Q</kbd> bomb type<br><kbd>E</kbd> shop / enter jet · <kbd>R</kbd> start heist · <kbd>C</kbd> codes · <kbd>M</kbd> map · <kbd>P</kbd> pause</p><p class="mo"><b style="color:#fff">Touch (landscape recommended):</b> ◀ ▶ steer · GAS / BRK · tap or hold anywhere on the screen to throw bombs at that spot · BOMB button throws at your last aim · NOS nitro · 💣 switch bomb type · E shop / jet · R start heist · ⏸ pause · 🔑 codes</p></div>
 <div id="mk" class="md"><h2>BLACK MARKET</h2><div id="mi"></div><br><button onclick="closeMk()">Back to the streets</button></div>
 <div id="cm" class="md"><h2>ENTER SECRET CODE</h2><input id="ci" maxlength="20" autocomplete="off" spellcheck="false"><br><br><button onclick="applyCode()">APPLY</button> <button onclick="closeMk()">Close</button><p id="cr" style="color:#ffd23f"></p></div>
-<div id="tw"><div id="tw-top"><div class="twlogo">♛ EMPIRE TOWER</div><div id="tw-cash"></div><button onclick="closeTower()">✕ LEAVE</button></div><div id="tw-main"><div id="tw-el"></div><div id="tw-fl"></div></div><div id="tw-ride"></div></div><div id="mob"></div>
+<div id="tw"><div id="tw-top"><div class="twlogo">♛ EMPIRE TOWER</div><div id="tw-cash"></div><button onclick="closeTower()">✕ LEAVE</button></div><div id="tw-main"><div id="tw-el"></div><div id="tw-fl"></div></div><div id="tw-ride"></div></div><div id="mob"></div><div id="pob"></div><div id="prvg"></div>
 <div id="cs"></div>
 <div id="tc">
 <button class="tb" data-k="ArrowLeft" style="left:14px;bottom:26px">◀</button><button class="tb" data-k="ArrowRight" style="left:90px;bottom:26px">▶</button>
@@ -257,7 +264,7 @@ for(let i=-10;i<=10;i++)for(let j=-10;j<=10;j++){if(SPEC.some(s=>s[0]==i*48&&s[1
  const wm=new T.MeshStandardMaterial({map:winT,emissiveMap:winT,emissive:0xffffff,emissiveIntensity:.55,color:col,roughness:.7}),geo=new T.BoxGeometry(w,h,d),uv=geo.attributes.uv;
  for(let k=0;k<24;k++){const f=k<8?d:k>=16?w:1,v=(k<8||k>=16)?h:1;uv.setXY(k,uv.getX(k)*f/24,uv.getY(k)*v/24)}
  const g=new T.Group(),m=new T.Mesh(geo,[wm,wm,roofM,roofM,wm,wm]);m.position.y=h/2;m.castShadow=m.receiveShadow=true;g.add(m);
- const c=B(g,w*.55,4,d*.55,roofM,0,h+2,0);c.castShadow=true;g.position.set(i*48+R(-2,2),0,j*48+R(-2,2));scene.add(g);bl.push({m:g,x:g.position.x,z:g.position.z,w:w/2,d:d/2,a:1,hp:3,h:h+4,mats:[wm]})}
+ const c=B(g,w*.55,4,d*.55,roofM,0,h+2,0);c.castShadow=true;g.position.set(i*48+R(-2,2),0,j*48+R(-2,2));scene.add(g);bl.push({m:g,x:g.position.x,z:g.position.z,w:w/2,d:d/2,a:1,hp:3,h:h+4,mats:[wm],c0:col.getHex()})}
 function zone(x,z,col,name,c2,r=13,vis=1,bh=100){const g=new T.Group(),ring=new T.Mesh(new T.TorusGeometry(r,.4,8,56),new T.MeshBasicMaterial({color:col}));ring.rotation.x=PI/2;ring.position.y=.5;g.add(ring);
  const b=new T.Mesh(new T.CylinderGeometry(1.5,1.5,bh,12,1,true),new T.MeshBasicMaterial({color:col,transparent:true,opacity:.28,blending:T.AdditiveBlending,depthWrite:false}));b.position.y=bh/2;g.add(b);label(name,0,bh>50?14:5,0,bh>50?18:7,c2,g);g.position.set(x,0,z);g.visible=!!vis;scene.add(g);return g}
 const BASES=[{x:0,z:14,r:8,n:'EMPIRE TOWER',on:1,tw:1}];
@@ -321,15 +328,16 @@ zone(96,-96,0xcc44ff,'BLACK MARKET','#d8f');
 function dark0(){return Mt(0x333333,.6)}
 // ---------- cars
 const CT={sedan:{sp:34,ac:16,hp:100,ar:.8,col:0x3355aa},muscle:{sp:42,ac:22,hp:150,ar:.6,col:0xcc2200},sports:{sp:54,ac:30,hp:120,ar:.7,col:0xffc400},super:{sp:62,ac:34,hp:130,ar:.7,col:0x22ccdd},hyper:{sp:70,ac:38,hp:140,ar:.7,col:0xe8e8f0},phantom:{sp:68,ac:36,hp:220,ar:.45,col:0x0b0b10},
- truck:{sp:32,ac:12,hp:320,ar:.3,col:0x4a5a44,ms:2.5,rad:2.6},tank:{sp:24,ac:10,hp:900,ar:.12,col:0x4b5a3a,ms:8,rad:3.3},limo:{sp:56,ac:24,hp:450,ar:.25,col:0x0c0c10,ms:3,rad:2.5},raptor:{sp:69,ac:38,hp:260,ar:.4,col:0xaa0020},cop:{sp:24,ac:14,hp:80,ar:1,col:0x15151c},park:{sp:0,ac:0,hp:60,ar:1},vip:{sp:0,ac:0,hp:300,ar:1,col:0xd4af37,ms:1.5}};
+ truck:{sp:32,ac:12,hp:320,ar:.3,col:0x4a5a44,ms:2.5,rad:2.6},tank:{sp:24,ac:10,hp:900,ar:.12,col:0x4b5a3a,ms:8,rad:3.3},ptruck:{sp:30,ac:12,hp:520,ar:.25,col:0xe4e6ee,ms:3,rad:2.6},limo:{sp:56,ac:24,hp:450,ar:.25,col:0x0c0c10,ms:3,rad:2.5},raptor:{sp:69,ac:38,hp:260,ar:.4,col:0xaa0020},cop:{sp:24,ac:14,hp:80,ar:1,col:0x15151c},park:{sp:0,ac:0,hp:60,ar:1},vip:{sp:0,ac:0,hp:300,ar:1,col:0xd4af37,ms:1.5}};
 const glass=Mt(0x0a1420,.1,.9),dark=Mt(0x111111,.8),hlM=new T.MeshBasicMaterial({color:0xfff0c0}),tlM=new T.MeshBasicMaterial({color:0xff2222}),rimM=Mt(0xcccccc,.2,.9),wg=new T.CylinderGeometry(.44,.44,.36,16),rg2=new T.CylinderGeometry(.26,.26,.4,10);
 function tankMesh(col){const g=new T.Group(),m=Mt(col,.6,.3);B(g,3.2,.9,5.4,m,0,.95,0);[-1.7,1.7].forEach(x=>B(g,.9,1.1,6.2,dark,x,.6,0));const tu=new T.Group();B(tu,2.2,.8,2.6,m,0,1.8,0);B(tu,.4,.4,4.6,dark,0,1.8,3.2);g.add(tu);g.userData.tur=tu;g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g}
-function carMesh(ty,col){if(ty=='tank')return tankMesh(col);const g=new T.Group(),bm=Mt(col,.35,.5),bg=ty=='truck',sp=/sports|super|hyper|phantom|raptor/.test(ty);
+function carMesh(ty,col){if(ty=='tank')return tankMesh(col);const g=new T.Group(),bm=Mt(col,.35,.5),bg=ty=='truck'||ty=='ptruck',sp=/sports|super|hyper|phantom|raptor/.test(ty);
  B(g,2.1,bg?.9:.65,bg?4.8:4.4,bm,0,bg?.85:.75,0);B(g,1.8,bg?.8:.55,bg?3:2.1,bm,0,bg?1.6:1.3,bg?-.4:-.25);B(g,1.84,bg?.45:.4,bg?3.04:1.6,glass,0,bg?1.65:1.34,bg?-.4:-.2);
  [[-1.08,1.4],[1.08,1.4],[-1.08,-1.4],[1.08,-1.4]].forEach(([x,z])=>{let w=new T.Mesh(wg,dark);w.rotation.z=PI/2;w.position.set(x,.44,z);g.add(w);w=new T.Mesh(rg2,rimM);w.rotation.z=PI/2;w.position.set(x,.44,z);g.add(w)});
  [-.7,.7].forEach(x=>{B(g,.5,.2,.1,hlM,x,.85,2.2);B(g,.5,.2,.1,tlM,x,.85,-2.2)});B(g,2.15,.25,.2,dark,0,.45,2.2);B(g,2.15,.25,.2,dark,0,.45,-2.2);
  if(ty=='muscle'||sp)B(g,.4,.02,4.4,Mt(0xffffff),0,1.1,0);
  if(sp){B(g,1.9,.1,.5,dark,0,1.55,-2);B(g,.1,.3,.1,dark,-.7,1.4,-2);B(g,.1,.3,.1,dark,.7,1.4,-2)}
+ if(ty=='ptruck'){B(g,2.14,.45,4.82,Mt(0x1c3f9a,.5,.3),0,.9,0);B(g,1.8,.1,1.2,Mt(0xcc2222),0,2.05,-.4)}
  if(ty=='cop'){B(g,2.12,.4,1.8,Mt(0xffffff,.4,.3),0,.8,0);const a=new T.MeshBasicMaterial({color:0xff2020}),b=new T.MeshBasicMaterial({color:0x2060ff});B(g,.7,.15,.3,a,-.4,1.65,-.2);B(g,.7,.15,.3,b,.4,1.65,-.2);g.userData.lb=[a,b]}
  g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g}
 function mkCar(ty,x,z,h,role){const K=CT[ty],c={g:carMesh(ty,K.col||new T.Color().setHSL(R(0,1),.6,.45).getHex()),x,z,h,vx:0,vz:0,hp:K.hp,mx:K.hp,sp:K.sp,ac:K.ac,ar:K.ar,ms:K.ms||1,rad:K.rad||2.2,ty,role,st:0,rv:0,stun:0};scene.add(c.g);if(role!='p')cars.push(c);if(role=='c')cops.push(c);return c}
@@ -392,7 +400,7 @@ for(let i=0;i<(MOB?80:130);i++)mkPed();
 // ---------- rules
 const RK=[[0,'Rookie'],[2000,'Petty Thief'],[6000,'Thug'],[15000,'Outlaw'],[35000,'Gangster'],[70000,'Enforcer'],[130000,'Crime Boss'],[220000,'Kingpin'],[350000,'Overlord'],[550000,'Legend'],[800000,'Mythic']];
 const rankI=()=>{let i=0;RK.forEach((r,j)=>{if(P.life>=r[0])i=j});return i};
-const stars=()=>{const p=P.pend;return p>=1e6?6:p>=5000?5:p>=3000?4:p>=1500?3:p>=600?2:p>0?1:0};
+const stars=()=>{const p=P.pend;return (p>=1e6||PR.six)?6:p>=5000?5:p>=3000?4:p>=1500?3:p>=600?2:p>0?1:0};
 const near=(x,z,r)=>(P.x-x)**2+(P.z-z)**2<r*r;
 const baseAt=()=>BASES.find(b=>b.on&&(b.ug||0)==(P.ug||0)&&near(b.x,b.z,b.r)&&(!P.fly||P.y<12));
 const clampB=o=>{o.x=cl(o.x,BX0,BX1);o.z=cl(o.z,BZ0,BZ1)};
@@ -409,15 +417,15 @@ function wreck(c){const i=cars.indexOf(c);if(i<0)return;cars.splice(i,1);const k
  if(c===vipC){vipC=null;vipT=45;add(6000,'VIP TARGET ELIMINATED');msn('vip')}else{add(k>=0?250:200,k>=0?'Cop car wrecked':'Car destroyed');if(k>=0)msn('cop')}}
 function killAir(a){const i=air.indexOf(a);if(i<0)return;air.splice(i,1);scene.remove(a.g);for(let k=0;k<20;k++)puff(a.x+R(-3,3),a.y+R(-2,2),a.z+R(-3,3),R(-6,6),R(-4,6),R(-6,6),0xff8822,R(4,8),R(.6,1.2),1);sfx('boom');add(500,a.ty=='h'?'Helicopter shot down':'Fighter shot down');msn('air')}
 function clearAir(){air.forEach(a=>scene.remove(a.g));air.length=0;mis.forEach(m=>scene.remove(m.m));mis.length=0;P.af=0}
-function die(){P.heist=0;if(AH)endHeist(0);if(P.fly){P.fly=0;P.g.visible=true;P.y=0;if(P.heli){P.heli=0;heliM.position.set(TW.x,TW.rh,TW.z);heliM.rotation.set(0,0,0)}else{jetM.position.set(JP.x,0,JP.z);jetM.rotation.set(0,0,0)}}P.ug=null;boom(P.x,P.z,9,0,1);toast('WRECKED! Lost pending bounty and 10% cash');P.pend=0;P.peak=0;P.cash=Math.floor(P.cash*(P.up.ins?1:.9));P.hp=P.mx;P.x=0;P.z=18;P.h=PI/2;ch=PI/2;P.vx=P.vz=0;[...cops].forEach(c=>{scene.remove(c.g);cars.splice(cars.indexOf(c),1)});cops.length=0;clearAir();save()}
+function die(){P.heist=0;if(AH)endHeist(0);prFail('you were wrecked');if(P.fly){P.fly=0;P.g.visible=true;P.y=0;if(P.heli){P.heli=0;heliM.position.set(TW.x,TW.rh,TW.z);heliM.rotation.set(0,0,0)}else{jetM.position.set(JP.x,0,JP.z);jetM.rotation.set(0,0,0)}}P.ug=null;boom(P.x,P.z,9,0,1);toast('WRECKED! Lost pending bounty and 10% cash');P.pend=0;P.peak=0;P.cash=Math.floor(P.cash*(P.up.ins?1:.9));P.hp=P.mx;P.x=0;P.z=18;P.h=PI/2;ch=PI/2;P.vx=P.vz=0;[...cops].forEach(c=>{scene.remove(c.g);cars.splice(cars.indexOf(c),1)});cops.length=0;clearAir();save()}
 function killPed(n){const i=civs.indexOf(n);if(i<0)return;civs.splice(i,1);scene.remove(n.g);add(100,'Pedestrian down');msn('ped');puff(n.x,1,n.z,0,2,0,0xaa1111,2.5,.7,0)}
 function boom(x,z,r,bd,skipP,y=1){sfx('boom');
  for(let i=0;i<Math.min(70,26*r/10);i++){const a=R(0,6.28),u=R(0,r*.7);puff(x+Math.cos(a)*u*.3,y+R(.5,3),z+Math.sin(a)*u*.3,Math.cos(a)*u,R(2,9),Math.sin(a)*u,new T.Color().setHSL(R(.02,.12),1,R(.5,.65)).getHex(),R(4,9)*Math.min(r,40)/10,R(.5,1),1)}
  for(let i=0;i<Math.min(30,14*r/10);i++)puff(x+R(-3,3),y+R(1,4),z+R(-3,3),R(-3,3),R(3,8),R(-3,3),0x2a2522,R(6,11)*Math.min(r,40)/10,R(1.4,2.2),0);
  flash.position.set(x,6,z);flash.intensity=r>40?40:9;shk=Math.max(shk,Math.min(1.8,r/10));
- if(bd>0){for(const b of bl){if(!b.a||b.hp>900||Math.hypot(b.x-x,b.z-z)>r+Math.max(b.w,b.d)*.7)continue;b.hp-=bd;if(b.hp<=0){b.a=0;fall.push(b);add(300,'Building destroyed');msn('bld');for(let i=0;i<10;i++)puff(b.x+R(-b.w,b.w),R(1,8),b.z+R(-b.d,b.d),R(-2,2),R(1,5),R(-2,2),0x8a8580,R(8,14),R(1.5,2.5),0)}else{b.mats.forEach(m=>m.color.multiplyScalar(.55));add(50,'Building damaged')}}
+ if(bd>0){for(const b of bl){if(!b.a||b.hp>900||Math.hypot(b.x-x,b.z-z)>r+Math.max(b.w,b.d)*.7)continue;b.hp-=bd;if(b.hp<=0){b.a=0;fall.push(b);bQueue(b,'gone');add(300,'Building destroyed');msn('bld');for(let i=0;i<10;i++)puff(b.x+R(-b.w,b.w),R(1,8),b.z+R(-b.d,b.d),R(-2,2),R(1,5),R(-2,2),0x8a8580,R(8,14),R(1.5,2.5),0)}else{b.mats.forEach(m=>m.color.multiplyScalar(.55));bQueue(b,'dmg');add(50,'Building damaged')}}
   if(AH&&AH.st==1&&Math.hypot(AH.vx-x,AH.vz-z)<r*.6+3)hitVault(bd)}
- for(const n of [...civs])if(Math.hypot(n.x-x,n.z-z)<r)killPed(n);
+ for(const n of [...civs])if(Math.hypot(n.x-x,n.z-z)<r)killPed(n);prBoom(x,z,r,bd);
  civs.forEach(n=>{if(Math.hypot(n.x-x,n.z-z)<45)n.fl=4});
  for(const c of [...cars]){const d=Math.hypot(c.x-x,c.z-z);if(d<r*1.15)dmg(c,150*(1-d/(r*1.15)))}
  for(const a of [...air]){const d=Math.hypot(a.x-x,a.y-y,a.z-z);if(d<r*1.3){a.hp-=200*(1-d/(r*1.3));if(a.hp<=0)killAir(a)}}
@@ -518,7 +526,7 @@ function drawBig(){const c=$('bm');if(!bigMap){c.style.display='none';return}c.s
  g.fillStyle='#2a2f2a';g.fillRect(X(-512),Y(-512),1024*sx,1024*sy);g.strokeStyle='#555';g.lineWidth=1;for(let k=-11;k<11;k++){const p=(k+.5)*48;g.beginPath();g.moveTo(X(p),Y(-512));g.lineTo(X(p),Y(512));g.moveTo(X(-512),Y(p));g.lineTo(X(512),Y(p));g.stroke()}
  g.fillStyle='#444';g.fillRect(X(627),Y(-290),36*sx,580*sy);
  const dot=(x,z,col,r,t)=>{g.fillStyle=col;g.beginPath();g.arc(X(x),Y(z),r,0,7);g.fill();if(t){g.font='11px sans-serif';g.fillText(t,X(x)+7,Y(z)+4)}};
- BASES.forEach(b=>b.on&&!b.ug&&dot(b.x,b.z,'#44ff88',5,b.n));dot(96,-96,'#cc44ff',5,'BLACK MARKET');dot(48,0,'#ff33cc',4,'CASINO');dot(600,0,'#ff9900',5,'AIRPORT');dot(-96,-96,'#ffdd33',4,'JEWELRY');dot(96,96,'#33aaff',4,'BANK');
+ BASES.forEach(b=>b.on&&!b.ug&&dot(b.x,b.z,'#44ff88',5,b.n));dot(96,-96,'#cc44ff',5,'BLACK MARKET');dot(48,0,'#ff33cc',4,'CASINO');dot(610,420,'#b8c0cc',5,'PRISON');dot(600,0,'#ff9900',5,'AIRPORT');dot(-96,-96,'#ffdd33',4,'JEWELRY');dot(96,96,'#33aaff',4,'BANK');
  for(const k in NET)if(NET[k].on)NET[k].pads.forEach(p=>dot(p[0],p[1],'#aaa',3));if(vipC)dot(vipC.x,vipC.z,'#ffd700',4,'VIP');cops.forEach(n=>dot(n.x,n.z,'#f44',2.5));air.forEach(a=>dot(a.x,a.z,'#f80',3));
  if(!P.ug){g.save();g.translate(X(P.x),Y(P.z));g.rotate(PI-P.h);g.fillStyle='#fff';g.beginPath();g.moveTo(0,-8);g.lineTo(5,6);g.lineTo(-5,6);g.fill();g.restore()}
  g.fillStyle='#fff';g.font='13px sans-serif';g.fillText('MAP (M to close)',10,18)}
@@ -529,8 +537,8 @@ addEventListener('keydown',e=>{if(document.activeElement===$('ci')){if(e.code=='
  if(e.code=='KeyC'){e.preventDefault();openCm();return}
  if(e.code=='KeyQ'){for(let k=1;k<=9;k++){const i=(P.bi+k)%9;if(P.am[i]>0){pick(i);break}}}
  if(/^Digit[1-9]$/.test(e.code)){const i=+e.code[5]-1;if(P.am[i]>0||i==0)pick(i);else toast('No '+BD[i].n+' bombs')}
- if(e.code=='KeyE'){if(P.fly){if(padLanded())openTower(1);else if(P.y<2&&P.v<8)exitJet();else toast('Land and stop (or land on the tower helipad) to exit')}else{const bs=baseAt();if(near(96,-96,13)||(bs&&bs.sh))openMk();else if(!P.ug&&near(38,0,7))openCasino();else if(!P.ug&&near(0,14,9))openTower();else if(!P.ug&&near(jetM.position.x,jetM.position.z,12))enterJet()}}
- if(e.code=='KeyR'&&!P.fly)startHeist();if(e.code=='KeyM')bigMap=!bigMap});
+ if(e.code=='KeyE'){if(P.fly){if(padLanded())openTower(1);else if(P.y<2&&P.v<8)exitJet();else toast('Land and stop (or land on the tower helipad) to exit')}else{const bs=baseAt();if(prInteract());else if(near(96,-96,13)||(bs&&bs.sh))openMk();else if(!P.ug&&near(38,0,7))openCasino();else if(!P.ug&&near(0,14,9))openTower();else if(!P.ug&&near(jetM.position.x,jetM.position.z,12))enterJet()}}
+ if(e.code=='KeyR'&&!P.fly){startHeist();prStartKey()};if(e.code=='KeyM')bigMap=!bigMap});
 addEventListener('keyup',e=>delete keys[e.code]);addEventListener('blur',()=>{for(const k in keys)delete keys[k];mouse=false});
 addEventListener('mousemove',e=>{mp.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1)});
 ren.domElement.addEventListener('mousedown',()=>mouse=true);addEventListener('mouseup',()=>mouse=false);
@@ -559,7 +567,7 @@ function update(dt){time+=dt;P.cd-=dt;P.noUG-=dt;P.grace-=dt;
  const th=(K('KeyW','ArrowUp')?1:0)-(K('KeyS','ArrowDown')?1:0),st=(K('KeyA','ArrowLeft')?1:0)-(K('KeyD','ArrowRight')?1:0),nit=K('ShiftLeft','ShiftRight')&&P.nit>0&&th>0;
  if(P.fly)flyStep(dt);else{P.nit=cl(P.nit+(nit?-28:8*(1+.25*(P.up.nit||0)))*dt,0,100);P.sp=Math.min(CT[P.ty].sp*(1+.03*(P.up.eng||0)),70);step(P,dt,th,st,nit);const lt=P.vx*Math.cos(P.h)-P.vz*Math.sin(P.h);if(Math.abs(lt)>5&&Math.random()<.7)puff(P.x-Math.sin(P.h)*1.8,.3,P.z-Math.cos(P.h)*1.8,R(-1,1),1,R(-1,1),0xbbbbbb,2,.7,0)}
  if((mouse||keys.Space)&&P.cd<=0)throwBomb();
- const S=stars();P.peak=Math.max(P.peak,S);heistTick(dt);twTick(dt);
+ const S=stars();P.peak=Math.max(P.peak,S);heistTick(dt);twTick(dt);prTick(dt);bTick(dt);
  if(P.hp<P.mx*.35&&!P.fly&&Math.random()<.5)puff(P.x+R(-.5,.5),1.5,P.z+R(-.5,.5),R(-1,1),3,R(-1,1),0x333333,2.2,.8,0);
  const bs=baseAt();if(bs){if(P.pend>0)bank();P.am[0]=Math.max(P.am[0],12+6*(P.up.cap||0));P.hp=Math.min(P.mx,P.hp+20*(1+2*(P.up.med||0))*dt)}
  if(!P.ug&&!P.fly&&P.noUG<=0){for(const k in NET){const N=NET[k];if(N.on)for(const p of N.pads)if(near(p[0],p[1],6)){goUG(k,p);break}}}
@@ -617,10 +625,10 @@ const mm=$('mm'),mg=mm.getContext('2d');
 function mini(){const S=150,sc=S/2/120,s=Math.sin(ch),c=Math.cos(ch);mg.clearRect(0,0,S,S);mg.save();mg.beginPath();mg.arc(75,75,75,0,7);mg.clip();mg.fillStyle='rgba(0,0,0,.7)';mg.fillRect(0,0,S,S);
  const pt=(x,z,col,r,k)=>{const dx=x-P.x,dz=z-P.z;let px=75+(-dx*c+dz*s)*sc,py=75-(dx*s+dz*c)*sc;if(k){const a=Math.hypot(px-75,py-75),m=Math.min(1,62/a);px=75+(px-75)*m;py=75+(py-75)*m}else if(Math.hypot(px-75,py-75)>72)return;mg.fillStyle=col;mg.beginPath();mg.arc(px,py,r,0,7);mg.fill()};
  if(P.ug){const N=NET[P.ug];N.pads.forEach(p=>pt(p[0],N.z0,'#8fd',5,1));pt(N.hx,N.z0,'#44ff88',6,1)}
- else{BASES.forEach(b=>b.on&&!b.ug&&pt(b.x,b.z,'#44ff88',6,1));pt(96,-96,'#cc44ff',6,1);pt(38,0,'#ff33cc',5,0);if(P.tw.ms&&P.tw.ms.wp)pt(P.tw.ms.wp.x,P.tw.ms.wp.z,'#ff0',5,1);pt(600,0,'#ff9900',6,1);pt(-96,-96,'#ffdd33',6,1);pt(96,96,'#33aaff',6,1);for(const k in NET)if(NET[k].on)NET[k].pads.forEach(p=>pt(p[0],p[1],'#aaa',3));if(vipC)pt(vipC.x,vipC.z,'#ffd700',5,1);
+ else{BASES.forEach(b=>b.on&&!b.ug&&pt(b.x,b.z,'#44ff88',6,1));pt(96,-96,'#cc44ff',6,1);pt(38,0,'#ff33cc',5,0);pt(610,420,'#b8c0cc',6,1);if(P.tw.ms&&P.tw.ms.wp)pt(P.tw.ms.wp.x,P.tw.ms.wp.z,'#ff0',5,1);pt(600,0,'#ff9900',6,1);pt(-96,-96,'#ffdd33',6,1);pt(96,96,'#33aaff',6,1);for(const k in NET)if(NET[k].on)NET[k].pads.forEach(p=>pt(p[0],p[1],'#aaa',3));if(vipC)pt(vipC.x,vipC.z,'#ffd700',5,1);
   if(AH){AH.bg.forEach(g=>pt(g.position.x,g.position.z,'#ffd700',3));if(AH.st==1)pt(AH.vx,AH.vz,'#ff3333',4)}cops.forEach(n=>pt(n.x,n.z,'#ff4444',3));air.forEach(a=>pt(a.x,a.z,'#ff8800',4))}
  bombs.forEach(b=>pt(b.x,b.z,'#fa0',2));pt(P.x,P.z,'#fff',4);mg.restore()}
-function hud(){const s=stars(),ri=rankI(),nx=RK[ri+1],bs=baseAt();
+function hud(){const s=stars(),ri=rankI(),nx=RK[ri+1],bs=baseAt();prHud();
  $('st').innerHTML='★'.repeat(Math.min(s,5))+(s>=6?'<span style="color:#ff2a2a;text-shadow:0 0 12px #f00">★</span> <small style="color:#f33;font-size:13px">ARMY</small>':'')+'<span style="opacity:.25">'+'★'.repeat(Math.max(0,5-s))+'</span>'+(air.length?' <small style="color:#f90;font-size:13px">AIR FORCE</small>':'');$('hp').style.width=Math.max(0,P.hp/P.mx*100)+'%';
  $('vg').style.boxShadow=s?'inset 0 0 '+(60+s*25)+'px '+(Math.floor(time*3)%2?'rgba(255,0,0,.55)':'rgba(0,80,255,.55)'):'none';$('nt').style.width=P.nit+'%';$('fb').style.display=P.fly?'block':'none';
  $('info').innerHTML=`Cash <b>$${P.cash}</b> · Pending <b style="color:#ffd23f">$${P.pend}</b><br>Rank <b>${RK[ri][1]}</b> (+${ri*10}%) · Threat ${ri}${nx?' · next $'+nx[0]:''}<br>${P.am.map((v,i)=>(v||i==P.bi)?(i==P.bi?'<b style="color:#ffd23f">':'<span>')+'['+(i+1)+']'+BD[i].n+' '+v+(i==P.bi?'</b>':'</span>'):'').join(' ')}<br>5★ claims ${P.five}${P.ug?' · UNDERGROUND':''}`;
@@ -629,7 +637,7 @@ function hud(){const s=stars(),ri=rankI(),nx=RK[ri+1],bs=baseAt();
  else if(P.ug)h=bs?bs.n+' – bounty banked · E: shop':'Drive to a glowing EXIT to surface';
  else if(bs)h=bs.n+' – safe zone'+(bs.sh?' · E: Black Market':'')+(bs.tw?' · E: Enter the tower':'');
  else if(near(38,0,7))h='E – Enter the CASINO (gamble your cash)';else if(near(96,-96,13))h='E – Enter Black Market';else if(near(jetM.position.x,jetM.position.z,12))h='E – Enter JET (500 km/h)';else if(P.pend>0)h='Drive to a BASE to bank $'+P.pend;else if(P.cash>=200&&P.tut)h='Cash to spend – drive to the purple BLACK MARKET';
- const ho=heistHint();if(ho)h=ho;$('hint').style.display=h?'block':'none';$('hint').textContent=h}
+ const ho=heistHint()||prHint();if(ho)h=ho;$('hint').style.display=h?'block':'none';$('hint').textContent=h}
 
 // ===== ROYALE CASINO v2 (self-contained; exposes openCasino / closeCasino / CS) =====
 (function(){
@@ -1050,7 +1058,7 @@ const CYB=[{id:'c1',n:'Phishing Farm',i:'🎣',r:5,b:40000},{id:'c2',n:'Ransomwa
 const ATK=[{n:'Local Business',i:'🏪',p:.7,rw:3000,cd:45,heat:500},{n:'Megacorp Server',i:'🏢',p:.4,rw:15000,cd:90,heat:3000},{n:'Federal Reserve',i:'🏛️',p:.25,rw:60000,cd:180,heat:10000}];
 const VC=[50000,100000,250000,600000,1500000,4000000],VCC=[0,25000,60000,150000,400000,1000000];
 const CARS=[{id:'muscle',n:'Muscle Car',c:1500,d:'151 km/h · tough'},{id:'sports',n:'Sports Car',c:4000,d:'194 km/h'},{id:'super',n:'Supercar',c:9000,d:'223 km/h'},{id:'hyper',n:'Hypercar',c:20000,d:'252 km/h · 300 with nitro'},{id:'truck',n:'Armored Truck',c:8000,d:'Cops barely scratch it'},{id:'tank',n:'TANK',c:30000,d:'900 HP · crushes everything'},
- {id:'limo',n:'Boss Limo',c:45000,d:'Armored stretch limo · 450 HP · 200 km/h',x:1},{id:'raptor',n:'Raptor GT',c:85000,d:'Track hypercar · 248 km/h · 300 with nitro',x:1},{id:'phantom',n:'Phantom',c:0,d:'Secret stealth supercar',sec:1}];
+ {id:'limo',n:'Boss Limo',c:45000,d:'Armored stretch limo · 450 HP · 200 km/h',x:1},{id:'raptor',n:'Raptor GT',c:85000,d:'Track hypercar · 248 km/h · 300 with nitro',x:1},{id:'phantom',n:'Phantom',c:0,d:'Secret stealth supercar',sec:1},{id:'ptruck',n:'Prison Transport',c:0,d:'Stolen armored prison truck · 520 HP',sec:1}];
 const MPOOL=[{t:'bld',w:()=>2+(rankI()>>1),n:n=>`Level ${n} buildings`,rw:3200,rep:12,tip:'Mega bombs flatten a block'},{t:'cop',w:()=>3+(rankI()>>2),n:n=>`Wreck ${n} police cars`,rw:2600,rep:10,tip:'Get a wanted level first'},
  {t:'ped',w:()=>12+rankI()*2,n:n=>`Cause chaos: take down ${n} pedestrians`,rw:140,rep:8,per:1},{t:'spd',w:()=>140,n:n=>`Hit ${n} km/h on the road`,rw:3000,rep:6,tip:'Hold nitro'},
  {t:'air',w:()=>2,n:n=>`Shoot down ${n} aircraft`,rw:12000,rep:25,tip:'The air force appears at 4 stars'},{t:'heist',w:()=>1,n:n=>'Complete any heist',rw:10000,rep:20,tip:'Bank, jewelry store or airport'},
@@ -1168,6 +1176,193 @@ function twInit(){TW.n=Object.keys(P.tw.fl).length;twShape(0);if(P.owned.heli){h
 twInit();
 
 function camDist(d0,y){for(let d=d0;d>2.5;d*=.82){const cx=P.x-Math.sin(ch)*d,cz=P.z-Math.cos(ch)*d;let ok=1;for(const b of bl){if(!b.a)continue;if(Math.abs(cx-b.x)<b.w+1.2&&Math.abs(cz-b.z)<b.d+1.2&&y<b.h){ok=0;break}}if(ok)return d}return 2.5}
+
+
+// ===== MAXIMUM-SECURITY PRISON (south-east outskirts, far from the Empire Tower) =====
+const PC={x:610,z:420,X0:550,X1:670,Z0:370,Z1:470,wh:9};
+const PR={alarm:0,guards:[],cams:[],tws:[],gates:[],doors:{},rings:[],cols:[],figs:{},hack:null,key:0,last:-1,reinfT:0,ovrT:0,rsT:0,sx:530,sz:420,alT:0,afar:0,sirT:0,inside:0,near:0};
+let PJ=null;
+const prG=new T.Group();scene.add(prG);
+const prConT=tex(128,128,g=>{g.fillStyle='#86898d';g.fillRect(0,0,128,128);for(let i=0;i<500;i++){g.fillStyle=`rgba(${Math.random()<.5?'255,255,255':'0,0,0'},${R(.02,.1)})`;g.fillRect(R(0,128),R(0,128),3,3)}g.strokeStyle='#0005';g.lineWidth=2;g.strokeRect(0,0,128,128);g.beginPath();g.moveTo(0,64);g.lineTo(128,64);g.stroke()});
+const prCellT=tex(128,128,g=>{g.fillStyle='#77797d';g.fillRect(0,0,128,128);for(let i=0;i<300;i++){g.fillStyle=`rgba(0,0,0,${R(.02,.08)})`;g.fillRect(R(0,128),R(0,128),3,3)}g.fillStyle='#0b0d12';for(let i=0;i<4;i++)for(let j=0;j<2;j++){g.fillRect(8+i*32,14+j*60,18,28);g.fillStyle='#caa24a55';g.fillRect(8+i*32,14+j*60,18,6);g.fillStyle='#0b0d12'}});
+const prFenT=tex(64,64,g=>{g.strokeStyle='#c4c8d0';g.lineWidth=2;for(let i=-64;i<128;i+=16){g.beginPath();g.moveTo(i,0);g.lineTo(i+64,64);g.stroke();g.beginPath();g.moveTo(i+64,0);g.lineTo(i,64);g.stroke()}});
+const prFenM=new T.MeshBasicMaterial({map:prFenT,transparent:true,side:T.DoubleSide,alphaTest:.3});
+function pBox(w,h,d,x,y,z,tint=0xffffff,map=prConT,sc=6){const geo=new T.BoxGeometry(w,h,d),uv=geo.attributes.uv;for(let k=0;k<24;k++){const f=k<8?[d,h]:k<16?[w,d]:[w,h];uv.setXY(k,uv.getX(k)*f[0]/sc,uv.getY(k)*f[1]/sc)}
+ const m=new T.Mesh(geo,new T.MeshStandardMaterial({map,color:tint,roughness:.95}));m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;prG.add(m);return m}
+function pCol(x,z,w,d,h,o){const c=Object.assign({m:prG,x,z,w,d,a:1,hp:1e9,h,mats:[],keep:1,pr:1},o||{});bl.push(c);PR.cols.push(c);return c}
+function pFence(x1,z1,x2,z2,h){const L=Math.hypot(x2-x1,z2-z1),geo=new T.PlaneGeometry(L,h),uv=geo.attributes.uv;for(let k=0;k<4;k++)uv.setXY(k,uv.getX(k)*L/4,uv.getY(k)*h/4);
+ const m=new T.Mesh(geo,prFenM);m.position.set((x1+x2)/2,h/2,(z1+z2)/2);m.rotation.y=Math.atan2(x2-x1,z2-z1)-PI/2;prG.add(m);
+ const n=Math.max(1,Math.round(L/6));for(let i=0;i<=n;i++)B(prG,.3,h+.5,.3,twBlk,x1+(x2-x1)*i/n,(h+.5)/2,z1+(z2-z1)*i/n)}
+// ground
+const prFl=new T.Mesh(new T.PlaneGeometry(118,98),new T.MeshStandardMaterial({map:prConT,color:0x9a9ea4,roughness:1}));prFl.rotation.x=-PI/2;prFl.position.set(610,.06,420);prFl.receiveShadow=true;{const uv=prFl.geometry.attributes.uv;for(let k=0;k<4;k++)uv.setXY(k,uv.getX(k)*20,uv.getY(k)*16)}prG.add(prFl);
+const prRd=new T.Mesh(new T.PlaneGeometry(48,14),im);prRd.rotation.x=-PI/2;prRd.position.set(527,.06,420);prRd.receiveShadow=true;prG.add(prRd);
+// perimeter walls with a 12 m gate gap on the west side
+const WH=PC.wh;
+pBox(120,WH,3,610,WH/2,371.5);pCol(610,371.5,60,1.5,WH);pBox(120,WH,3,610,WH/2,468.5);pCol(610,468.5,60,1.5,WH);
+pBox(3,WH,100,668.5,WH/2,420);pCol(668.5,420,1.5,50,WH);pBox(3,WH,44,551.5,WH/2,392);pCol(551.5,392,1.5,22,WH);pBox(3,WH,44,551.5,WH/2,448);pCol(551.5,448,1.5,22,WH);
+[[551,370],[669,370],[551,470],[669,470]].forEach(p=>pBox(5,WH+2,5,p[0],(WH+2)/2,p[1],0x6a6d72));
+// razor wire (instanced coils) along every wall top
+{const wi=[],wl=(x1,z1,x2,z2,y)=>{const L=Math.hypot(x2-x1,z2-z1),n=Math.floor(L/1.2);for(let i=0;i<=n;i++)wi.push([x1+(x2-x1)*i/n,y,z1+(z2-z1)*i/n,Math.atan2(x2-x1,z2-z1)])};
+ wl(550,370,670,370,WH+.7);wl(550,470,670,470,WH+.7);wl(670,370,670,470,WH+.7);wl(550,370,550,414,WH+.7);wl(550,426,550,470,WH+.7);wl(582,372,582,414,5.6);wl(582,426,582,468,5.6);
+ const im2=new T.InstancedMesh(new T.TorusGeometry(.5,.05,4,10),Mt(0x2a2a30,.5,.9),wi.length);wi.forEach((w,i)=>{dm2.position.set(w[0],w[1],w[2]);dm2.rotation.set(0,w[3],0);dm2.updateMatrix();im2.setMatrixAt(i,dm2.matrix)});dm2.rotation.set(0,0,0);prG.add(im2)}
+// inner security fence (separates the entry yard from the main yard)
+pFence(582,372,582,414,5);pFence(582,426,582,468,5);pCol(582,393,.3,21,5);pCol(582,447,.3,21,5);
+// sliding gates
+function mkGate(id,n,x,z,ax,len,h,fence){const mat=fence?prFenM:Mt(0x3b4148,.5,.8),dims=ax=='z'?[1.2,h,len/2]:[len/2,h,1.2];
+ const mk=()=>{const m=fence?new T.Mesh(new T.BoxGeometry(...dims),Mt(0x555a62,.5,.8)):new T.Mesh(new T.BoxGeometry(...dims),mat);m.castShadow=true;prG.add(m);if(!fence){const s=B(m,ax=='z'?1.3:len/2-.2,.5,ax=='z'?len/2-.2:1.3,Mt(0xe8c020,.6),0,h/2-1,0)}return m};
+ const g={id,n,x,z,ax,len,h,open:0,tgt:0,tm:0,locked:0,dead:0,hp:3,p1:mk(),p2:mk(),col:pCol(x,z,ax=='z'?.8:len/2,ax=='z'?len/2:.8,h)};PR.gates.push(g);return g}
+mkGate('g1','OUTER GATE',551.5,420,'z',12,6.5,0);mkGate('g2','INNER GATE',582,420,'z',12,5,0);
+function mkDoor(k,n,x,z,ax){const len=6,dims=ax=='z'?[1,5,len]:[len,5,1],m=new T.Mesh(new T.BoxGeometry(...dims),Mt(0x2f3a48,.4,.85));m.castShadow=true;prG.add(m);B(m,ax=='z'?1.1:len-.3,.5,ax=='z'?len-.3:1.1,Mt(0xc4122f,.5),0,1.2,0);
+ const d={id:k,n,x,z,ax,len,open:0,tgt:0,dead:0,hp:2,p1:m,p2:m,col:pCol(x,z,ax=='z'?.6:len/2,ax=='z'?len/2:.6,5)};PR.doors[k]=d;return d}
+mkDoor('A','CELL BLOCK A DOOR',610,392.4,'x');mkDoor('B','CELL BLOCK B DOOR',610,447.6,'x');mkDoor('C','CELL BLOCK C DOOR',643.6,420,'z');
+// cell blocks
+pBox(24,10,8,610,5,388,0xffffff,prCellT,8);pCol(610,388,12,4,10);pBox(24,10,8,610,5,452,0xffffff,prCellT,8);pCol(610,452,12,4,10);pBox(16,12,26,652,6,420,0xe0e0e8,prCellT,8);pCol(652,420,8,13,12);
+[[610,388],[610,452],[652,420]].forEach(p=>{B(prG,3,1.2,3,twBlk,p[0]-4,12.8,p[1]);B(prG,3,1.2,3,twBlk,p[0]+3,12.8,p[1])});
+// warden office, gate booths
+pBox(12,5,8,566,2.5,392,0xb8aa90);pCol(566,392,6,4,5);B(prG,10,1.6,.2,Mt(0x15202a,.1,.9,0x203a50),566,2.6,396.1);label('WARDEN',566,6.6,396,10,'#ffd27a',prG);
+B(prG,3,3,3,Mt(0x777b80,.8),544,1.5,436);B(prG,3.2,1.2,3.2,Mt(0x15202a,.1,.9,0x203a50),544,2.4,436);pCol(544,436,1.5,1.5,3);
+B(prG,3,3,3,Mt(0x777b80,.8),576,1.5,438);pCol(576,438,1.5,1.5,3);
+const safeM=B(prG,2.2,2.2,2.2,Mt(0x30343a,.4,.9,0x111100),577,1.1,396.5);B(prG,.5,.5,.1,Mt(0xffd24a,.2,.9,0x553300),577,1.3,395.4);
+label('MAXIMUM SECURITY PRISON',549,13,420,30,'#ff5555',prG);label('KEEP OUT',549,10.2,420,14,'#ffcc33',prG);
+// guard towers + rotating searchlights
+function mkTower(x,z){pBox(3.2,16,3.2,x,8,z,0x777b80);pBox(5.2,2.2,5.2,x,16.8,z,0x5a5e63);B(prG,4.6,2.2,4.6,Mt(0x15202a,.1,.9,0x203a50),x,18.4,z);pBox(6.4,.6,6.4,x,19.8,z,0x44484d);pCol(x,z,1.8,1.8,20);
+ const beam=new T.Group();beam.position.set(x,18,z);const tilt=new T.Group(),L=62,geo=new T.CylinderGeometry(.4,6.5,L,14,1,true);geo.translate(0,-L/2,0);
+ tilt.add(new T.Mesh(geo,new T.MeshBasicMaterial({color:0xfff2c0,transparent:true,opacity:.13,blending:T.AdditiveBlending,depthWrite:false,fog:false,side:T.DoubleSide})));tilt.rotation.x=-1.29;beam.add(tilt);prG.add(beam);
+ const bc=new T.Sprite(new T.SpriteMaterial({map:glowT,color:0xff2020,transparent:true,depthWrite:false,blending:T.AdditiveBlending,fog:false}));bc.scale.setScalar(8);bc.position.set(x,21.5,z);bc.visible=false;prG.add(bc);
+ PR.tws.push({x,z,beam,bc,ph:R(0,6),sp:.35+R(0,.25)})}
+[[554,373],[666,373],[554,467],[666,467],[610,376],[610,464]].forEach(p=>mkTower(p[0],p[1]));
+// security cameras with visible vision cones
+function mkCam(x,y,z,yaw,rg,sw){const g=new T.Group();g.position.set(x,y,z);B(g,.5,.4,.9,Mt(0x22262c,.5,.7),0,0,0);const lens=new T.Mesh(new T.SphereGeometry(.18,8,6),new T.MeshBasicMaterial({color:0x33ff66,fog:false}));lens.position.set(0,0,.5);g.add(lens);
+ const cone=new T.Mesh(new T.ConeGeometry(rg*Math.tan(.42),rg,14,1,true),new T.MeshBasicMaterial({color:0xff4444,transparent:true,opacity:.09,blending:T.AdditiveBlending,depthWrite:false,fog:false,side:T.DoubleSide}));cone.rotation.x=-PI/2;cone.position.set(0,0,rg/2);g.add(cone);
+ g.rotation.y=yaw;prG.add(g);PR.cams.push({g,lens,x,z,by:yaw,rg,sw,ph:R(0,6),dead:0,hot:0})}
+mkCam(549.2,6.5,413.5,-PI/2,48,.6);mkCam(549.2,6.5,426.5,-PI/2,48,.6);mkCam(584,5.5,412,PI/2,40,.5);mkCam(610,9,392.9,0,42,.7);mkCam(610,9,447.1,PI,42,.7);mkCam(643,10,420,-PI/2,38,.6);mkCam(590,8,373,0,44,.5);mkCam(630,8,467,PI,44,.5);
+// floodlights
+const prPL=new T.PointLight(0xfff0d0,1.5,85);prPL.position.set(620,11,420);scene.add(prPL);
+[[590,398],[590,442],[632,398],[632,442],[560,378],[560,462]].forEach(p=>{B(prG,.3,11,.3,twBlk,p[0],5.5,p[1]);B(prG,1.8,.5,.9,Mt(0xfff3c8,.3,.2,0xffe9a0),p[0],11.2,p[1]);const s=new T.Sprite(new T.SpriteMaterial({map:glowT,color:0xfff0c0,transparent:true,depthWrite:false,blending:T.AdditiveBlending,fog:false}));s.scale.setScalar(16);s.position.set(p[0],11,p[1]);prG.add(s)});
+// guards
+const GL=Mt(0x1d2733,.8);
+function guardMesh(){const g=new T.Group(),sk=Mt(0xe0b090);B(g,.55,.95,.38,GL,0,1.15,0);B(g,.2,.7,.2,GL,-.14,.38,0);B(g,.2,.7,.2,GL,.14,.38,0);const h=new T.Mesh(new T.SphereGeometry(.2,8,6),sk);h.position.y=1.85;g.add(h);B(g,.42,.1,.42,Mt(0x101820),0,2.02,0);B(g,.08,.1,.9,dark,.28,1.3,.35);B(g,.5,.12,.1,Mt(0xdddd33,.6),0,1.35,.2);g.traverse(o=>{if(o.isMesh)o.castShadow=true});scene.add(g);return g}
+function mkGuard(x,z,wps,rf){const o={g:guardMesh(),x,z,hx:x,hz:z,h:0,hp:40,wps,wi:0,al:0,sh:R(0,1),ph:R(0,6),dead:0,rt:0,rf:rf?1:0};o.g.position.set(x,0,z);PR.guards.push(o);return o}
+[[[560,382],[577,382],[577,460],[560,460]],[[577,460],[560,460],[560,382],[577,382]],[[590,402],[636,402],[636,438],[590,438]],[[636,438],[590,438],[590,402],[636,402]],[[588,377],[662,377]],[[662,377],[588,377]],[[588,463],[662,463]],[[662,463],[588,463]],[[664,380],[664,460]],[[664,460],[664,380]],[[522,394],[538,394]],[[538,454],[522,454]],[[638,413],[638,419]],[[638,427],[638,421]]].forEach(w=>mkGuard(w[0][0],w[0][1],w,0));
+// prisoners / boss figures (revealed when their cell door opens)
+function figMesh(col,big){const g=new T.Group(),m=Mt(col,.8),s=big?1.15:1;B(g,.6*s,1*s,.4*s,m,0,1.1,0);B(g,.22,.7,.22,m,-.15,.38,0);B(g,.22,.7,.22,m,.15,.38,0);const h=new T.Mesh(new T.SphereGeometry(.22,8,6),Mt(0xd9a880));h.position.y=1.8;g.add(h);if(big){B(g,.55,.1,.1,Mt(0xffd24a,.2,.9,0x553300),0,1.55,.22);B(g,.5,.5,.3,Mt(0x0a0a0e,.5),0,1.15,-.05)}g.traverse(o=>{if(o.isMesh)o.castShadow=true});g.visible=false;scene.add(g);return g}
+PR.figs.C=[{g:figMesh(0x111118,1),x:640.6,z:420}];PR.figs.B=[{g:figMesh(0xe36a12),x:610,z:445}];PR.figs.A=[{g:figMesh(0xe36a12),x:606.5,z:394.8},{g:figMesh(0xe36a12),x:610,z:394.8},{g:figMesh(0xe36a12),x:613.5,z:394.8}];
+Object.values(PR.figs).flat().forEach(f=>{f.g.position.set(f.x,0,f.z)});
+// ----- interaction rings
+function pRing(x,z,r,name,col,hint,fn){const g=zone(x,z,col,name,'#fff',r,1,8);PR.rings.push({x,z,r,fn,hint,g})}
+function gateOpen(g,sec){if(g.dead)return;g.tgt=1;g.tm=sec}
+function prHackStart(label,secs,fn){if(PR.hack)return;PR.hack={l:label,t:0,tt:secs,fn,x:P.x,z:P.z};toast('HACKING '+label+'... stay still')}
+function prRescue(k){const fs=PR.figs[k];if(!fs)return;fs.forEach((f,i)=>{f.g.visible=true;f.walk={t:-i*.5}});toast(k=='C'?'The boss is running to your car!':k=='B'?'The witness is running to your car!':'The prisoners are running to your car!');PJ.rescuing=1}
+function doorRing(k){return()=>{const d=PR.doors[k];if(d.dead||d.open>.9){if(PJ&&PJ.def.blk==k&&!PJ.rescued&&!PJ.rescuing)prRescue(k);else toast('Cell block '+k+' is open and empty.');return}
+ if(PR.key){d.tgt=1;toast('Keycard accepted. Cell block '+k+' is opening.')}else toast('LOCKED. Find the keycard in the warden office, or blast the door.')}}
+pRing(PR.sx,PR.sz,8,'PRISON JOB',0xffcc33,'R – START PRISON JOB (random objective)',()=>{});
+pRing(546,430,4,'GATE CONTROL',0x33ccff,'E – Hack the gate control',()=>{if(PR.alarm&&PR.ovrT<=0)toast('LOCKDOWN: gates sealed. Use the override terminal inside, or blast the gate.');else prHackStart('GATE CONTROL',3.5,()=>gateOpen(PR.gates[0],25))});
+pRing(576,432,4,'INNER GATE',0x33ccff,'E – Hack the inner gate',()=>{if(PR.alarm&&PR.ovrT<=0)toast('LOCKDOWN: gates sealed. Use the override terminal or blast the gate.');else prHackStart('INNER GATE',3.5,()=>gateOpen(PR.gates[1],25))});
+pRing(640,450,4.5,'OVERRIDE',0xff9933,'E – Hack the lockdown override',()=>prHackStart('LOCKDOWN OVERRIDE',6,()=>{PR.ovrT=25;PR.gates.forEach(g=>gateOpen(g,25));toast('Override active: gates open for 25 seconds!')}));
+pRing(565,403,4.5,'KEYCARD',0x66ff88,'E – Steal the keycard from the warden office',()=>{if(!PR.key){PR.key=1;toast('KEYCARD ACQUIRED. It opens every cell block.')}else toast('You already have the keycard.')});
+pRing(577,402,3.5,'SAFE',0xffd24a,"E – Crack the warden's safe",()=>{if(PJ&&PJ.def.k=='safe'&&!PJ.safe)prHackStart("WARDEN'S SAFE",6,()=>{PJ.safe=1;toast('Safe cracked! The cash is in your car. Get out!')});else toast('A heavy steel safe.')});
+pRing(610,399,5,'BLOCK A',0xff6b6b,'E – Cell block A door',doorRing('A'));pRing(610,441,5,'BLOCK B',0xff6b6b,'E – Cell block B door',doorRing('B'));pRing(636,420,5,'BLOCK C',0xff6b6b,'E – Cell block C door',doorRing('C'));
+// ----- jobs
+const PJT=[{k:'boss',n:'BOSS BREAKOUT',blk:'C',rw:300000,tt:150,rep:25,brief:'6-STAR ROBBERY: break into Cell Block C and rescue the criminal boss. Set off the alarm and the army comes.',st:[{t:'Get inside the prison grounds',c:()=>PR.inside},{t:'Open Cell Block C (keycard or blast the door)',c:()=>PR.doors.C.open>.9},{t:'Free the boss: stop at the cell door, press E',c:()=>PJ.rescued},{t:'Escape and lose the guards',c:()=>0}]},
+ {k:'info',n:'WITNESS EXTRACTION',blk:'B',rw:150000,tt:120,tl:240,rep:15,brief:'Extract the witness from Cell Block B before they move him (4 min).',st:[{t:'Get inside the prison grounds',c:()=>PR.inside},{t:'Open Cell Block B',c:()=>PR.doors.B.open>.9},{t:'Free the witness: stop at the door, press E',c:()=>PJ.rescued},{t:'Escape and lose the guards',c:()=>0}]},
+ {k:'mass',n:'MASS BREAKOUT',blk:'A',rw:200000,tt:160,rep:20,brief:'Open Cell Block A and free the prisoners.',st:[{t:'Get inside the prison grounds',c:()=>PR.inside},{t:'Open Cell Block A',c:()=>PR.doors.A.open>.9},{t:'Release the prisoners: stop at the door, press E',c:()=>PJ.rescued},{t:'Escape and lose the guards',c:()=>0}]},
+ {k:'truck',n:'TRANSPORT HIJACK',blk:null,rw:160000,tt:90,tl:200,rep:15,brief:'Steal the prison transport truck and drive it out of the prison.',st:[{t:'Get inside the prison grounds',c:()=>PR.inside},{t:'Steal the transport truck (press E next to it)',c:()=>PJ.truck},{t:'Escape in the truck and lose the guards',c:()=>0}]},
+ {k:'safe',n:"WARDEN'S SAFE",blk:null,rw:220000,tt:130,rep:20,brief:"Crack the warden's safe next to his office and get out with the cash.",st:[{t:'Get inside the prison grounds',c:()=>PR.inside},{t:"Crack the warden's safe (E at the safe, stay still)",c:()=>PJ.safe},{t:'Escape with the cash and lose the guards',c:()=>0}]}];
+function prStart(){if(P.fly||P.ug||!near(PR.sx,PR.sz,9))return;if(PJ){PJ=null;toast('Prison job abandoned');PR.rsT=1;return}
+ let k;do{k=Math.floor(Math.random()*PJT.length)}while(k==PR.last);PR.last=k;prReset();PJ={def:PJT[k],t0:time,s:0,alarmed:0,rescued:0,rescuing:0,truck:0,safe:0,lostT:0};toast('PRISON JOB: '+PJ.def.n);toast(PJ.def.brief)}
+function prFail(why){if(!PJ)return;toast('PRISON JOB FAILED: '+why);PJ=null;PR.rsT=2}
+function prWin(){const j=PJ,d=j.def,el=time-j.t0,tb=Math.max(0,Math.round((d.tt-el)*15)*100),sb=j.alarmed?0:100000,base=Math.round(d.rw*(1+rankI()*.1)/100)*100,tot=base+tb+sb;
+ P.cash+=tot;P.tw.rep+=d.rep;sfx('coin');toast('PRISON JOB COMPLETE: '+d.n+' in '+Math.round(el)+'s');toast('Reward '+twm(base)+' + speed bonus '+twm(tb)+(sb?' + stealth bonus '+twm(sb):'')+' = '+twm(tot));if(navigator.vibrate)navigator.vibrate([40,30,40]);save();PJ=null;PR.rsT=3}
+// ----- reset (guards respawn, gates/doors re-lock, truck returns)
+function prReset(){PR.alarm=0;PR.six=0;PR.sixT=0;PR.key=0;PR.hack=null;PR.ovrT=0;PR.reinfT=0;PR.alT=0;PR.afar=0;
+ for(const g of PR.gates.concat(Object.values(PR.doors))){g.dead=0;g.hp=g.id[0]=='g'?3:2;g.open=0;g.tgt=0;g.tm=0;g.locked=0;g.p1.visible=g.p2.visible=true;g.col.a=1}
+ PR.guards=PR.guards.filter(n=>{if(n.rf){scene.remove(n.g);return false}return true});PR.guards.forEach(n=>{n.dead=0;n.hp=40;n.al=0;n.x=n.hx;n.z=n.hz;n.wi=0;n.g.visible=true});
+ PR.cams.forEach(c=>{c.dead=0;c.g.visible=true;c.hot=0});Object.values(PR.figs).flat().forEach(f=>{f.g.visible=false;f.walk=null;f.g.position.set(f.x,0,f.z)});
+ if(!cars.some(c=>c.ptr)){const t=mkCar('ptruck',562,444,0,'k');t.ptr=1}safeM.material.emissive.setHex(0x111100)}
+prReset();
+// ----- alarm + lockdown
+function prDetect(why){if(PR.alarm||P.ug)return;PR.alarm=1;PR.six=1;PR.sixT=75;PR.alT=0;PR.reinfT=5;PR.hack=null;PR.gates.forEach(g=>{g.locked=1;if(!g.dead){g.tgt=0;g.tm=0}});P.pend+=2500;if(PJ)PJ.alarmed=1;PR.guards.forEach(n=>{if(!n.dead)n.al=30});
+ toast('🚨 '+why+' PRISON LOCKDOWN! Gates sealed. SIX STARS: the army is coming!');sfx('alarm')}
+function prCalm(){PR.alarm=0;PR.ovrT=0;PR.gates.forEach(g=>g.locked=0);PR.guards.forEach(n=>n.al=0);toast('The prison has stood down.')}
+function prReinf(){if(PR.guards.filter(n=>n.rf&&!n.dead).length<14)for(let i=0;i<4;i++)mkGuard(557+R(-2,2),410+i*6,null,1).al=60;
+ if(cops.filter(c=>c.pr).length<3&&cops.length<22){const c=mkCar('cop',512,420+R(-6,6),PI/2,'c');c.pr=1}P.pend+=500;toast('Prison reinforcements have arrived!')}
+function killGuard(n){if(n.dead)return;n.dead=1;n.rt=90;n.g.visible=false;add(150,'Guard down');puff(n.x,1,n.z,0,2,0,0xaa1111,2.5,.6,0);
+ if(P.x>PC.X0-15&&P.x<PC.X1+15&&P.z>PC.Z0-15&&P.z<PC.Z1+15)prDetect('GUARD DOWN!')}
+function prBoom(x,z,r,bd){if(Math.abs(x-PC.x)>110||Math.abs(z-PC.z)>90)return;PR.guards.forEach(n=>{if(!n.dead&&Math.hypot(n.x-x,n.z-z)<r)killGuard(n)});
+ if(bd>0)for(const g of PR.gates.concat(Object.values(PR.doors))){if(g.dead||Math.hypot(g.x-x,g.z-z)>r+3)continue;g.hp-=bd;if(g.hp<=0){g.dead=1;g.tgt=1;g.open=1;g.p1.visible=g.p2.visible=false;g.col.a=0;toast(g.n+' DESTROYED!');for(let i=0;i<8;i++)puff(g.x+R(-3,3),R(.5,4),g.z+R(-3,3),R(-3,3),R(1,5),R(-3,3),0x8a8580,R(5,9),R(1,2),0)}}
+ PR.cams.forEach(c=>{if(!c.dead&&Math.hypot(c.x-x,c.z-z)<r){c.dead=1;c.g.visible=false;puff(c.x,8,c.z,0,2,0,0xffaa33,3,.6,1)}});
+ prDetect('EXPLOSION!')}
+function prLos(x1,z1,x2,z2){for(let i=1;i<8;i++){const x=x1+(x2-x1)*i/8,z=z1+(z2-z1)*i/8;for(const c of PR.cols)if(c.a&&Math.abs(x-c.x)<c.w&&Math.abs(z-c.z)<c.d)return false}return true}
+function prInteract(){if(P.ug||P.fly)return false;
+ for(const c of cars)if(c.ptr&&Math.hypot(c.x-P.x,c.z-P.z)<6){const i=cars.indexOf(c);cars.splice(i,1);scene.remove(c.g);P.owned.ptruck=1;setCar('ptruck');if(PJ)PJ.truck=1;toast('Prison transport stolen! It is armored and added to your garage.');save();return true}
+ for(const r of PR.rings)if(r.fn!==undefined&&r.hint&&near(r.x,r.z,r.r)&&r.hint[0]=='E'){r.fn();return true}
+ return false}
+function prStartKey(){if(near(PR.sx,PR.sz,9))prStart()}
+function prHint(){if(P.fly||P.ug)return null;if(near(PR.sx,PR.sz,9))return PJ?'R – abandon prison job':'R – START PRISON JOB (random objective)';
+ for(const c of cars)if(c.ptr&&Math.hypot(c.x-P.x,c.z-P.z)<6)return 'E – Steal the prison transport truck';for(const r of PR.rings)if(near(r.x,r.z,r.r)&&r.hint[0]=='E')return r.hint;return null}
+// ----- per-frame
+function prTick(dt){const dP=Math.hypot(P.x-PC.x,P.z-PC.z);PR.near=dP<380;prG.visible=dP<560;prPL.visible=dP<200;
+ if(PR.six){if(baseAt()||P.ug){PR.six=0;toast('You shook the army off.')}else if(dP>260){PR.sixT-=dt;if(PR.sixT<=0){PR.six=0;toast('The army lost your trail.')}}}
+ if(PR.rsT>0){PR.rsT-=dt;if(PR.rsT<=0)prReset()}
+ if(!PR.near&&!PJ&&!PR.alarm)return;
+ PR.inside=!P.fly&&P.x>PC.X0+3&&P.x<PC.X1-3&&P.z>PC.Z0+3&&P.z<PC.Z1-3;
+ const sp=Math.hypot(P.vx,P.vz);
+ // gates + doors
+ PR.ovrT=Math.max(0,PR.ovrT-dt);
+ for(const g of PR.gates.concat(Object.values(PR.doors))){if(g.dead)continue;const isG=g.id[0]=='g';if(isG){if(PR.alarm&&PR.ovrT<=0){g.tgt=0;g.tm=0}if(g.tm>0){g.tm-=dt;if(g.tm<=0)g.tgt=0}}
+  g.open+=(g.tgt-g.open)*Math.min(1,2.2*dt);const off=isG?(g.len/4+g.open*(g.len/2+.6)):0;
+  if(isG){const a=g.ax=='z';g.p1.position.set(a?g.x:g.x-off,g.h/2,a?g.z-off:g.z);g.p2.position.set(a?g.x:g.x+off,g.h/2,a?g.z+off:g.z)}
+  else{const o=g.open*(g.len-.4);g.p1.position.set(g.ax=='z'?g.x:g.x-o,2.5,g.ax=='z'?g.z-o:g.z)}
+  g.col.a=g.open<.55?1:0}
+ // cameras, searchlights
+ const al=PR.alarm;
+ for(const c of PR.cams){if(c.dead)continue;c.g.rotation.y=c.by+Math.sin(time*.8+c.ph)*c.sw;c.lens.material.color.setHex(al||c.hot>0?0xff2222:0x33ff66);c.hot=Math.max(0,c.hot-dt);
+  const dx=P.x-c.x,dz=P.z-c.z,d=Math.hypot(dx,dz);if(!al&&!P.fly&&!P.ug&&d<c.rg){const df=((Math.atan2(dx,dz)-c.g.rotation.y+3*PI)%(2*PI))-PI;if(Math.abs(df)<.42&&prLos(c.x,c.z,P.x,P.z)){c.hot=2;prDetect('A SECURITY CAMERA SPOTTED YOU!')}}}
+ for(const t of PR.tws){t.beam.rotation.y=time*t.sp+t.ph;t.bc.visible=!!al&&Math.floor(time*4)%2==0;
+  if(!al&&!P.fly&&!P.ug){const dx=P.x-t.x,dz=P.z-t.z,d=Math.hypot(dx,dz);if(d<66&&d>6){const df=((Math.atan2(dx,dz)-t.beam.rotation.y+3*PI)%(2*PI))-PI;if(Math.abs(df)<.13&&prLos(t.x,t.z,P.x,P.z))prDetect('A SEARCHLIGHT FOUND YOU!')}}}
+ // guards
+ for(const n of PR.guards){if(n.dead){n.rt-=dt;if(n.rt<=0&&!al&&!n.rf){n.dead=0;n.hp=40;n.x=n.hx;n.z=n.hz;n.g.visible=true}continue}
+  const dx=P.x-n.x,dz=P.z-n.z,d=Math.hypot(dx,dz),hot=al||n.al>0;if(n.al>0)n.al-=dt;
+  if(!al&&!P.ug&&d<(sp>12?32:18)&&prLos(n.x,n.z,P.x,P.z))prDetect('A GUARD SPOTTED YOU!');
+  let spd=0;if(hot&&d<230){n.h=Math.atan2(dx,dz);if(d>9)spd=5.2}else if(n.wps){const w=n.wps[n.wi],wx=w[0]-n.x,wz=w[1]-n.z;if(Math.hypot(wx,wz)<1.2)n.wi=(n.wi+1)%n.wps.length;else{spd=1.7;n.h=Math.atan2(wx,wz)}}
+  if(spd){n.x+=Math.sin(n.h)*spd*dt;n.z+=Math.cos(n.h)*spd*dt;wall(n,.6)}
+  n.sh-=dt;if(hot&&d<62&&n.sh<=0){n.sh=R(.55,1.1);tracer(n.x,1.5,n.z,P.x+R(-1.6,1.6),P.fly?P.y:1.2,P.z+R(-1.6,1.6),0xffd84a);if(Math.random()<.33)hurtP(2+rankI()*.25)}
+  if(!P.fly&&d<(P.rad||2.2)+.6&&sp>6)killGuard(n);
+  n.g.position.set(n.x,spd?Math.abs(Math.sin(time*7+n.ph))*.06:0,n.z);n.g.rotation.y=n.h}
+ // rescued figures run to the car
+ for(const k in PR.figs)for(const f of PR.figs[k]){if(!f.walk)continue;f.walk.t+=dt;if(f.walk.t<0)continue;const q=Math.min(1,f.walk.t/1.7),x=f.x+(P.x-f.x)*q,z=f.z+(P.z-f.z)*q;f.g.position.set(x,Math.abs(Math.sin(time*9))*.1,z);f.g.rotation.y=Math.atan2(P.x-f.x,P.z-f.z);
+  if(q>=1){f.g.visible=false;f.walk=null;if(PJ&&PJ.rescuing&&!PR.figs[k].some(g=>g.walk||g.g.visible))PJ.rescued=1}}
+ // hacking
+ if(PR.hack){const h=PR.hack;if(Math.hypot(P.x-h.x,P.z-h.z)>6||sp>9||P.fly){PR.hack=null;toast('Hack interrupted')}else{h.t+=dt;if(h.t>=h.tt){PR.hack=null;h.fn()}}}
+ // alarm timers
+ if(al){PR.alT+=dt;PR.sirT-=dt;if(PR.sirT<=0&&dP<260){PR.sirT=1.6;sfx('alarm')}PR.reinfT-=dt;if(PR.reinfT<=0){PR.reinfT=14;if(dP<500)prReinf()}
+  PR.afar=dP>420?PR.afar+dt:0;if(PR.afar>20)prCalm()}
+ // job logic
+ if(PJ){const d=PJ.def,el=time-PJ.t0;while(PJ.s<d.st.length-1&&d.st[PJ.s].c())PJ.s++;
+  if(d.tl&&el>d.tl)prFail('time ran out');
+  if(PJ&&PJ.s==d.st.length-1){let nr=1e9;if(al){for(const n of PR.guards)if(!n.dead)nr=Math.min(nr,Math.hypot(n.x-P.x,n.z-P.z));for(const c of cops)if(c.pr)nr=Math.min(nr,Math.hypot(c.x-P.x,c.z-P.z))}
+   const okT=d.k!='truck'||P.ty=='ptruck';if(dP>260&&nr>110&&okT){PJ.lostT+=dt;if(PJ.lostT>=4)prWin()}else PJ.lostT=Math.max(0,PJ.lostT-dt);if(dP>260&&!okT&&!PJ.warned){PJ.warned=1;toast('Take the prison transport truck with you!')}}}
+ }
+// ----- HUD
+let prHtml='';
+function prHud(){const e=$('pob'),v=$('prvg');const lock=PR.alarm&&Math.hypot(P.x-PC.x,P.z-PC.z)<300;v.style.display=lock?'block':'none';
+ if(!PJ&&!PR.alarm){if(prHtml){e.style.display='none';prHtml=''}return}
+ let h='';if(PJ){const d=PJ.def,el=time-PJ.t0;h+=`<b class=t>PRISON: ${d.n}</b>`+d.st.map((s,i)=>`<div class="st ${i<PJ.s?'dn':i==PJ.s?'on':''}">${i<PJ.s?'✔':i==PJ.s?'▶':'•'} ${s.t}</div>`).join('')+`<div>Time ${Math.floor(el)}s${d.tl?' / '+d.tl+'s':''} · speed bonus ${twm(Math.max(0,Math.round((d.tt-el)*15)*100))}</div>`}
+ if(PR.key)h+='<div class=st on>🔑 Keycard</div>';if(PJ&&PJ.rescuing&&!PJ.rescued)h+='<div class="st on">Waiting for them to reach your car...</div>';
+ if(PR.alarm)h+='<div class=lk>🚨 LOCKDOWN — guards are hunting you'+(PR.ovrT>0?' · OVERRIDE '+Math.ceil(PR.ovrT)+'s':'')+'</div>';else if(PJ)h+='<div class=st on>🕵 Undetected: stealth bonus active</div>';
+ if(PR.hack)h+=`<div>Hacking ${PR.hack.l}</div><div class=hb><i style="width:${Math.round(PR.hack.t/PR.hack.tt*100)}%"></i></div>`;
+ if(h!==prHtml){e.innerHTML=h;prHtml=h}e.style.display='block'}
+
+// ===== city rebuilds: destroyed buildings return after 60 s, damaged ones are repaired =====
+const brec=[],bgrow=[];
+function bQueue(b,mode){let e=brec.find(x=>x.b===b);if(!e){e={b,t:60,mode};brec.push(e)}e.mode=mode;e.t=60}
+function bTick(dt){for(let i=brec.length-1;i>=0;i--){const e=brec[i],b=e.b;e.t-=dt;if(e.t>0)continue;
+  if(e.mode=='gone'){if(!P.fly&&Math.abs(P.x-b.x)<b.w+5&&Math.abs(P.z-b.z)<b.d+5){e.t=2;continue}
+   b.a=1;b.hp=3;b.mats.forEach(m=>m.color.setHex(b.c0));const fi=fall.indexOf(b);if(fi>=0)fall.splice(fi,1);scene.add(b.m);b.m.visible=true;b.m.scale.y=.01;bgrow.push(b);
+   for(let k=0;k<6;k++)puff(b.x+R(-b.w,b.w),R(0,3),b.z+R(-b.d,b.d),R(-2,2),R(1,3),R(-2,2),0x8a8580,R(6,10),R(1.2,2),0)}
+  else{b.hp=3;b.mats.forEach(m=>m.color.setHex(b.c0))}
+  brec.splice(i,1)}
+ for(let i=bgrow.length-1;i>=0;i--){const b=bgrow[i];b.m.scale.y=Math.min(1,b.m.scale.y+dt*.55);if(b.m.scale.y>=1)bgrow.splice(i,1)}}
 
 let last=performance.now();
 function loop(t){requestAnimationFrame(loop);const dt=Math.min((t-last)/1000,.05);last=t;if(started&&!paused&&!mk)update(dt);else if(!started){time+=dt;cam.position.set(Math.sin(time*.15)*95,34,Math.cos(time*.15)*95);cam.lookAt(0,24,0);sky.position.copy(cam.position)}hud();mini();drawBig();ren.render(scene,cam)}
