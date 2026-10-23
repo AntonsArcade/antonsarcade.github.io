@@ -192,14 +192,14 @@ const ARENA_R=9;
 
 /* ===================================================== DATA ===================================================== */
 const RAR=[
- {n:'Common',   c:'#aab4c0',w:50,  mul:1.00,dust:10},
- {n:'Uncommon', c:'#4ade80',w:28,  mul:1.06,dust:25},
- {n:'Rare',     c:'#3b9cff',w:12,  mul:1.12,dust:60},
- {n:'Epic',     c:'#b266ff',w:6,   mul:1.20,dust:120},
- {n:'Legendary',c:'#ffb020',w:2.5, mul:1.30,dust:300},
- {n:'Mythic',   c:'#ff4655',w:1,   mul:1.42,dust:700},
- {n:'Ultra',    c:'#19f0d2',w:.4,  mul:1.55,dust:1500},
- {n:'Ultimate',c:'#ff5cf4',w:.12, mul:1.70,dust:4000}
+ {n:'Common',   c:'#aab4c0',w:56,  mul:1.00,dust:10},
+ {n:'Uncommon', c:'#4ade80',w:26,  mul:1.06,dust:25},
+ {n:'Rare',     c:'#3b9cff',w:10,  mul:1.12,dust:60},
+ {n:'Epic',     c:'#b266ff',w:4.5,   mul:1.20,dust:120},
+ {n:'Legendary',c:'#ffb020',w:1.8, mul:1.30,dust:300},
+ {n:'Mythic',   c:'#ff4655',w:.6,   mul:1.42,dust:700},
+ {n:'Ultra',    c:'#19f0d2',w:.2,  mul:1.55,dust:1500},
+ {n:'Ultimate',c:'#ff5cf4',w:.03, mul:1.70,dust:4000}
 ];
 // dmg, reach, recovery cooldown, windup, knockback
 const WEP=[
@@ -229,8 +229,16 @@ const RAW=[
  ['Sensei Shan',4,6,50],['Warlord Ba',4,11,350],['Glacier King',4,9,185],['Inferno Lord',4,10,8],['Poseidon Pan',4,8,215],
  ['Void Walker',5,11,265],['Celestial Ming',5,6,48],['Titan Tuo',5,5,20],['Sky Sovereign',5,8,200],
  ['Cosmic Kong',6,10,300],['Aurora Queen',6,9,170],
- ['Red Thunder',7,12,52,1],['Nebula Nom',6,11,285]
+ ['Red Thunder',7,12,52,1],['Nebula Nom',6,11,285],
+ ['Bamboo Bit',0,0,95],['Snuggles',0,1,20],['Pixel',0,2,210],['Crumb',0,3,35],['Marshmallow',0,0,330],['Doodle',0,7,150],['Cocoa',0,2,25],['Sprout',0,1,110],
+ ['Maple',1,4,28],['Ping Pong',1,3,60],['Lotus',1,2,300],['Cinder',1,6,12],['Skipper',1,4,185],['Mango',1,7,42],['Hazel',1,5,38],
+ ['Ninja Nibbles',2,7,260],['Coral',2,8,175],['Iron Tofu',2,5,215],['Kendo Kai',2,2,350],['Monsoon',2,4,200],['Saffron',2,6,45],
+ ['Obsidian',3,11,280],['Phoenix Pan',3,10,18],['Tsunami Tai',3,8,195],['Zephyr',3,6,165],
+ ['Emperor Bao',4,9,205],['Volcana',4,10,6],['Eclipse',4,11,270],
+ ['Abyss Lord',5,8,225],['Solar Sovereign',5,10,38]
 ];
+const isUlt=p=>p.r===7&&!p.boss;
+const powOf=p=>isUlt(p)?2.0:RAR[p.r].mul;
 const ROSTER=RAW.map((a,i)=>({key:i,name:a[0],r:a[1],w:a[2],hue:a[3],red:!!a[4],scale:1}));
 const BOSSES=[
  {name:'Boss Bamboo Brute',r:2,w:5, hue:30},
@@ -249,7 +257,7 @@ const WORLDS=[
 
 /* ===================================================== SAVE ===================================================== */
 const KEY='pandaFight3D_save_v1';
-function defSave(){return{coins:400,owned:{0:1},sel:0,prog:[0,0,0,0,0],unlocked:1,claimed:[0,0,0,0,0],wins:0,losses:0,last:[],mute:false,seenHelp:false};}
+function defSave(){return{bestSurv:0,coins:400,owned:{0:1},sel:0,prog:[0,0,0,0,0],unlocked:1,claimed:[0,0,0,0,0],wins:0,losses:0,last:[],mute:false,seenHelp:false};}
 let S=defSave();
 try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(defSave(),JSON.parse(raw));}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
@@ -391,6 +399,8 @@ function buildPanda(p){
  if(R>=3){[-1,1].forEach(s=>mesh(GEO.sph,accM,.24,.18,.24,s*.62,1.45,0,body));}
  if(R>=4){for(let i=0;i<5;i++){const a=i/5*TAU;mesh(GEO.cone,goldM,.07,.22,.07,Math.cos(a)*.28,.46,Math.sin(a)*.28,head);}
   const cr=mesh(GEO.tor,goldM,.3,.3,.3,0,.38,0,head);cr.rotation.x=Math.PI/2;}
+ if(R>=7&&!p.boss){const wg=M(0x7fe9ff,{emissive:0x39d0ff,emissiveIntensity:1.5,transparent:true,opacity:.85});
+  [-1,1].forEach(sg=>{for(let i=0;i<3;i++){const w=mesh(GEO.box,wg,.05,1.3-i*.25,.22,sg*(.45+i*.32),1.55-i*.1,-.5,body);w.rotation.z=sg*(.5+i*.3);w.castShadow=false;}});}
  // floor ring
  const ring=new THREE.Mesh(GEO.ring,new THREE.MeshBasicMaterial({color:rc,transparent:true,opacity:.75,side:THREE.DoubleSide}));
  ring.rotation.x=-Math.PI/2;ring.position.y=.03;ring.scale.setScalar(R>=7?1.6:R>=6?1.4:1.15);root.add(ring);
@@ -547,15 +557,15 @@ function buildArena(wi){
 }
 
 /* ===================================================== FIGHTERS ===================================================== */
-let P=null,menuF=null,FIGHTERS=[],ENEMIES=[],placeP=0,ffa=false;
+let P=null,menuF=null,FIGHTERS=[],ENEMIES=[],placeP=0,ffa=false,surv=false,waveN=0,waveT=0,survCoins=0,survBuffs=[];
 let state='menu',paused=false,curW=0,isBoss=false,fightN=1,fightT=90,cdT=0,koT=0,winnerP=false,timeScale=1,hitStop=0,shake=0;
 const camDir={x:0,z:1};
 
 function mkFighter(p,isP,diff){
  const m=buildPanda(p);scene.add(m.g);
- const w=WEP[p.w],sc=p.scale||1;
+ const ult=isUlt(p),w=WEP[p.w],sc=(p.scale||1)*(ult?1.12:1);
  const f={p,isPlayer:isP,model:m,g:m.g,x:0,z:0,vx:0,vz:0,kx:0,kz:0,face:0,hp:100,guard:100,wep:w,scale:sc,
-  spd:isP?5.0+p.r*.1:3.7+diff*1.4+(p.boss?.35:0),pow:RAR[p.r].mul,def:p.r*.018,dmgMul:isP?1:(.85+.45*diff+(p.boss?.1:0)),
+  spd:(isP?5.0+p.r*.1:3.7+diff*1.4+(p.boss?.35:0))*(ult?1.2:1),pow:powOf(p),def:ult?.3:p.r*.018,ult:ult,dmgMul:isP?1:(.85+.45*diff+(p.boss?.1:0)),
   atk:-1,atkT:0,blocking:false,blockT:9,dash:0,dashCd:0,dvx:0,dvz:0,stun:0,slow:0,burn:0,burnA:0,hurt:0,poise:0,
   dead:false,koT:0,victory:false,ph:0,opp:null,lava:0,ai:null,stam:100,stamD:0,kos:0,whiff:false,rec:0,rtT:0,lastHitBy:null,place:0};
  m.g.scale.setScalar(sc);
@@ -571,12 +581,13 @@ function koFighter(f,killer){
  killer=killer||f.lastHitBy;
  f.dead=true;f.hp=0;f.koT=0;f.atk=-1;f.blocking=false;
  f.place=FIGHTERS.filter(x=>!x.dead).length+1;
- if(ffa&&killer&&killer!==f){killer.kos++;if(killer.isPlayer)ftext(killer,'KO! +'+Math.round(100*(1+curW*.5)),'par');}
+ if((ffa||surv)&&killer&&killer!==f){killer.kos++;if(ffa&&killer.isPlayer)ftext(killer,'KO! +'+Math.round(100*(1+curW*.5)),'par');}
  SFX.ko();burst(f.x,1.2,f.z,0xffffff,24,9,.14);burst(f.x,1.2,f.z,RAR[f.p.r].c,18,7,.12);
  if(state!=='fight')return;
  if(f.isPlayer){state='ko';koT=0;timeScale=.4;winnerP=false;placeP=f.place;banner('K.O.!',1800);shake=.6;flash('#fff',.5);return;}
  ftext(f,'K.O.!','brk');shake=Math.max(shake,.4);
  const alive=FIGHTERS.filter(x=>!x.dead);
+ if(surv&&alive.length===1&&alive[0]===P){waveClear();return;}
  if(alive.length===1&&alive[0]===P){state='ko';koT=0;timeScale=.28;winnerP=true;placeP=1;P.victory=true;banner(ffa?'VICTORY!':'K.O.!',1800);flash('#fff',.4);shake=.7;}
 }
 function applyHit(a,d,dmg,kb,crit){
@@ -594,6 +605,13 @@ function applyHit(a,d,dmg,kb,crit){
  burst(d.x,1.3*d.scale,d.z,col,10+Math.round(dmg/3),6,.1);
  SFX.hit();shake=Math.max(shake,.12+dmg*.007);hitStop=Math.min(.1,.03+dmg*.0025);
  if(hammer){bolt(d.x,d.z);SFX.thunder();shake=Math.max(shake,.7);hitStop=.12;burst(d.x,.3,d.z,0x9fe8ff,20,10,.16);}
+ if(a.ult){a.hp=Math.min(100,a.hp+dmg*.08);
+  if(hammer){
+   for(const o of FIGHTERS){if(o===a||o===d||o.dead)continue;const ox=o.x-d.x,oz=o.z-d.z,od=Math.hypot(ox,oz);
+    if(od<3.4){const sd=Math.max(1,Math.round(dmg*.5));o.hp-=sd;o.hurt=.25;o.lastHitBy=a;o.stun=Math.max(o.stun,.35);o.atk=-1;
+     o.kx+=ox/(od||1)*9;o.kz+=oz/(od||1)*9;ftext(o,'\u26A1'+sd,o.isPlayer?'dmgP':'dmgE');bolt(o.x,o.z);
+     if(o.hp<=0){o.hp=0;koFighter(o,a);}}}
+   for(let k=0;k<20;k++){const an=k/20*TAU;burst(d.x+Math.cos(an)*3,.3,d.z+Math.sin(an)*3,0x9fe8ff,1,3,.14,0);}}}
  if(d.hp<=0){d.hp=0;koFighter(d);}
 }
 function hitOne(a,d){
@@ -621,14 +639,14 @@ function hitOne(a,d){
 function resolveAttack(a){
  let any=false;
  if(a.p.w===12)burst(a.x+Math.sin(a.face)*1.8,.2,a.z+Math.cos(a.face)*1.8,0x9fe8ff,6,5,.1);
- for(const d of FIGHTERS){if(d===a||d.dead)continue;if(hitOne(a,d))any=true;if(a.dead)break;}
+ for(const d of FIGHTERS){if(d===a||d.dead)continue;if(surv&&!a.isPlayer&&!d.isPlayer)continue;if(hitOne(a,d))any=true;if(a.dead)break;}
  a.whiff=!any;
  if(a.whiff&&a.isPlayer)ftext(a,'MISS','blk');
 }
 function stepFighter(f,I,dt){
  const o=f.opp||f;
  if(f.dead){f.koT+=dt;f.vx=f.vz=0;return;}
- f.dashCd-=dt;f.blockT+=dt;f.stun-=dt;f.slow-=dt;f.hurt-=dt;f.poise-=dt;f.stamD-=dt;if(f.stamD<=0)f.stam=Math.min(100,f.stam+(f.blocking?12:34)*dt);
+ f.dashCd-=dt;f.blockT+=dt;f.stun-=dt;f.slow-=dt;f.hurt-=dt;f.poise-=dt;if(f.ult&&f.hp>0)f.hp=Math.min(100,f.hp+1.2*dt);f.stamD-=dt;if(f.stamD<=0)f.stam=Math.min(100,f.stam+(f.blocking?12:34)*dt);
  if(f.burn>0){f.burn-=dt;f.burnA+=dt;if(f.burnA>=.5){f.burnA=0;dot(f,1.5);burst(f.x,1.4,f.z,0xff8a1a,4,3,.09,-3);}}
  const stunned=f.stun>0;
  if(stunned&&f.atk>=0)f.atk=-1;
@@ -645,7 +663,7 @@ function stepFighter(f,I,dt){
   SFX.dash();burst(f.x,.4,f.z,0xffffff,8,3,.1,0);
  }
  // attack start
- const acost=10+f.wep.dmg*.55;
+ const acost=(10+f.wep.dmg*.55)*(f.ult?.5:1);
  if(I.attack&&f.atk<0&&!stunned&&f.dash<=0&&!f.blocking&&f.stam>=acost){f.atk=0;f.atkT=f.wep.wind;f.stam-=acost;f.stamD=.55;SFX.swing();}
  if(f.atk>=0){
   f.atkT-=dt;
@@ -679,6 +697,7 @@ function separate(a,b){const dx=b.x-a.x,dz=b.z-a.z,d=Math.hypot(dx,dz)||.001,m=.
  if(d<m){const p=(m-d)/2;a.x-=dx/d*p;a.z-=dz/d*p;b.x+=dx/d*p;b.z+=dz/d*p;}}
 
 function animFighter(f,dt,t){
+ if(f.ult&&!f.dead&&Math.random()<.55)burst(f.x+rnd(-.7,.7),rnd(.2,2.5)*f.scale,f.z+rnd(-.7,.7),Math.random()<.5?0x9fe8ff:0xffe14d,1,2,.07,0);
  const m=f.model,sp=Math.hypot(f.vx,f.vz);
  f.ph+=sp*dt*2.4;
  const mv=sp>.4?1:0,idle=Math.sin(t*2.2+f.p.key*1.3);
@@ -710,6 +729,7 @@ function animFighter(f,dt,t){
 const ZERO={mx:0,mz:0,attack:false,block:false,dash:false};
 function pickTarget(f){
  let best=null,bs=1e9;
+ if(surv&&!f.isPlayer&&P&&!P.dead){f.opp=P;return;}
  if(!f.isPlayer&&P&&!P.dead&&FIGHTERS.length>2){
   // each bot sometimes hunts the player, sometimes picks on another bot
   const close=Math.hypot(P.x-f.x,P.z-f.z)<4.5;
@@ -743,7 +763,7 @@ function aiIntent(f,o,dt){
  const l=Math.hypot(mx,mz);if(l>1){mx/=l;mz/=l;}
  I.mx=mx;I.mz=mz;
  A.atkT-=dt;
- const rage=(f.p.boss&&f.hp<40)?.7:1,acost=10+f.wep.dmg*.55;
+ const rage=(f.p.boss&&f.hp<40)?.7:1,acost=(10+f.wep.dmg*.55)*(f.ult?.5:1);
  if(d<reach+.4*f.scale&&f.atk<0&&A.atkT<=0&&A.blockT<=0&&f.stam>=acost){I.attack=true;A.atkT=A.gap*rage*rnd(.6,1.4);}
  if(o.atk===2&&o.whiff&&d<reach+.6&&f.atk<0&&A.diff>.25&&f.stam>=acost&&A.blockT<=0){I.attack=true;A.atkT=A.gap*rnd(.6,1);}
  let th=null;
@@ -793,16 +813,16 @@ function hudNames(){
  $('pn').textContent=P.p.name;$('pr').textContent=RAR[P.p.r].n;$('pn').style.color=RAR[P.p.r].c;
  const solo=ENEMIES.length===1;
  $('foes').innerHTML=ENEMIES.map((e,i)=>`<div class="foe${solo?' solo':''}" id="foe${i}"><span style="color:${e.p.boss?'#ff7a5a':RAR[e.p.r].c}">${e.p.name}${e.p.boss?' \u{1F480}':''}</span><div class="mh"><i id="foeh${i}" style="width:100%"></i></div></div>`).join('');
- const W=WORLDS[curW];$('wlabel').textContent=W.ico+' '+(ffa?'FREEPLAY':(isBoss?'BOSS FIGHT':'Fight '+fightN+'/5'));
- $('radar').style.display=ffa?'block':'none';
+ const W=WORLDS[curW];$('wlabel').textContent=W.ico+' '+(ffa?'FREEPLAY':(surv?'\u{1F9DF} WAVE '+waveN:(isBoss?'BOSS FIGHT':'Fight '+fightN+'/5')));
+ $('radar').style.display=(ffa||surv)?'block':'none';
  ['pLag','pFill'].forEach(i=>$(i).style.width='100%');
 }
 function hudUpdate(){
  $('pFill').style.width=P.hp+'%';$('pLag').style.width=P.hp+'%';
  $('pHp').textContent=Math.ceil(P.hp);$('pGd').style.width=P.guard+'%';$('pSt').style.width=P.stam+'%';
  ENEMIES.forEach((e,i)=>{const h=$('foeh'+i),r=$('foe'+i);if(h)h.style.width=e.hp+'%';if(r)r.classList.toggle('dead',e.dead);});
- $('alive').textContent=ffa?('\u{1F465} '+FIGHTERS.filter(x=>!x.dead).length+'/5 left'):'';
- $('timer').textContent=Math.max(0,Math.ceil(fightT));$('dtk').textContent=Math.round(100-P.hp);
+ $('alive').textContent=ffa?('\u{1F465} '+FIGHTERS.filter(x=>!x.dead).length+'/5 left'):(surv?('\u{1F480} '+FIGHTERS.filter(x=>!x.dead&&!x.isPlayer).length+' left'):'');
+ $('timer').textContent=surv?('W'+waveN):Math.max(0,Math.ceil(fightT));$('dtk').textContent=Math.round(100-P.hp);
 }
 function drawRadar(){
  const c=$('radar'),g=c.getContext('2d'),W=176,r=W/2;
@@ -818,12 +838,19 @@ function drawRadar(){
 
 /* ===================================================== FIGHT FLOW ===================================================== */
 function startFight(wi,free){
- ffa=!!free;curW=wi;hideUI();clearFighters();
- const pr=S.prog[wi];fightN=ffa?1:pr%5+1;isBoss=ffa?false:fightN===5;const cycle=ffa?0:Math.floor(pr/5);
+ ffa=free===true;surv=free==='surv';curW=wi;hideUI();clearFighters();
+ const multi=ffa||surv;
+ const pr=S.prog[wi];fightN=multi?1:pr%5+1;isBoss=multi?false:fightN===5;const cycle=multi?0:Math.floor(pr/5);
  buildArena(wi);
  const diff=clamp(ffa?.3+wi*.15:.22+wi*.17+(fightN-1)*.05+cycle*.08,0,1.3);
- const rg=WORLDS[wi].rar,pool=ROSTER.filter(x=>x.r>=rg[0]&&x.r<=rg[1]).sort(()=>Math.random()-.5);
+ const rg=WORLDS[wi].rar,pool=ROSTER.filter(x=>x.r>=rg[0]&&x.r<=Math.min(6,rg[1])).sort(()=>Math.random()-.5);
  P=mkFighter(ROSTER[S.sel],true,0);FIGHTERS=[P];
+ waveN=0;waveT=0;survCoins=0;survBuffs=[];
+ if(surv){
+  P.x=0;P.z=0;P.face=0;ENEMIES=[];
+  camDir.x=0;camDir.z=1;fightT=1e9;state='countdown';cdT=3.2;timeScale=1;hitStop=0;shake=0;bannerCur='';placeP=0;winnerP=false;
+  spawnWave();hudShow(true);hudUpdate();camera.position.set(0,8,-12);return;
+ }
  const n=ffa?4:1;
  for(let i=0;i<n;i++){
   let ep;
@@ -838,6 +865,45 @@ function startFight(wi,free){
  camDir.x=0;camDir.z=1;fightT=ffa?120:90;state='countdown';cdT=3.2;timeScale=1;hitStop=0;shake=0;bannerCur='';placeP=0;winnerP=false;
  hudNames();hudShow(true);hudUpdate();
  camera.position.set(0,8,-12);
+}
+/* ---------- SURVIVAL ---------- */
+function spawnWave(){
+ waveN++;
+ FIGHTERS.filter(x=>x!==P).forEach(f=>scene.remove(f.g));FIGHTERS=[P];
+ const wm=1+curW*.5,bossWave=waveN%5===0;
+ const cnt=Math.min(4,1+Math.floor((waveN-1)/3));
+ const diff=clamp(.22+curW*.12+waveN*.04,0,1.4);
+ const rg=WORLDS[curW].rar,pool=ROSTER.filter(x=>x.r>=Math.max(0,rg[0]-1)&&x.r<=Math.min(6,rg[1])).sort(()=>Math.random()-.5);
+ for(let i=0;i<cnt;i++){
+  let ep;
+  if(bossWave&&i===0){const b=BOSSES[(waveN/5-1+curW)%5|0];ep={key:-1,name:b.name,r:b.r,w:b.w,hue:b.hue,scale:1.3,boss:true};}
+  else ep=Object.assign({},pool[i%pool.length],{scale:1+Math.min(.2,waveN*.01)});
+  const f=mkFighter(ep,false,clamp(diff+(ep.boss?.12:0)+rnd(-.05,.05),0,1.5));
+  const a=rnd(0,TAU)+i*TAU/cnt;f.x=Math.cos(a)*6.2;f.z=Math.sin(a)*6.2;f.face=Math.atan2(-f.x,-f.z);
+  f.dmgMul*=1+waveN*.015;
+  FIGHTERS.push(f);
+ }
+ ENEMIES=FIGHTERS.slice(1);FIGHTERS.forEach(f=>pickTarget(f));
+ hudNames();
+ if(state==='fight')banner(bossWave?'\u{1F480} BOSS WAVE '+waveN:'WAVE '+waveN,1200);
+}
+const SURV_BUFFS=[
+ ['\u{1F4AA} +8% DAMAGE',()=>{P.dmgMul+=.08;}],
+ ['\u{1F6E1}\uFE0F +3% DEFENSE',()=>{P.def=Math.min(.6,P.def+.03);}],
+ ['\u{1F4A8} +4% SPEED',()=>{P.spd*=1.04;}],
+ ['\u26A1 FASTER STAMINA',()=>{P.stam=100;}],
+ ['\u2764\uFE0F +20 HEALTH',()=>{P.hp=Math.min(100,P.hp+20);}]
+];
+function waveClear(){
+ const wm=1+curW*.5,boss=waveN%5===0;
+ let c=Math.round((60+waveN*35)*wm*(boss?3:1));survCoins+=c;S.coins+=c;
+ P.hp=Math.min(100,P.hp+25);P.stam=100;
+ const b=pick(SURV_BUFFS);b[1]();survBuffs.push(b[0]);
+ if(waveN>(S.bestSurv|0))S.bestSurv=waveN;
+ save();SFX.win();banner('WAVE '+waveN+' CLEAR!',1500);
+ ftext(P,'+'+c+' \u{1FA99}','par');setTimeout(()=>{},0);
+ ftext(P,b[0],'dod');
+ waveT=2.8;
 }
 function showCountdown(){
  const s=cdT>2.2?'3':cdT>1.2?'2':cdT>.2?'1':'FIGHT!';
@@ -855,6 +921,7 @@ function fightUpdate(rdt){
  const sd=rdt*(stopped?.1:1)*timeScale;
  if(state==='countdown'){cdT-=rdt;showCountdown();if(cdT<=0)state='fight';}
  if(state==='fight'){fightT-=sd;if(fightT<=0){fightT=0;timeUp();}}
+ if(surv&&state==='fight'&&waveT>0){waveT-=sd;if(waveT<=0)spawnWave();}
  const live=state==='fight';
  const pI=live?readInput():ZERO;
  for(const f of FIGHTERS){if(f.dead){stepFighter(f,ZERO,sd);continue;}
@@ -868,14 +935,14 @@ function fightUpdate(rdt){
  if(state==='fight'||state==='countdown'){const k=Math.min(1,rdt*2.5);camDir.x+=(tx-camDir.x)*k;camDir.z+=(tz-camDir.z)*k;}
  else{const a=.3*rdt,c=Math.cos(a),s=Math.sin(a);const nx=camDir.x*c-camDir.z*s,nz=camDir.x*s+camDir.z*c;camDir.x=nx;camDir.z=nz;}
  const cl=Math.hypot(camDir.x,camDir.z)||1;camDir.x/=cl;camDir.z/=cl;
- const mx=ffa?(px*2+ex)/3:(px+ex)/2,mz=ffa?(pz*2+ez)/3:(pz+ez)/2;
- const back=(ffa?8+Math.min(tl,8)*.4:7.2+tl*.5)*portrait,hgt=(ffa?6+Math.min(tl,8)*.2:5.2+tl*.18)*portrait;
+ const mx=(ffa||surv)?(px*2+ex)/3:(px+ex)/2,mz=(ffa||surv)?(pz*2+ez)/3:(pz+ez)/2;
+ const back=((ffa||surv)?8+Math.min(tl,8)*.4:7.2+tl*.5)*portrait,hgt=((ffa||surv)?6+Math.min(tl,8)*.2:5.2+tl*.18)*portrait;
  const tgt=_v.set(mx-camDir.x*back,hgt,mz-camDir.z*back);
  const kk=1-Math.exp(-rdt*6);camera.position.lerp(tgt,kk);
  shake=Math.max(0,shake-rdt*2.2);
  camera.position.x+=rnd(-1,1)*shake*.3;camera.position.y+=rnd(-1,1)*shake*.3;
  camera.lookAt(mx,1.0,mz);
- hudUpdate();if(ffa)drawRadar();
+ hudUpdate();if(ffa||surv)drawRadar();
 }
 function menuUpdate(rdt){
  if(menuF){menuF.face=Math.sin(T*.4)*.7+.5;menuF.vx=menuF.vz=0;animFighter(menuF,rdt,T);}
@@ -886,6 +953,19 @@ function menuUpdate(rdt){
 function showResult(win){
  hudShow(false);
  const left=Math.ceil(P.hp),taken=100-left,wm=1+curW*.5,E1=ENEMIES[0];
+ if(surv){
+  SFX.lose();S.losses++;if(waveN-1>(S.bestSurv|0))S.bestSurv=waveN-1;save();
+  const reached=Math.max(0,waveN-1);
+  ui(topbar('Run Over','')+`<div class="panel res" style="text-align:center"><h1 style="color:#ff9d3d">\u{1F9DF} RUN OVER</h1>
+   <div style="font-weight:800;opacity:.95">You survived <b style="font-size:26px;color:#ffe14d">${reached}</b> wave${reached===1?'':'s'}</div>
+   <div style="opacity:.85;font-weight:800;margin-bottom:8px">Best: wave ${S.bestSurv}</div>
+   <div style="margin:10px 0;text-align:left"><div class="rrow"><span>Knockouts</span><span>${P.kos}</span></div>
+   <div class="rrow"><span>Power-ups earned</span><span>${survBuffs.length}</span></div>
+   <div class="rrow tot"><span>Coins banked</span><span>+${survCoins} \u{1FA99}</span></div></div>
+   <p>Coins are paid out every time you clear a wave \u2014 so even a short run pays. Every 5th wave is a BOSS WAVE (triple coins)!</p>
+   <div class="row" style="margin-top:14px"><button class="btn grn" data-act="surv" data-v="${curW}">Play Again \u21BA</button><button class="btn alt" data-act="survival">Maps</button><button class="btn alt" data-act="shop">Shop</button><button class="btn alt" data-act="menu">Menu</button></div></div>`,'dark');
+  return;
+ }
  const ord=n=>['','1st','2nd','3rd','4th','5th'][n]||(n+'th');
  const pl=win?1:(placeP||5),again=ffa?'ffa':'play';
  const koB=ffa?Math.round(P.kos*100*wm):0;
@@ -903,7 +983,7 @@ function showResult(win){
   let reward=null,unlockMsg='';
   if(!ffa&&isBoss&&!S.claimed[curW]){
    S.claimed[curW]=1;
-   const tier=[2,3,4,5,6][curW];
+   const tier=[1,2,3,4,5][curW];
    const g=give(pick(ROSTER.filter(x=>x.r===tier)));reward=g;
    if(curW<4&&S.unlocked<curW+2){S.unlocked=curW+2;unlockMsg=`\u{1F513} ${WORLDS[curW+1].n} unlocked!`;}
   }
@@ -936,14 +1016,14 @@ function showResult(win){
 }
 
 /* ===================================================== PACKS ===================================================== */
-function weights(boost,minR){let tot=0;const ws=RAR.map((r,i)=>{if(i<minR)return 0;const w=r.w*(1+boost*i*1.6);tot+=w;return w;});return{ws,tot};}
+function weights(boost,minR){let tot=0;const ws=RAR.map((r,i)=>{if(i<minR)return 0;const w=r.w*(1+boost*i*.8);tot+=w;return w;});return{ws,tot};}
 function rollRarity(boost,minR){const{ws,tot}=weights(boost,minR||0);let x=Math.random()*tot;for(let i=0;i<ws.length;i++){x-=ws[i];if(x<=0&&ws[i]>0)return i;}return minR||0;}
 function oddsPct(boost,minR){const{ws,tot}=weights(boost,minR||0);return ws.map(w=>w/tot*100);}
 function give(p){const had=S.owned[p.key]|0;S.owned[p.key]=had+1;if(had){const d=RAR[p.r].dust;S.coins+=d;return{p,isNew:false,dust:d};}return{p,isNew:true,dust:0};}
 const PACKS={
- single:{cost:150,n:1},
- skill:{cost:1200,n:10},
- legend:{cost:2500,n:1}
+ single:{cost:300,n:1},
+ skill:{cost:3000,n:10},
+ legend:{cost:8000,n:1}
 };
 function buyPack(kind){
  const k=PACKS[kind];if(S.coins<k.cost){toast('Not enough coins 🪙');return;}
@@ -951,7 +1031,7 @@ function buyPack(kind){
  if(kind==='single'){res.push(give(pick(ROSTER.filter(p=>p.r===rollRarity(0,0)))));}
  else if(kind==='skill'){
   const rs=[];for(let i=0;i<10;i++)rs.push(rollRarity(boost,0));
-  if(!rs.some(r=>r>=2))rs[9]=rollRarity(boost,2);
+  if(!rs.some(r=>r>=1))rs[9]=rollRarity(boost,1);
   rs.sort((a,b)=>a-b);rs.forEach(r=>res.push(give(pick(ROSTER.filter(p=>p.r===r)))));
  }else{res.push(give(pick(ROSTER.filter(p=>p.r===rollRarity(boost,4)))));}
  save();revealScreen(res);
@@ -980,8 +1060,9 @@ function mainMenu(){
   <div class="menuBot">
    <div class="eqname"><span style="color:${rc.c}">${rc.n}</span> · ${p.name} · ${WEP[p.w].ico} ${WEP[p.w].n}</div>
    <button class="btn big" data-act="worlds">⚔️ FIGHT</button>
+   <button class="btn alt" data-act="survival">\u{1F9DF} SURVIVAL \u00B7 Endless Waves</button>
    <button class="btn alt" data-act="freeplay">\u{1F465} FREEPLAY \u00B7 5-Panda Brawl</button>
-   <div class="row"><button class="btn alt" data-act="collection">🐼 Pandas ${ownedCount()}/50</button><button class="btn alt" data-act="shop">🎁 Shop</button></div>
+   <div class="row"><button class="btn alt" data-act="collection">🐼 Pandas ${ownedCount()}/${ROSTER.length}</button><button class="btn alt" data-act="shop">🎁 Shop</button></div>
    <div class="row"><button class="btn sm alt" data-act="help">❓ How to play</button><button class="btn sm alt" data-act="settings">⚙️ Settings</button></div>
    <div class="stats">🪙 ${S.coins.toLocaleString()} · 🏆 ${S.wins} wins · 🎯 Skill ${skill()}</div>
   </div></div>`);
@@ -992,6 +1073,13 @@ function freeplayScreen(){
  ui(topbar('Freeplay','menu')+`<div class="eqbar"><img src="${thumb(sel)}" alt=""><div><b style="color:${rc.c}">${sel.name}</b><br><small>${rc.n} \u00B7 ${WEP[sel.w].ico} ${WEP[sel.w].n}</small></div><button class="btn sm alt" data-act="collection">Change</button></div>
  <div class="panel" style="text-align:center;margin-top:0"><b>\u{1F465} 1v1v1v1v1 free-for-all</b><br><small>You and 4 rivals in one arena. Everyone attacks everyone. Last panda standing wins! Coins for wins and knockouts \u2014 no campaign progress.</small></div>
  <div class="wgrid">${WORLDS.map((w,i)=>`<div class="wc" data-act="ffa" data-v="${i}" style="background:linear-gradient(135deg,${w.col},${w.col2})"><div class="big">${w.ico}</div><h3>${w.n}</h3><div class="el">${w.el}</div><div style="font-size:12px;opacity:.9;margin-top:8px">${w.tip}</div></div>`).join('')}</div>`,'solid');
+}
+function survivalScreen(){
+ state='menu';hudShow(false);
+ const sel=ROSTER[S.sel],rc=RAR[sel.r];
+ ui(topbar('Survival','menu')+`<div class="eqbar"><img src="${thumb(sel)}" alt=""><div><b style="color:${rc.c}">${sel.name}</b><br><small>${rc.n} \u00B7 ${WEP[sel.w].ico} ${WEP[sel.w].n}</small></div><button class="btn sm alt" data-act="collection">Change</button></div>
+ <div class="panel" style="text-align:center;margin-top:0"><b>\u{1F9DF} Endless waves \u00B7 Best: wave ${S.bestSurv|0}</b><br><small>Rivals come at you in waves \u2014 more of them, tougher each time. Clear a wave to get coins, a heal and a random power-up. Every 5th wave is a boss wave. One life \u2014 how long can you last?</small></div>
+ <div class="wgrid">${WORLDS.map((w,i)=>`<div class="wc" data-act="surv" data-v="${i}" style="background:linear-gradient(135deg,${w.col},${w.col2})"><div class="big">${w.ico}</div><h3>${w.n}</h3><div class="el">${w.el}</div><div style="font-size:12px;opacity:.9;margin-top:8px">${w.tip}</div></div>`).join('')}</div>`,'solid');
 }
 function setMenuScene(){
  clearFighters();buildArena(clamp(S.unlocked-1,0,4));
@@ -1014,7 +1102,7 @@ function collectionScreen(){
  state='menu';hudShow(false);
  const list=ROSTER.slice().sort((a,b)=>a.r-b.r||a.key-b.key);
  colSel=S.sel;
- ui(topbar(`Pandas ${ownedCount()}/50`,'menu')+`<div class="cgrid">${list.map(p=>cardHTML(p,{act:'sel',eq:true,sel:p.key===colSel})).join('')}</div><div class="detail" id="detail"></div>`,'solid');
+ ui(topbar(`Pandas ${ownedCount()}/${ROSTER.length}`,'menu')+`<div class="cgrid">${list.map(p=>cardHTML(p,{act:'sel',eq:true,sel:p.key===colSel})).join('')}</div><div class="detail" id="detail"></div>`,'solid');
  detailPanel();
 }
 function statBar(l,v,max){return `<div style="font-size:12px;font-weight:800">${l} <span style="float:right">${v}</span></div><div class="sbar"><i style="width:${clamp(v/max*100,4,100)}%"></i></div>`;}
@@ -1024,7 +1112,8 @@ function detailPanel(){
   <div style="flex:1"><div class="${p.r===7?'rb':''}" style="font-weight:900;font-size:13px;color:${rc.c}">${rc.n.toUpperCase()}</div>
   <div style="font-size:20px;font-weight:900">${own?p.name:'???'}</div>
   <div style="font-size:13px;opacity:.9;margin-bottom:6px">${w.ico} ${w.n}${p.w===12?' — the ultimate weapon!':''}</div>
-  ${statBar('Damage / hit',Math.round(w.dmg*rc.mul),50)}${statBar('Reach',w.reach.toFixed(1),3.2)}${statBar('Defense',Math.round(p.r*1.8)+'%',13)}</div></div>
+  ${isUlt(p)&&own?'<div style="font-size:12px;font-weight:800;color:#9fe8ff;margin-bottom:6px">\u26A1 ULTIMATE: 2\u00D7 damage \u00B7 30% damage reduction \u00B7 +20% speed \u00B7 half stamina cost \u00B7 regenerates health \u00B7 heals when it hits \u00B7 hammer shockwave hits nearby rivals</div>':''}
+  ${statBar('Damage / hit',Math.round(w.dmg*powOf(p)),60)}${statBar('Reach',w.reach.toFixed(1),3.2)}${statBar('Defense',(isUlt(p)?30:Math.round(p.r*1.8))+'%',30)}</div></div>
   <div style="margin-top:8px;text-align:center">${own?(S.sel===p.key?'<button class="btn dim sm">Equipped ✔</button>':'<button class="btn grn" data-act="equip" data-v="'+p.key+'">Equip</button>'):'<div style="font-weight:800;opacity:.85">Not unlocked yet — find it in the Shop!</div>'}</div>`;
  document.querySelectorAll('.cgrid .card').forEach(c=>c.classList.toggle('selc',+c.dataset.v===colSel));
 }
@@ -1036,9 +1125,9 @@ function shopScreen(){
  ui(topbar('Shop','menu')+`<div class="panel" style="text-align:center;margin-top:0"><b>🎯 Your Skill: ${sk}/100</b><div class="skillbar"><i style="width:${sk}%"></i></div>
  <small style="opacity:.85">Win with lots of health left and clear bosses to raise your skill. Higher skill = better Skill Pack odds!</small></div>
  <div class="packs">
-  <div class="pack"><div class="pi">🎁</div><h3>Bamboo Pack</h3><p>1 random panda</p><div class="odds">${rows(oB,0)}</div>${bt('single',150)}</div>
-  <div class="pack skillp"><div class="pi">🔥🎁</div><h3>Skill Pack ×10</h3><p>10 random pandas · odds boosted by your skill · at least 1 Rare+</p><div class="odds">${rows(oS,0)}</div>${bt('skill',1200)}</div>
-  <div class="pack legend"><div class="pi">👑🎁</div><h3>Legend Pack</h3><p>1 panda — Legendary or better!</p><div class="odds">${rows(oL,4)}</div>${bt('legend',2500)}</div>
+  <div class="pack"><div class="pi">🎁</div><h3>Bamboo Pack</h3><p>1 random panda</p><div class="odds">${rows(oB,0)}</div>${bt('single',300)}</div>
+  <div class="pack skillp"><div class="pi">🔥🎁</div><h3>Skill Pack ×10</h3><p>10 random pandas · odds boosted by your skill · at least 1 Uncommon+</p><div class="odds">${rows(oS,0)}</div>${bt('skill',3000)}</div>
+  <div class="pack legend"><div class="pi">👑🎁</div><h3>Legend Pack</h3><p>1 panda — Legendary or better!</p><div class="odds">${rows(oL,4)}</div>${bt('legend',8000)}</div>
  </div><p style="text-align:center;opacity:.85;font-size:13px">Duplicates turn into coins. Beat each world's first boss for a free panda!</p>`,'solid');
 }
 let revealList=[];
@@ -1057,24 +1146,24 @@ function revealOne(i){
 function helpScreen(){
  ui(topbar('How to Play','menu')+`<div class="panel"><h3>🎮 Controls</h3>
  <p><b>Phone:</b> drag on the left side to move · ⚔️ attack · 🛡️ block (hold) · 💨 dash<br><b>Keyboard:</b> WASD move · SPACE attack · K block · L dash</p>
- <h3>⚔️ Fighting</h3><ul><li>Everyone has <b>100 health</b>. First to zero loses.</li><li>Attacks and dashes cost <b>stamina</b> (yellow bar). Mash and you run dry.</li><li>A <b>missed swing leaves you wide open</b> and smart rivals will punish it.</li><li><b>FREEPLAY</b> is a 5-panda free-for-all: last panda standing wins. Rivals fight each other too!</li>
+ <h3>⚔️ Fighting</h3><ul><li>Everyone has <b>100 health</b>. First to zero loses.</li><li>Attacks and dashes cost <b>stamina</b> (yellow bar). Mash and you run dry.</li><li>A <b>missed swing leaves you wide open</b> and smart rivals will punish it.</li><li><b>SURVIVAL</b> is endless waves of rivals \u2014 clear each wave for coins, a heal and a power-up. Every 5th wave is a boss!</li><li><b>FREEPLAY</b> is a 5-panda free-for-all: last panda standing wins. Rivals fight each other too!</li>
  <li><b>Tap block just before a hit lands = PARRY</b> — the attacker gets stunned!</li>
  <li>Dash dodges through attacks. Holding block too long breaks your guard.</li>
  <li>The <b>less damage you take, the more coins you win</b> (flawless = bonus!).</li>
  <li>Every <b>5th fight is a BOSS</b> 💀 (triple coins + a free panda the first time).</li></ul>
- <h3>🐼 Pandas</h3><p>50 pandas from Common to Ultimate. Each carries a weapon — the <b>⚡ Thunder Hammer</b> is the strongest of all, and only ONE panda in the whole game owns it: the Ultimate Red Panda!</p>
+ <h3>🐼 Pandas</h3><p>80 pandas from Common to Ultimate (and the better ones are really hard to find). Each carries a weapon — the <b>⚡ Thunder Hammer</b> is the strongest of all, and only ONE panda in the whole game owns it: the Ultimate Red Panda!</p>
  <h3>🌍 Worlds</h3><p>5 elemental arenas: Earth, Water, Ice, Air and Lava. Each world is harder than the last and has its own hazards.</p></div>
  <div class="row"><button class="btn grn" data-act="menu">Got it!</button></div>`,'solid');
 }
 function settingsScreen(){
  ui(topbar('Settings','menu')+`<div class="panel"><div class="row"><button class="btn alt" data-act="mute">${S.mute?'🔇 Sound: OFF':'🔊 Sound: ON'}</button></div>
- <p style="text-align:center;opacity:.8">Wins: ${S.wins} · Losses: ${S.losses} · Pandas: ${ownedCount()}/50</p>
+ <p style="text-align:center;opacity:.8">Wins: ${S.wins} · Losses: ${S.losses} · Pandas: ${ownedCount()}/${ROSTER.length}</p>
  <div class="row"><button class="btn sm dim" data-act="reset">Reset all progress</button></div></div>`,'solid');
 }
 function pauseScreen(){ui(`<div class="panel res" style="text-align:center;margin-top:20vh"><h1>⏸ Paused</h1><div class="row"><button class="btn grn" data-act="resume">Resume</button><button class="btn alt" data-act="quit">Quit to Menu</button></div></div>`,'dark');}
 
 const ACT={
- menu:()=>mainMenu(),freeplay:()=>freeplayScreen(),ffa:v=>startFight(+v,true),worlds:()=>worldsScreen(),collection:()=>collectionScreen(),shop:()=>shopScreen(),help:()=>helpScreen(),settings:()=>settingsScreen(),
+ menu:()=>mainMenu(),freeplay:()=>freeplayScreen(),survival:()=>survivalScreen(),surv:v=>startFight(+v,'surv'),ffa:v=>startFight(+v,true),worlds:()=>worldsScreen(),collection:()=>collectionScreen(),shop:()=>shopScreen(),help:()=>helpScreen(),settings:()=>settingsScreen(),
  play:v=>startFight(+v,false),
  sel:v=>{colSel=+v;detailPanel();},
  equip:v=>{S.sel=+v;save();detailPanel();document.querySelectorAll('.cgrid .card').forEach(c=>{const old=c.querySelector('.eqd');if(old)old.remove();if(+c.dataset.v===S.sel){const d=document.createElement('div');d.className='eqd';d.textContent='EQUIPPED';c.appendChild(d);}});},
