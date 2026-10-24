@@ -241,10 +241,10 @@ const RAW=[
  ['Abyss Lord',5,8,225],['Solar Sovereign',5,10,38]
 ];
 const isUlt=p=>p.r===7&&!p.boss;
-const powOf=p=>p.hboss?1.9:(isUlt(p)?2.0:(p.ex?1.8:RAR[p.r].mul));
+const powOf=p=>p.hboss?1.6:(isUlt(p)?2.0:(p.ex?1.8:RAR[p.r].mul));
 const ROSTER=RAW.map((a,i)=>({key:i,name:a[0],r:a[1],w:a[2],hue:a[3],red:!!a[4],scale:1}));
 const SKINS=[{key:100,name:'Jack-O-Lantern Panda',r:8,w:13,hue:28,hw:'skin',ex:true,scale:1}];
-const HBOSS={key:-2,name:'Boss Pumpkin King',r:7,w:13,hue:28,scale:1.35,boss:true,hboss:true,hw:'boss'};
+const HBOSS={key:-2,name:'Boss Pumpkin King',r:7,w:13,hue:28,scale:1.25,boss:true,hboss:true,hw:'boss'};
 const HW={id:'haunt',n:'Haunted Graveyard',el:'Halloween',ico:'\u{1F383}',col:'#ff7a1a',col2:'#3a1055',sky:0x180a2a,hT:0x8a6cc0,hB:0x201030,sun:0xff9a50,sI:.55,top:0x3a2f4a,side:0x1d1530,rar:[4,6],tip:'Beware the Soul Slam'};
 const getP=k=>k>=100?SKINS[k-100]:ROSTER[k];
 const BOSSES=[
@@ -601,11 +601,11 @@ function mkFighter(p,isP,diff){
  const m=buildPanda(p);scene.add(m.g);
  const ult=isUlt(p),w=WEP[p.w],sc=(p.scale||1)*(ult?1.12:(p.ex?1.1:1));
  const f={p,isPlayer:isP,model:m,g:m.g,x:0,z:0,vx:0,vz:0,kx:0,kz:0,face:0,hp:100,guard:100,wep:w,scale:sc,
-  spd:(isP?5.0+p.r*.1:3.7+diff*1.4+(p.boss?.35:0))*(ult?1.2:1),pow:powOf(p),def:ult?.3:p.r*.018,ult:ult,perk:1,stCost:ult?.5:1,slamT:rnd(4,6),slamW:0,slamRing:null,dmgMul:isP?1:(.85+.45*diff+(p.boss?.1:0)),
+  spd:(isP?5.0+p.r*.1:3.7+diff*1.4+(p.boss?.35:0))*(ult?1.2:1),pow:powOf(p),def:ult?.3:p.r*.018,ult:ult,perk:1,stCost:ult?.5:1,slamT:rnd(6,8),slamW:0,slamRing:null,dmgMul:isP?1:(.85+.45*diff+(p.boss?.1:0)),
   atk:-1,atkT:0,blocking:false,blockT:9,dash:0,dashCd:0,dvx:0,dvz:0,stun:0,slow:0,burn:0,burnA:0,hurt:0,poise:0,
   dead:false,koT:0,victory:false,ph:0,opp:null,lava:0,ai:null,stam:100,stamD:0,kos:0,whiff:false,rec:0,rtT:0,lastHitBy:null,place:0};
  if(p.ex){f.ult=true;f.perk=.8;f.stCost=.6;f.spd*=1.15;f.def=.26;}
- if(p.hboss){f.ult=true;f.perk=1;f.stCost=.6;f.def=.28;f.dmgMul=.8;}
+ if(p.hboss){f.ult=true;f.perk=.5;f.stCost=.85;f.def=.15;f.dmgMul=.5;}
  m.g.scale.setScalar(sc);
  if(!isP){const d=clamp(diff,0,1.2);f.ai={think:0,strafe:Math.random()<.5?1:-1,flipT:rnd(.8,2),atkT:rnd(.6,1.4),blockT:0,gap:lerp(1.1,.35,clamp(d,0,1)),
   blockP:.1+.6*d,dashP:.05+.3*d,rt:lerp(.4,.08,clamp(d,0,1)),seen:false,reactT:0,kind:0,dashNow:false,diff:d};}
@@ -881,7 +881,7 @@ function startFight(wi,free){
  const multi=ffa||surv;
  const pr=S.prog[wi];fightN=multi?1:pr%5+1;isBoss=(multi||hw)?false:fightN===5;const cycle=multi?0:Math.floor(pr/5);
  buildArena(hw?'hw':wi);
- const diff=hw?1.2:clamp(ffa?.3+wi*.15:.22+wi*.17+(fightN-1)*.05+cycle*.08,0,1.3);
+ const diff=hw?.6:clamp(ffa?.3+wi*.15:.22+wi*.17+(fightN-1)*.05+cycle*.08,0,1.3);
  const rg=WORLDS[wi].rar,pool=ROSTER.filter(x=>x.r>=rg[0]&&x.r<=Math.min(6,rg[1])).sort(()=>Math.random()-.5);
  P=mkFighter(getP(S.sel),true,0);FIGHTERS=[P];
  waveN=0;waveT=0;survCoins=0;survBuffs=[];
@@ -909,7 +909,7 @@ function bossSlam(f,dt,live){
  if(f.dead){if(f.slamRing){arena.remove(f.slamRing);f.slamRing=null;}return;}
  if(!live)return;
  if(f.slamW>0){
-  f.slamW-=dt;const k=clamp(1-f.slamW/1.0,0,1);
+  f.slamW-=dt;const k=clamp(1-f.slamW/1.4,0,1);
   if(f.slamRing){f.slamRing.position.set(f.x,.08,f.z);f.slamRing.scale.setScalar(.6+3.3*k);f.slamRing.material.opacity=.3+.3*Math.abs(Math.sin(T*24));}
   if(f.slamW<=0){
    for(const d of FIGHTERS){if(d===f||d.dead)continue;const dx=d.x-f.x,dz=d.z-f.z,dist=Math.hypot(dx,dz)||1;
@@ -918,16 +918,16 @@ function bossSlam(f,dt,live){
      if(d.blocking){d.hp-=5;d.guard-=40;d.kx+=dx/dist*8;d.kz+=dz/dist*8;ftext(d,'BLOCK','blk');
       if(d.guard<=0){d.guard=0;d.blocking=false;d.stun=1;ftext(d,'GUARD BREAK!','brk');}
       if(d.hp<=0){d.hp=0;koFighter(d,f);}continue;}
-     d.hp-=24;d.hurt=.25;d.lastHitBy=f;d.stun=Math.max(d.stun,.6);d.atk=-1;d.kx+=dx/dist*14;d.kz+=dz/dist*14;ftext(d,'24','dmgP');
+     d.hp-=15;d.hurt=.25;d.lastHitBy=f;d.stun=Math.max(d.stun,.5);d.atk=-1;d.kx+=dx/dist*12;d.kz+=dz/dist*12;ftext(d,'15','dmgP');
      if(d.hp<=0){d.hp=0;koFighter(d,f);}}}
    SFX.thunder();shake=.8;flash('#ff9a40',.35);
    for(let k=0;k<28;k++){const an=k/28*TAU;burst(f.x+Math.cos(an)*3.4,.3,f.z+Math.sin(an)*3.4,0xff7a1a,1,4,.16,0);}
    if(f.slamRing){arena.remove(f.slamRing);f.slamRing=null;}
-   f.slamT=f.hp<40?rnd(3.5,5):rnd(6,8.5);
+   f.slamT=f.hp<40?rnd(5,7):rnd(8,11);
   }
  }else{
   f.slamT-=dt;
-  if(f.slamT<=0&&f.stun<=0){f.slamW=1.0;ftext(f,'SOUL SLAM!','brk');SFX.beep();
+  if(f.slamT<=0&&f.stun<=0){f.slamW=1.4;ftext(f,'SOUL SLAM!','brk');SFX.beep();
    const rg=new THREE.Mesh(new THREE.CircleGeometry(1,40),new THREE.MeshBasicMaterial({color:0xff5a1a,transparent:true,opacity:.5,side:THREE.DoubleSide,depthWrite:false}));
    rg.rotation.x=-Math.PI/2;rg.position.set(f.x,.08,f.z);rg.scale.setScalar(.6);arena.add(rg);f.slamRing=rg;}
  }
@@ -1147,7 +1147,7 @@ function mainMenu(){
   <div class="menuBot">
    <div class="eqname"><span style="color:${rc.c}">${rc.n}</span> · ${p.name} · ${WEP[p.w].ico} ${WEP[p.w].n}</div>
    <button class="btn big" data-act="worlds">⚔️ FIGHT</button>
-   <button class="btn alt" data-act="hwevent" style="background:linear-gradient(#ffa24a,#e0560c);color:#2a0f00;box-shadow:0 5px 0 #8a3200,0 8px 16px #0006">\u{1F383} HALLOWEEN EVENT · Pumpkin King</button>
+   <button class="btn alt" data-act="hwevent" style="background:linear-gradient(#ffa24a,#e0560c);color:#2a0f00;box-shadow:0 5px 0 #8a3200,0 8px 16px #0006">\u{1F383} HALLOWEEN OF 26 · Pumpkin King</button>
    <button class="btn alt" data-act="survival">\u{1F9DF} SURVIVAL \u00B7 Endless Waves</button>
    <button class="btn alt" data-act="freeplay">\u{1F465} FREEPLAY \u00B7 5-Panda Brawl</button>
    <div class="row"><button class="btn alt" data-act="collection">🐼 Pandas ${ownedCount()}/${ROSTER.length}</button><button class="btn alt" data-act="shop">🎁 Shop</button></div>
@@ -1165,7 +1165,7 @@ function freeplayScreen(){
 function hwScreen(){
  state='menu';hudShow(false);
  const sel=getP(S.sel),rc=RAR[sel.r],own=(S.owned[100]|0)>0;
- ui(topbar('Halloween Event','menu')+`<div class="eqbar"><img src="${thumb(sel)}" alt=""><div><b style="color:${rc.c}">${sel.name}</b><br><small>${rc.n} · ${WEP[sel.w].ico} ${WEP[sel.w].n}</small></div><button class="btn sm alt" data-act="collection">Change</button></div>
+ ui(topbar('Halloween of 26','menu')+`<div class="eqbar"><img src="${thumb(sel)}" alt=""><div><b style="color:${rc.c}">${sel.name}</b><br><small>${rc.n} · ${WEP[sel.w].ico} ${WEP[sel.w].n}</small></div><button class="btn sm alt" data-act="collection">Change</button></div>
  <div class="panel" style="text-align:center;margin-top:0;border-color:#ff7a1a"><h2 style="color:#ffa24a">\u{1F383} Boss Pumpkin King</h2>
   <small>A towering 1v1 boss in the Haunted Graveyard. Huge scythe, heals as he hits, and a telegraphed <b>SOUL SLAM</b> you have to dash out of. Beat him for big coins every time — the first win unlocks an <b>exclusive skin</b>.</small>
   <div style="max-width:150px;margin:12px auto 4px;position:relative">${cardHTML(SKINS[0],{show:true})}</div>
@@ -1213,7 +1213,7 @@ function detailPanel(){
   ${isUlt(p)&&own?'<div style="font-size:12px;font-weight:800;color:#9fe8ff;margin-bottom:6px">\u26A1 ULTIMATE: 2\u00D7 damage \u00B7 30% damage reduction \u00B7 +20% speed \u00B7 half stamina cost \u00B7 regenerates health \u00B7 heals when it hits \u00B7 hammer shockwave hits nearby rivals</div>':''}
   ${p.ex&&own?'<div style="font-size:12px;font-weight:800;color:#ffa24a;margin-bottom:6px">\u{1F383} EXCLUSIVE: 1.8× damage · 26% damage reduction · +15% speed · 40% cheaper stamina · regenerates health · heals when it hits · cursed scythe sets foes ablaze</div>':''}
   ${statBar('Damage / hit',Math.round(w.dmg*powOf(p)),60)}${statBar('Reach',w.reach.toFixed(1),3.2)}${statBar('Defense',(isUlt(p)?30:(p.ex?26:Math.round(p.r*1.8)))+'%',30)}</div></div>
-  <div style="margin-top:8px;text-align:center">${own?(S.sel===p.key?'<button class="btn dim sm">Equipped ✔</button>':'<button class="btn grn" data-act="equip" data-v="'+p.key+'">Equip</button>'):'<div style="font-weight:800;opacity:.85">'+(p.ex?'Exclusive — beat the \u{1F383} Halloween Event boss to unlock!':'Not unlocked yet — find it in the Shop!')+'</div>'}</div>`;
+  <div style="margin-top:8px;text-align:center">${own?(S.sel===p.key?'<button class="btn dim sm">Equipped ✔</button>':'<button class="btn grn" data-act="equip" data-v="'+p.key+'">Equip</button>'):'<div style="font-weight:800;opacity:.85">'+(p.ex?'Exclusive — beat the \u{1F383} Halloween of 26 boss to unlock!':'Not unlocked yet — find it in the Shop!')+'</div>'}</div>`;
  document.querySelectorAll('.cgrid .card').forEach(c=>c.classList.toggle('selc',+c.dataset.v===colSel));
 }
 function shopScreen(){
@@ -1245,7 +1245,7 @@ function revealOne(i){
 function helpScreen(){
  ui(topbar('How to Play','menu')+`<div class="panel"><h3>🎮 Controls</h3>
  <p><b>Phone:</b> drag on the left side to move · ⚔️ attack · 🛡️ block (hold) · 💨 dash<br><b>Keyboard:</b> WASD move · SPACE attack · K block · L dash</p>
- <h3>⚔️ Fighting</h3><ul><li>Everyone has <b>100 health</b>. First to zero loses.</li><li>Attacks and dashes cost <b>stamina</b> (yellow bar). Mash and you run dry.</li><li>A <b>missed swing leaves you wide open</b> and smart rivals will punish it.</li><li><b>HALLOWEEN EVENT</b>: beat the Pumpkin King boss to unlock an exclusive skin!</li><li><b>SURVIVAL</b> is endless waves of rivals \u2014 clear each wave for coins, a heal and a power-up. Every 5th wave is a boss!</li><li><b>FREEPLAY</b> is a 5-panda free-for-all: last panda standing wins. Rivals fight each other too!</li>
+ <h3>⚔️ Fighting</h3><ul><li>Everyone has <b>100 health</b>. First to zero loses.</li><li>Attacks and dashes cost <b>stamina</b> (yellow bar). Mash and you run dry.</li><li>A <b>missed swing leaves you wide open</b> and smart rivals will punish it.</li><li><b>HALLOWEEN OF 26</b>: beat the Pumpkin King boss to unlock an exclusive skin!</li><li><b>SURVIVAL</b> is endless waves of rivals \u2014 clear each wave for coins, a heal and a power-up. Every 5th wave is a boss!</li><li><b>FREEPLAY</b> is a 5-panda free-for-all: last panda standing wins. Rivals fight each other too!</li>
  <li><b>Tap block just before a hit lands = PARRY</b> — the attacker gets stunned!</li>
  <li>Dash dodges through attacks. Holding block too long breaks your guard.</li>
  <li>The <b>less damage you take, the more coins you win</b> (flawless = bonus!).</li>
