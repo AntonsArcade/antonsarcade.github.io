@@ -114,7 +114,7 @@ let money=1000,chip=10,R=1,picks=new Set(),tickets=[],live=null,phase='count',ps
 let lastRes='',holdT=0,hist=[],freq=Array(81).fill(0),nGames=0,hcDone=-1;
 function drawHC(){if(hcDone===nGames||!nGames)return;hcDone=nGames;const ix=[...Array(80)].map((_,i)=>i+1),hot=[...ix].sort((a,b)=>freq[b]-freq[a]||a-b).slice(0,5),cold=[...ix].sort((a,b)=>freq[a]-freq[b]||a-b).slice(0,5);const ch=n=>`<span class="nb" style="background:${col(n)}">${n} <small>×${freq[n]}</small></span>`;
  $('hc').innerHTML='<div>Hot: '+hot.map(ch).join('')+'</div><div>Cold: '+cold.map(ch).join('')+'</div>';
- $('hs').innerHTML=hist.map(h=>`<div>Game ${h.g} · <b style="color:${h.low>10?'#ff8da0':h.low<10?'#7db5ff':'#ffd34d'}">${h.low>10?'HEADS':h.low<10?'TAILS':'EVENS'}</b> ${h.low}–${20-h.low}<br><small style="color:var(--mute)">${[...h.nums].sort((a,b)=>a-b).join(' ')}</small></div>`).join('')}
+ $('hs').innerHTML=hist.map(h=>`<div>Game ${dg(h.g)} · <b style="color:${h.low>10?'#ff8da0':h.low<10?'#7db5ff':'#ffd34d'}">${h.low>10?'HEADS':h.low<10?'TAILS':'EVENS'}</b> ${h.low}–${20-h.low}<br><small style="color:var(--mute)">${[...h.nums].sort((a,b)=>a-b).join(' ')}</small></div>`).join('')}
 function skip(){if(phase!=='draw'||!live||live.n+live.h+live.t+live.e)return;document.querySelectorAll('.ball').forEach(b=>b.remove());for(let k=0;k<20;k++)landed.add(k);launched=19;settle();lastRes=resHtml;phase='res';render()}
 
 const cells=[];
@@ -172,10 +172,10 @@ function render(){
  const e=(Date.now()-ps)/1000,shown=new Set(drawn.filter((_,k)=>landed.has(k))),lp=new Set(live&&phase!=='count'?live.nums.flatMap(t=>t.picks):[]);
  let low=0;shown.forEach(n=>{if(n<=40)low++});const hi=shown.size-low;
  for(let i=1;i<=80;i++){const d=shown.has(i);cells[i].className='c'+(picks.has(i)?' s':'')+(d?' d':'')+(d&&lp.has(i)?' hit':'')}
- $('money').textContent=fmt(money);$('ch').textContent=low;$('ct').textContent=hi;$('gm').textContent=game;
+ $('money').textContent=fmt(money);$('ch').textContent=low;$('ct').textContent=hi;$('gm').textContent=dg(game);
  document.querySelectorAll('.chip').forEach(b=>b.classList.toggle('on',+b.dataset.v===chip));
  const nx=phase==='count'?game:game+1,tot=tickets.length;
- $('bl').textContent='PLACE BETS FOR GAME #'+nx+(phase==='count'?' · CLOSES IN '+Math.max(0,Math.ceil(CNT-e))+'s':' · OPEN NOW');
+ $('bl').textContent='PLACE BETS FOR GAME #'+dg(nx)+(phase==='count'?' · CLOSES IN '+Math.max(0,Math.ceil(CNT-e))+'s':' · OPEN NOW');
  $('bn').disabled=!picks.size||money<chip*R;['h','t','e'].forEach(k=>$('b'+k).disabled=money<chip*R);
  $('rl').textContent='ROUNDS · EACH BET COSTS '+fmt(chip*R)+' UP FRONT ('+R+' × '+fmt(chip)+')';document.querySelectorAll('#rounds .chip').forEach(b=>b.classList.toggle('on',+b.dataset.r===R));
  $('bnsub').textContent=picks.size?picks.size+' number'+(picks.size>1?'s':'')+' picked':'pick 1–10 first';
@@ -188,12 +188,12 @@ function render(){
  else if(!L||!(L.n+L.h+L.t+L.e))h='No bets on this game. Just watching. You can bet on the next one below.';
  else{L.nums.forEach(t=>{h+=`<div>Numbers ${fmt(t.stake)}: `+t.picks.map(n=>`<span class="nb${shown.has(n)?' hit':''}">${n}</span>`).join('')+'</div>'});
   if(L.h)h+=`<div>Heads ${fmt(L.h)} · so far ${low}–${hi}</div>`;if(L.t)h+=`<div>Tails ${fmt(L.t)} · so far ${hi}–${low}</div>`;if(L.e)h+=`<div>Evens ${fmt(L.e)} · so far ${low}–${hi}</div>`}
- $('tk').innerHTML=h;$('tkl').textContent=phase==='count'?'YOUR TICKET':'LIVE TICKET · GAME #'+game;
+ $('tk').innerHTML=h;$('tkl').textContent=phase==='count'?'YOUR TICKET':'LIVE TICKET · GAME #'+dg(game);
  // status
  let a,b,f;
  if(phase==='count'){a='Syncing with live feed…';b=Math.max(0,Math.ceil(CNT-e))+'s';f=e/CNT}
- else if(phase==='draw'){a='🔴 LIVE · game #'+game;b=shown.size+' / 20';f=e/DRAW}
- else{a='Results · game #'+game;b='next game in '+Math.max(0,Math.ceil(CY-e))+'s';f=e/CY}
+ else if(phase==='draw'){a='🔴 LIVE · game #'+dg(game);b=shown.size+' / 20';f=e/DRAW}
+ else{a='Results · game #'+dg(game);b='next game in '+Math.max(0,Math.ceil(CY-e))+'s';f=e/CY}
  $('st').textContent=a;$('ck').textContent=b;$('bar').style.width=Math.min(100,f*100)+'%';
  $('lr').innerHTML=lastRes;drawHC();
 }
@@ -203,7 +203,7 @@ function applySpeed(){[BALL,FLY,DRAW]=SP[speed]}
 try{const s=JSON.parse(localStorage.getItem('royale80')||'null');if(s){money=s.money;hist=s.hist||[];freq=s.freq||freq;nGames=s.nGames||0;tickets=s.tickets||[];(s.J||[]).forEach((v,i)=>J[i]=v);if(SP[s.speed])speed=s.speed;const L=s.lv;if(L){L.nums.forEach(t=>tickets.push({k:'n',stake:t.stake,picks:t.picks,left:1}));['h','t','e'].forEach(k=>L[k]&&tickets.push({k,stake:L[k],picks:[],left:1}))}}}catch(e){}
 function save(){try{localStorage.setItem('royale80',JSON.stringify({money,game,hist,freq,nGames,tickets,J,speed,lv:phase==='draw'?live:null}))}catch(e){}}
 setInterval(save,1500);addEventListener('pagehide',save);
-const T0=1792886400,CY=51,GEN=1692803367,PER=3,CH='52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971',done={},pre={};
+const dg=n=>((n-1)%1000)+1;const T0=1792886400,CY=51,GEN=1692803367,PER=3,CH='52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971',done={},pre={};
 const curGame=()=>{const t=Date.now()/1000-T0;return{g:Math.floor(t/CY)+1,e:t%CY}};
 async function sha(s){return new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))}
 async function nums(g){let seed='royale80:'+g;const rd=Math.floor((T0+(g-1)*CY-GEN)/PER)+1-3;
@@ -217,7 +217,7 @@ let paused=true,pt=Date.now(),introOn=true;
 function setPause(p){if(p===paused)return;const an=f=>document.querySelectorAll('.ball').forEach(b=>b.getAnimations().forEach(a=>a[f]()));if(p){pt=Date.now();paused=true;an('pause')}else{paused=false;document.querySelectorAll('.ball').forEach(b=>b.remove());if(phase==='draw')launched=Math.min(19,Math.floor((Date.now()-ps)/1000/BALL))}$('pz').className='ov2'+(p&&!introOn?' on':'')}
 $('play').onclick=$('play2').onclick=()=>{introOn=false;$('intro').style.display='none';setPause(false)};
 $('pa').onclick=()=>setPause(true);
-$('ib').textContent=(nGames||game>1)?'Welcome back · bankroll '+fmt(money)+' · next game #'+game:'Start with $1,000 · hit 8, 9 or 10 numbers for the jackpots';
+$('ib').textContent=(nGames||game>1)?'Welcome back · bankroll '+fmt(money)+' · next game #'+dg(game):'Start with $1,000 · hit 8, 9 or 10 numbers for the jackpots';
 if(nGames||game>1)$('play').textContent='▶ CONTINUE';
 $('sp').onclick=()=>{speed=speed==='slow'?'normal':speed==='normal'?'turbo':'slow';$('sp').textContent='Speed: '+speed.toUpperCase()};$('sp').textContent='Speed: '+speed.toUpperCase();
 function jr(){if(paused)return;J.forEach((v,i)=>{J[i]+=Math.floor(Math.random()*JI[i]);$('j'+(i+1)).textContent=fmt(J[i])})}
