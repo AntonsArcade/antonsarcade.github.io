@@ -6,6 +6,7 @@
 <title>Panda Fight 3D</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+input,select{-webkit-user-select:text;user-select:text;font:inherit}
 html,body{margin:0;height:100%;overflow:hidden;background:#0b1410;font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;color:#fff}
 canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
 .hidden{display:none!important}
@@ -264,7 +265,7 @@ const WORLDS=[
 
 /* ===================================================== SAVE ===================================================== */
 const KEY='pandaFight3D_save_v1';
-function defSave(){return{hwWins:0,bestSurv:0,coins:400,owned:{0:1},sel:0,prog:[0,0,0,0,0],unlocked:1,claimed:[0,0,0,0,0],wins:0,losses:0,last:[],mute:false,seenHelp:false};}
+function defSave(){return{pvpWins:0,hwWins:0,bestSurv:0,coins:400,owned:{0:1},sel:0,prog:[0,0,0,0,0],unlocked:1,claimed:[0,0,0,0,0],wins:0,losses:0,last:[],mute:false,seenHelp:false};}
 let S=defSave();
 try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(defSave(),JSON.parse(raw));}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
@@ -593,7 +594,7 @@ function buildArena(wi){
 }
 
 /* ===================================================== FIGHTERS ===================================================== */
-let P=null,menuF=null,FIGHTERS=[],ENEMIES=[],placeP=0,ffa=false,surv=false,hw=false,waveN=0,waveT=0,survCoins=0,survBuffs=[];
+let P=null,menuF=null,FIGHTERS=[],ENEMIES=[],placeP=0,ffa=false,surv=false,hw=false,pvp=false,pvpHost=false,RM=null,remoteSel=0,pvpWorld=0,pvpStd=true,pvpConn=null,pvpPeer=null,pvpSendT=0,pvpMyRm=false,pvpOppRm=false,pvpForfeit=false,pvpClosing=false,pvpGot=false,waveN=0,waveT=0,survCoins=0,survBuffs=[];
 let state='menu',paused=false,curW=0,isBoss=false,fightN=1,fightT=90,cdT=0,koT=0,winnerP=false,timeScale=1,hitStop=0,shake=0;
 const camDir={x:0,z:1};
 
@@ -618,6 +619,7 @@ function koFighter(f,killer){
  if(f.dead)return;
  killer=killer||f.lastHitBy;
  f.dead=true;f.hp=0;f.koT=0;f.atk=-1;f.blocking=false;
+ if(pvp&&f.isPlayer&&RM){pvpSend({t:'ko'});RM.victory=true;}
  f.place=FIGHTERS.filter(x=>!x.dead).length+1;
  if((ffa||surv)&&killer&&killer!==f){killer.kos++;if(ffa&&killer.isPlayer)ftext(killer,'KO! +'+Math.round(100*(1+curW*.5)),'par');}
  SFX.ko();burst(f.x,1.2,f.z,0xffffff,24,9,.14);burst(f.x,1.2,f.z,RAR[f.p.r].c,18,7,.12);
@@ -678,7 +680,7 @@ function hitOne(a,d){
 function resolveAttack(a){
  let any=false;
  if(a.p.w===12)burst(a.x+Math.sin(a.face)*1.8,.2,a.z+Math.cos(a.face)*1.8,0x9fe8ff,6,5,.1);
- for(const d of FIGHTERS){if(d===a||d.dead)continue;if(surv&&!a.isPlayer&&!d.isPlayer)continue;if(hitOne(a,d))any=true;if(a.dead)break;}
+ for(const d of FIGHTERS){if(d===a||d.dead)continue;if(surv&&!a.isPlayer&&!d.isPlayer)continue;if(d.remote){if(hitRemote(a,d))any=true;continue;}if(hitOne(a,d))any=true;if(a.dead)break;}
  a.whiff=!any;
  if(a.whiff&&a.isPlayer)ftext(a,'MISS','blk');
 }
@@ -733,7 +735,7 @@ function stepFighter(f,I,dt){
  f.face+=da*Math.min(1,dt*(stunned?3:14));
 }
 function separate(a,b){const dx=b.x-a.x,dz=b.z-a.z,d=Math.hypot(dx,dz)||.001,m=.55*(a.scale+b.scale);
- if(d<m){const p=(m-d)/2;a.x-=dx/d*p;a.z-=dz/d*p;b.x+=dx/d*p;b.z+=dz/d*p;}}
+ if(d<m){const p=(m-d)/2,fa=a.remote?0:(b.remote?2:1),fb=b.remote?0:(a.remote?2:1);a.x-=dx/d*p*fa;a.z-=dz/d*p*fa;b.x+=dx/d*p*fb;b.z+=dz/d*p*fb;}}
 
 function animFighter(f,dt,t){
  if(f.ult&&!f.dead&&Math.random()<.55)burst(f.x+rnd(-.7,.7),rnd(.2,2.5)*f.scale,f.z+rnd(-.7,.7),(f.p.ex||f.p.hboss)?(Math.random()<.5?0xff7a1a:0xb04cff):(Math.random()<.5?0x9fe8ff:0xffe14d),1,2,.07,0);
@@ -852,7 +854,7 @@ function hudNames(){
  $('pn').textContent=P.p.name;$('pr').textContent=RAR[P.p.r].n;$('pn').style.color=RAR[P.p.r].c;
  const solo=ENEMIES.length===1;
  $('foes').innerHTML=ENEMIES.map((e,i)=>`<div class="foe${solo?' solo':''}" id="foe${i}"><span style="color:${e.p.boss?'#ff7a5a':RAR[e.p.r].c}">${e.p.name}${e.p.boss?' \u{1F480}':''}</span><div class="mh"><i id="foeh${i}" style="width:100%"></i></div></div>`).join('');
- const W=hw?HW:WORLDS[curW];$('wlabel').textContent=W.ico+' '+(hw?'HALLOWEEN BOSS':ffa?'FREEPLAY':(surv?'\u{1F9DF} WAVE '+waveN:(isBoss?'BOSS FIGHT':'Fight '+fightN+'/5')));
+ const W=hw?HW:WORLDS[curW];$('wlabel').textContent=W.ico+' '+(pvp?'ONLINE PVP':hw?'HALLOWEEN BOSS':ffa?'FREEPLAY':(surv?'\u{1F9DF} WAVE '+waveN:(isBoss?'BOSS FIGHT':'Fight '+fightN+'/5')));
  $('radar').style.display=(ffa||surv)?'block':'none';
  ['pLag','pFill'].forEach(i=>$(i).style.width='100%');
 }
@@ -877,7 +879,7 @@ function drawRadar(){
 
 /* ===================================================== FIGHT FLOW ===================================================== */
 function startFight(wi,free){
- hw=free==='hw';ffa=free===true;surv=free==='surv';curW=hw?4:wi;hideUI();clearFighters();
+ pvp=false;hw=free==='hw';ffa=free===true;surv=free==='surv';curW=hw?4:wi;hideUI();clearFighters();
  const multi=ffa||surv;
  const pr=S.prog[wi];fightN=multi?1:pr%5+1;isBoss=(multi||hw)?false:fightN===5;const cycle=multi?0:Math.floor(pr/5);
  buildArena(hw?'hw':wi);
@@ -932,6 +934,168 @@ function bossSlam(f,dt,live){
    rg.rotation.x=-Math.PI/2;rg.position.set(f.x,.08,f.z);rg.scale.setScalar(.6);arena.add(rg);f.slamRing=rg;}
  }
 }
+/* ---------- ONLINE PVP (peer-to-peer via PeerJS; no server of our own) ---------- */
+const PFX='pandafight26-',CODE_CH='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+function makeCode(){let c='';for(let i=0;i<5;i++)c+=CODE_CH[Math.floor(Math.random()*CODE_CH.length)];return c;}
+function pvpSend(o){try{if(pvpConn&&pvpConn.open)pvpConn.send(o);}catch(e){}}
+function pvpSetStatus(h){const el=$('pvpStatus');if(el)el.innerHTML=h;}
+function saneSel(k){k=+k;return(k===100||(Number.isInteger(k)&&k>=0&&k<ROSTER.length))?k:0;}
+function loadPeer(cb){
+ if(window.Peer){cb(true);return;}
+ try{const sc=document.createElement('script');sc.src='https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';sc.onload=()=>cb(!!window.Peer);sc.onerror=()=>cb(false);document.head.appendChild(sc);}catch(e){cb(false);}
+}
+function pvpLeave(){
+ pvpClosing=true;
+ try{if(pvpConn&&pvpConn.open)pvpConn.send({t:'bye'});}catch(e){}
+ try{if(pvpConn)pvpConn.close();}catch(e){}
+ try{if(pvpPeer)pvpPeer.destroy();}catch(e){}
+ pvpConn=null;pvpPeer=null;pvp=false;RM=null;pvpMyRm=pvpOppRm=false;pvpGot=false;pvpClosing=false;
+}
+function pvpScreen(){
+ state='menu';hudShow(false);
+ ui(topbar('Online PvP','menu')+`<div class="panel" style="text-align:center;margin-top:0"><b>\u{1F310} 1v1 a friend online</b><br><small>One player creates a room and shares the code (or link). The other player joins with it. Works over the internet \u2014 nothing to install.</small></div>
+ <div class="panel" id="pvpBox" style="text-align:center">
+  <div style="font-weight:900;margin-bottom:6px">Host a match</div>
+  <div class="row" style="align-items:center"><select id="pvpWorld" style="padding:8px;border-radius:10px;font-weight:800">${WORLDS.map((w,i)=>`<option value="${i}">${w.ico} ${w.n}</option>`).join('')}<option value="hw">\u{1F383} Haunted Graveyard</option></select>
+  <label style="font-weight:800"><input type="checkbox" id="pvpStd" checked> Fair stats</label></div>
+  <small style="opacity:.85">Fair stats = everyone fights with equal power, so it's skill vs skill (you still keep your panda's look and weapon). Untick for full power.</small>
+  <div style="margin:10px 0"><button class="btn grn" data-act="pvpcreate">Create Room</button></div>
+  <hr style="border:0;border-top:1px solid #fff3;margin:12px 0">
+  <div style="font-weight:900;margin-bottom:6px">Join a match</div>
+  <div class="row" style="align-items:center"><input id="pvpCode" maxlength="8" placeholder="ROOM CODE" autocomplete="off" autocapitalize="characters" style="padding:10px;border-radius:10px;border:2px solid #2e6b4a;background:#06120c;color:#fff;font-weight:900;font-size:20px;text-align:center;width:150px;text-transform:uppercase"><button class="btn" data-act="pvpjoin">Join</button></div>
+  <div id="pvpStatus" style="margin-top:12px;font-weight:800;min-height:22px"></div>
+ </div>`,'solid');
+}
+function pvpShowWaiting(code){
+ const link=location.href.split('#')[0].split('?')[0]+'?room='+code;
+ const b=$('pvpBox');if(!b)return;
+ b.innerHTML=`<div style="font-weight:900">Room created!</div><div style="font-size:48px;font-weight:900;letter-spacing:6px;color:#ffe14d;margin:6px 0">${code}</div>
+ <small>Tell your friend to press <b>Online PvP \u2192 Join</b> and enter this code,<br>or send them this link:</small>
+ <div style="word-break:break-all;font-size:12px;opacity:.9;margin:8px 0">${link}</div>
+ <div class="row"><button class="btn alt sm" data-act="pvpcopy" data-v="${code}">\u{1F4CB} Copy link</button><button class="btn sm dim" data-act="pvpcancel">Cancel</button></div>
+ <div id="pvpStatus" style="margin-top:12px;font-weight:800">\u23F3 Waiting for your friend\u2026</div>`;
+}
+function pvpHostRoom(){
+ const wv=$('pvpWorld').value,std=$('pvpStd').checked;
+ pvpLeave();pvpHost=true;pvpWorld=wv==='hw'?'hw':(+wv|0);pvpStd=!!std;
+ pvpSetStatus('Connecting to the matchmaking service\u2026');
+ loadPeer(ok=>{
+  if(!ok){pvpSetStatus('\u274C Could not load the online library. Are you offline?');return;}
+  const code=makeCode();
+  try{pvpPeer=new Peer(PFX+code);}catch(e){pvpSetStatus('\u274C Online play is not available here.');return;}
+  pvpPeer.on('open',()=>pvpShowWaiting(code));
+  pvpPeer.on('connection',c=>{if(pvpConn){try{c.close();}catch(e){}return;}pvpWire(c,true);});
+  pvpPeer.on('error',e=>{if(pvpClosing)return;if(e&&e.type==='unavailable-id'){pvpHostRoom();return;}pvpSetStatus('\u274C Connection problem ('+((e&&e.type)||'error')+'). Try again.');});
+ });
+}
+function pvpJoinRoom(raw){
+ const code=String(raw||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8);
+ if(code.length<3){pvpSetStatus('Enter the room code first.');return;}
+ pvpLeave();pvpHost=false;pvpSetStatus('Connecting to room '+code+'\u2026');
+ loadPeer(ok=>{
+  if(!ok){pvpSetStatus('\u274C Could not load the online library. Are you offline?');return;}
+  try{pvpPeer=new Peer();}catch(e){pvpSetStatus('\u274C Online play is not available here.');return;}
+  pvpPeer.on('open',()=>{
+   const c=pvpPeer.connect(PFX+code,{reliable:true});pvpWire(c,false);
+   setTimeout(()=>{if(!pvpGot&&pvpPeer&&!pvp)pvpSetStatus('\u274C Could not reach that room. Check the code and try again.');},12000);
+  });
+  pvpPeer.on('error',e=>{if(pvpClosing)return;pvpSetStatus(e&&e.type==='peer-unavailable'?'\u274C Room not found. Check the code.':'\u274C Connection problem ('+((e&&e.type)||'error')+'). Try again.');});
+ });
+}
+function pvpWire(c,isHost){
+ pvpConn=c;
+ const onOpen=()=>{pvpSend({t:'hello',sel:S.sel});pvpSetStatus(isHost?'Friend joined! Starting\u2026':'Connected! Waiting for the host\u2026');};
+ if(c.open)onOpen();else c.on('open',onOpen);
+ c.on('data',onPvpData);c.on('close',onPvpClose);c.on('error',()=>pvpSetStatus('\u274C Connection error.'));
+}
+function onPvpClose(){
+ if(pvpClosing)return;
+ if(pvp&&RM&&(state==='fight'||state==='countdown'||state==='ko')){pvpForfeit=true;state='result';timeScale=1;pvpConn=null;showResult(true);}
+ else if(pvp&&state==='result'){const e=$('rmStatus');if(e)e.textContent='Opponent left.';pvpConn=null;}
+ else pvpSetStatus('Opponent disconnected.');
+}
+function onPvpData(m){
+ if(!m||typeof m!=='object')return;
+ switch(m.t){
+  case 'hello':pvpGot=true;remoteSel=saneSel(m.sel);
+   if(pvpHost&&!pvp){pvpSend({t:'start',world:pvpWorld,std:pvpStd?1:0});startPvp(pvpWorld,pvpStd,true);}break;
+  case 'start':if(!pvpHost){pvpWorld=m.world==='hw'?'hw':clamp(+m.world|0,0,4);pvpStd=!!m.std;startPvp(pvpWorld,pvpStd,false);}break;
+  case 's':if(RM&&pvp){RM.snap={x:clamp(+m.x||0,-14,14),z:clamp(+m.z||0,-14,14),fa:+m.fa||0,vx:clamp(+m.vx||0,-30,30),vz:clamp(+m.vz||0,-30,30),a:(m.a|0),at:+m.at||0,rc:+m.rc||0,b:m.b?1:0,bt:+m.bt||0,d:+m.d||0,h:+m.h||0,hp:clamp(+m.hp,0,100),g:clamp(+m.g||0,0,100),st:clamp(+m.st||0,0,100),sn:+m.sn||0,w:m.w?1:0,vc:m.vc?1:0};RM.snapT=T;}break;
+  case 'hit':pvpDefend(m);break;
+  case 'res':pvpOnRes(m);break;
+  case 'ko':if(pvp&&RM&&state==='fight'&&!RM.dead){RM.hp=0;koFighter(RM,P);}break;
+  case 'rm':pvpOppRm=true;{const e=$('rmStatus');if(e)e.textContent=pvpMyRm?'Starting\u2026':'Opponent wants a rematch!';}pvpMaybeRematch();break;
+  case 'bye':onPvpClose();break;
+ }
+}
+function stdFighter(f){f.pow=1;f.def=.03;f.ult=false;f.perk=1;f.stCost=1;f.spd=5.3;f.scale=1;f.dmgMul=1;f.model.g.scale.setScalar(1);}
+function startPvp(wi,std,host){
+ pvp=true;pvpHost=host;ffa=false;surv=false;hw=false;pvpForfeit=false;pvpMyRm=pvpOppRm=false;
+ curW=wi==='hw'?4:wi;isBoss=false;hideUI();clearFighters();
+ buildArena(wi);
+ P=mkFighter(getP(S.sel),true,0);
+ RM=mkFighter(getP(remoteSel),false,.5);RM.remote=true;RM.ai=null;RM.snap=null;RM.snapT=T;
+ if(std){stdFighter(P);stdFighter(RM);}else{RM.dmgMul=1;}
+ FIGHTERS=[P,RM];ENEMIES=[RM];
+ const zs=host?-4.2:4.2;
+ P.x=0;P.z=zs;P.face=host?0:Math.PI;RM.x=0;RM.z=-zs;RM.face=host?Math.PI:0;
+ FIGHTERS.forEach(f=>pickTarget(f));
+ camDir.x=0;camDir.z=host?1:-1;fightT=90;state='countdown';cdT=3.2;timeScale=1;hitStop=0;shake=0;bannerCur='';placeP=0;winnerP=false;
+ hudNames();hudShow(true);hudUpdate();
+ camera.position.set(0,8,host?-12:12);
+}
+function pvpSnap(){const f=P;return{t:'s',x:+f.x.toFixed(2),z:+f.z.toFixed(2),fa:+f.face.toFixed(2),vx:+(f.vx+f.kx).toFixed(2),vz:+(f.vz+f.kz).toFixed(2),a:f.atk,at:+f.atkT.toFixed(2),rc:+(f.rec||0).toFixed(2),b:f.blocking?1:0,bt:+f.blockT.toFixed(2),d:+Math.max(0,f.dash).toFixed(2),h:+Math.max(0,f.hurt).toFixed(2),hp:+f.hp.toFixed(1),g:Math.round(f.guard),st:Math.round(f.stam),sn:+Math.max(0,f.stun).toFixed(2),w:f.whiff?1:0,vc:f.victory?1:0};}
+function pvpTick(dt){pvpSendT-=dt;if(pvpSendT<=0){pvpSendT=.05;pvpSend(pvpSnap());}}
+function updateRemote(f,dt){
+ if(f.dead){f.koT+=dt;return;}
+ const s=f.snap;if(!s)return;
+ const age=Math.min(.15,Math.max(0,T-f.snapT)),k=Math.min(1,dt*14);
+ f.x+=(s.x+s.vx*age-f.x)*k;f.z+=(s.z+s.vz*age-f.z)*k;
+ let da=s.fa-f.face;while(da>Math.PI)da-=TAU;while(da<-Math.PI)da+=TAU;f.face+=da*k;
+ f.vx=s.vx;f.vz=s.vz;f.atk=s.a;f.atkT=Math.max(0,s.at-age);f.rec=s.rc;f.blocking=!!s.b;f.blockT=s.bt+age;f.dash=Math.max(0,s.d-age);f.hurt=Math.max(0,s.h-age);
+ f.hp=s.hp;f.guard=s.g;f.stam=s.st;f.stun=Math.max(0,s.sn-age);f.whiff=!!s.w;if(s.vc)f.victory=true;
+}
+function hitRemote(a,d){
+ const dx=d.x-a.x,dz=d.z-a.z,dist=Math.hypot(dx,dz)||.001;
+ const reach=a.wep.reach*a.scale+.55*d.scale;
+ const fx=Math.sin(a.face),fz=Math.cos(a.face),dt=(dx*fx+dz*fz)/dist;
+ if(dist>reach+.25||dt<.3)return false;
+ let dmg=a.wep.dmg*a.pow*rnd(.9,1.1)*(1-d.def);const crit=Math.random()<.1;if(crit)dmg*=1.5;
+ pvpSend({t:'hit',dmg:Math.max(1,Math.round(dmg)),crit:crit?1:0,kb:a.wep.kb,gd:Math.max(14,a.wep.dmg*a.pow*1.7),ax:+a.x.toFixed(2),az:+a.z.toFixed(2)});
+ return true;
+}
+function pvpDefend(m){
+ if(!RM||!P||P.dead||RM.dead||state!=='fight')return;
+ const a=RM,d=P,dmg=clamp(Math.round(+m.dmg)||1,1,90),kb=clamp(+m.kb||5,0,20),gd=clamp(+m.gd||14,0,80),crit=!!m.crit;
+ const sx=a.x,sz=a.z;a.x=clamp(+m.ax||0,-14,14);a.z=clamp(+m.az||0,-14,14);
+ const dx=d.x-a.x,dz=d.z-a.z,dist=Math.hypot(dx,dz)||1;
+ let r='hit';
+ if(d.dash>0){ftext(d,'DODGE!','dod');r='dodge';}
+ else if(d.blocking){
+  if(d.blockT<.16){d.guard=Math.min(100,d.guard+25);ftext(d,'PARRY!','par');SFX.parry();hitStop=.1;shake=.3;burst(d.x,1.4,d.z,0xffe14d,16,7,.12);flash('#ffe9a0',.25);r='parry';}
+  else{const chip=Math.max(1,Math.round(dmg*.2));d.hp-=chip;d.lastHitBy=a;d.guard-=gd;d.kx+=dx/dist*3;d.kz+=dz/dist*3;ftext(d,'BLOCK','blk');SFX.block();burst(d.x,1.3,d.z,0x7fd0ff,8,5,.09);shake=Math.max(shake,.1);
+   if(d.guard<=0){d.guard=0;d.blocking=false;d.stun=1;ftext(d,'GUARD BREAK!','brk');SFX.hit();}
+   r='block';if(d.hp<=0){d.hp=0;koFighter(d,a);}}
+ }else{applyHit(a,d,dmg,kb,crit);}
+ a.x=sx;a.z=sz;
+ pvpSend({t:'res',r:r,dmg:dmg,crit:crit?1:0});
+}
+function pvpOnRes(m){
+ if(!pvp||!RM||!P||P.dead)return;
+ if(m.r==='parry'){P.stun=.85;P.atk=-1;P.poise=0;ftext(RM,'PARRY!','par');SFX.parry();hitStop=.1;shake=.3;}
+ else if(m.r==='block'){ftext(RM,'BLOCK','blk');SFX.block();burst(RM.x,1.3,RM.z,0x7fd0ff,8,5,.09);}
+ else if(m.r==='dodge'){ftext(RM,'DODGE!','dod');}
+ else if(m.r==='hit'){
+  const dmg=clamp(Math.round(+m.dmg)||1,1,90);
+  ftext(RM,(m.crit?'CRIT ':'')+dmg,m.crit?'crit':'dmgE');
+  burst(RM.x,1.3*RM.scale,RM.z,P.p.w===12?0x9fe8ff:0xffe08a,10+Math.round(dmg/3),6,.1);
+  SFX.hit();shake=Math.max(shake,.12+dmg*.007);hitStop=Math.min(.1,.03+dmg*.0025);
+  if(P.p.w===12){bolt(RM.x,RM.z);SFX.thunder();shake=Math.max(shake,.7);}
+  if(P.ult)P.hp=Math.min(100,P.hp+dmg*.08*P.perk);
+ }
+}
+function pvpMaybeRematch(){if(pvpMyRm&&pvpOppRm&&pvpHost){pvpSend({t:'start',world:pvpWorld,std:pvpStd?1:0});startPvp(pvpWorld,pvpStd,true);}}
+function pvpRematch(){if(!pvpConn){toast('Opponent has left');return;}pvpMyRm=true;pvpSend({t:'rm'});const e=$('rmStatus');if(e)e.textContent=pvpOppRm?'Starting\u2026':'Waiting for opponent\u2026';pvpMaybeRematch();}
 /* ---------- SURVIVAL ---------- */
 function spawnWave(){
  waveN++;
@@ -990,12 +1154,14 @@ function fightUpdate(rdt){
  if(surv&&state==='fight'&&waveT>0){waveT-=sd;if(waveT<=0)spawnWave();}
  const live=state==='fight';
  const pI=live?readInput():ZERO;
- for(const f of FIGHTERS){if(f.dead){stepFighter(f,ZERO,sd);continue;}
+ for(const f of FIGHTERS){if(f.remote){updateRemote(f,sd);continue;}
+  if(f.dead){stepFighter(f,ZERO,sd);continue;}
   retarget(f,sd);
   stepFighter(f,f.isPlayer?pI:(live?aiIntent(f,f.opp,sd):ZERO),sd);}
  for(const f of FIGHTERS)if(f.p.hboss)bossSlam(f,sd,live);
  for(let i=0;i<FIGHTERS.length;i++)for(let j=i+1;j<FIGHTERS.length;j++){if(!FIGHTERS[i].dead&&!FIGHTERS[j].dead)separate(FIGHTERS[i],FIGHTERS[j]);}
  for(const f of FIGHTERS)animFighter(f,rdt,T);
+ if(pvp)pvpTick(rdt);
  if(state==='ko'){koT+=rdt;if(koT>.9)timeScale=lerp(timeScale,1,Math.min(1,rdt*5));if(koT>2.1){state='result';timeScale=1;showResult(winnerP);}}
  const tf=(P.opp&&P.opp!==P)?P.opp:null;
  const px=P.x,pz=P.z,ex=tf?tf.x:0,ez=tf?tf.z:0;let tx=ex-px,tz=ez-pz;const tl=Math.hypot(tx,tz)||1;tx/=tl;tz/=tl;
@@ -1020,6 +1186,23 @@ function menuUpdate(rdt){
 function showResult(win){
  hudShow(false);
  const left=Math.ceil(P.hp),taken=100-left,wm=1+curW*.5,E1=ENEMIES[0];
+ if(pvp){
+  const draw=!pvpForfeit&&!winnerP&&!P.dead&&Math.round(P.hp)===Math.round(RM.hp);
+  let coins=0,title,col;
+  if(pvpForfeit){title='\u{1F3F3}\uFE0F OPPONENT LEFT';col='#ffe14d';}
+  else if(winnerP){coins=300+left*4+(taken===0?150:0);S.pvpWins=(S.pvpWins|0)+1;title='\u{1F3C6} YOU WIN!';col='#7dff6a';SFX.win();}
+  else if(draw){coins=100;title='\u{1F91D} DRAW';col='#ffe14d';}
+  else{coins=40;title='\u{1F4A5} DEFEATED';col='#ff6a6a';SFX.lose();}
+  S.coins+=coins;save();
+  ui(topbar('Online PvP','')+`<div class="panel res" style="text-align:center"><h1 style="color:${col}">${title}</h1>
+   <div style="font-weight:800;opacity:.9">vs ${RM.p.name}</div>
+   <div style="margin:12px 0;text-align:left"><div class="rrow"><span>Your health</span><span>${left} \u2764\uFE0F</span></div>
+   <div class="rrow"><span>Online wins</span><span>${S.pvpWins|0}</span></div>
+   <div class="rrow tot"><span>Reward</span><span>+${coins} \u{1FA99}</span></div></div>
+   <div id="rmStatus" style="font-weight:800;min-height:22px"></div>
+   <div class="row" style="margin-top:10px">${pvpForfeit?'':'<button class="btn grn" data-act="pvprematch">Rematch \u21BA</button>'}<button class="btn alt" data-act="pvpleave">Leave</button></div></div>`,'dark');
+  return;
+ }
  if(surv){
   SFX.lose();S.losses++;if(waveN-1>(S.bestSurv|0))S.bestSurv=waveN-1;save();
   const reached=Math.max(0,waveN-1);
@@ -1147,6 +1330,7 @@ function mainMenu(){
   <div class="menuBot">
    <div class="eqname"><span style="color:${rc.c}">${rc.n}</span> · ${p.name} · ${WEP[p.w].ico} ${WEP[p.w].n}</div>
    <button class="btn big" data-act="worlds">⚔️ FIGHT</button>
+   <button class="btn alt" data-act="pvp">\u{1F310} ONLINE PVP \u00B7 1v1 a Friend</button>
    <button class="btn alt" data-act="hwevent" style="background:linear-gradient(#ffa24a,#e0560c);color:#2a0f00;box-shadow:0 5px 0 #8a3200,0 8px 16px #0006">\u{1F383} HALLOWEEN OF 26 · Pumpkin King</button>
    <button class="btn alt" data-act="survival">\u{1F9DF} SURVIVAL \u00B7 Endless Waves</button>
    <button class="btn alt" data-act="freeplay">\u{1F465} FREEPLAY \u00B7 5-Panda Brawl</button>
@@ -1245,7 +1429,7 @@ function revealOne(i){
 function helpScreen(){
  ui(topbar('How to Play','menu')+`<div class="panel"><h3>🎮 Controls</h3>
  <p><b>Phone:</b> drag on the left side to move · ⚔️ attack · 🛡️ block (hold) · 💨 dash<br><b>Keyboard:</b> WASD move · SPACE attack · K block · L dash</p>
- <h3>⚔️ Fighting</h3><ul><li>Everyone has <b>100 health</b>. First to zero loses.</li><li>Attacks and dashes cost <b>stamina</b> (yellow bar). Mash and you run dry.</li><li>A <b>missed swing leaves you wide open</b> and smart rivals will punish it.</li><li><b>HALLOWEEN OF 26</b>: beat the Pumpkin King boss to unlock an exclusive skin!</li><li><b>SURVIVAL</b> is endless waves of rivals \u2014 clear each wave for coins, a heal and a power-up. Every 5th wave is a boss!</li><li><b>FREEPLAY</b> is a 5-panda free-for-all: last panda standing wins. Rivals fight each other too!</li>
+ <h3>⚔️ Fighting</h3><ul><li>Everyone has <b>100 health</b>. First to zero loses.</li><li>Attacks and dashes cost <b>stamina</b> (yellow bar). Mash and you run dry.</li><li>A <b>missed swing leaves you wide open</b> and smart rivals will punish it.</li><li><b>ONLINE PVP</b>: create a room, share the code or link, and fight a friend 1v1 over the internet!</li><li><b>HALLOWEEN OF 26</b>: beat the Pumpkin King boss to unlock an exclusive skin!</li><li><b>SURVIVAL</b> is endless waves of rivals \u2014 clear each wave for coins, a heal and a power-up. Every 5th wave is a boss!</li><li><b>FREEPLAY</b> is a 5-panda free-for-all: last panda standing wins. Rivals fight each other too!</li>
  <li><b>Tap block just before a hit lands = PARRY</b> — the attacker gets stunned!</li>
  <li>Dash dodges through attacks. Holding block too long breaks your guard.</li>
  <li>The <b>less damage you take, the more coins you win</b> (flawless = bonus!).</li>
@@ -1262,7 +1446,7 @@ function settingsScreen(){
 function pauseScreen(){ui(`<div class="panel res" style="text-align:center;margin-top:20vh"><h1>⏸ Paused</h1><div class="row"><button class="btn grn" data-act="resume">Resume</button><button class="btn alt" data-act="quit">Quit to Menu</button></div></div>`,'dark');}
 
 const ACT={
- menu:()=>mainMenu(),freeplay:()=>freeplayScreen(),hwevent:()=>hwScreen(),hw:()=>startFight(4,'hw'),survival:()=>survivalScreen(),surv:v=>startFight(+v,'surv'),ffa:v=>startFight(+v,true),worlds:()=>worldsScreen(),collection:()=>collectionScreen(),shop:()=>shopScreen(),help:()=>helpScreen(),settings:()=>settingsScreen(),
+ menu:()=>{pvpLeave();mainMenu();},pvp:()=>pvpScreen(),pvpcreate:()=>pvpHostRoom(),pvpjoin:()=>pvpJoinRoom($('pvpCode').value),pvpcancel:()=>{pvpLeave();pvpScreen();},pvprematch:()=>pvpRematch(),pvpleave:()=>{pvpLeave();mainMenu();},pvpcopy:v=>{const l=location.href.split('#')[0].split('?')[0]+'?room='+v;try{navigator.clipboard.writeText(l).then(()=>toast('Link copied!'),()=>toast(l));}catch(e){toast(l);}},freeplay:()=>freeplayScreen(),hwevent:()=>hwScreen(),hw:()=>startFight(4,'hw'),survival:()=>survivalScreen(),surv:v=>startFight(+v,'surv'),ffa:v=>startFight(+v,true),worlds:()=>worldsScreen(),collection:()=>collectionScreen(),shop:()=>shopScreen(),help:()=>helpScreen(),settings:()=>settingsScreen(),
  play:v=>startFight(+v,false),
  sel:v=>{colSel=+v;detailPanel();},
  equip:v=>{S.sel=+v;save();detailPanel();document.querySelectorAll('.cgrid .card').forEach(c=>{const old=c.querySelector('.eqd');if(old)old.remove();if(+c.dataset.v===S.sel){const d=document.createElement('div');d.className='eqd';d.textContent='EQUIPPED';c.appendChild(d);}});},
@@ -1274,9 +1458,9 @@ const ACT={
  quit:()=>{paused=false;mainMenu();}
 };
 document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el)return;const a=el.dataset.act;if(!a)return;au();if(ACT[a])ACT[a](el.dataset.v,el);});
-$('pauseBtn').addEventListener('click',()=>{if(state==='fight'||state==='countdown'){paused=true;pauseScreen();}});
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&(state==='fight'||state==='countdown')&&!paused){paused=true;pauseScreen();}});
-addEventListener('keydown',e=>{if(e.code==='Escape'||e.code==='KeyP'){if(paused){paused=false;hideUI();}else if(state==='fight'||state==='countdown'){paused=true;pauseScreen();}}});
+$('pauseBtn').addEventListener('click',()=>{if(!pvp&&(state==='fight'||state==='countdown')){paused=true;pauseScreen();}});
+document.addEventListener('visibilitychange',()=>{if(!pvp&&document.hidden&&(state==='fight'||state==='countdown')&&!paused){paused=true;pauseScreen();}});
+addEventListener('keydown',e=>{if(e.code==='Escape'||e.code==='KeyP'){if(paused){paused=false;hideUI();}else if(!pvp&&(state==='fight'||state==='countdown')){paused=true;pauseScreen();}}});
 
 /* ===================================================== MAIN LOOP ===================================================== */
 let last=performance.now();
@@ -1294,6 +1478,7 @@ function loop(now){
 }
 mainMenu();
 if(!S.seenHelp){S.seenHelp=true;save();helpScreen();}
+try{const rq=new URLSearchParams(location.search).get('room');if(rq){pvpScreen();pvpJoinRoom(rq);}}catch(e){}
 requestAnimationFrame(loop);
 </script>
 </body>
