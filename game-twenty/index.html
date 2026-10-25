@@ -657,7 +657,7 @@ function menuScreen(){
 const FP={diff:1,tab:0};
 function fpScreen(){
  showUI('<div class="wrap"><div class="top"><button class="back" data-a="menu">\u2190 Menu</button>'+coinChip()+'</div><div class="h2">\ud83c\udfaf Freeplay</div>'+
- '<div class="mut">Difficulty</div><div class="row" style="margin:6px 0 12px">'+DIFF.map((d,i)=>'<button class="sm '+(FP.diff===i?'on':'')+'" data-a="fpd" data-i="'+i+'">'+d.n+'<br><small class="mut">+'+d.win+' \ud83e\ude99</small></button>').join('')+'</div>'+
+ '<div class="mut">Difficulty</div><div class="row" style="margin:6px 0 12px">'+DIFF.map((d,i)=>'<button class="sm '+(FP.diff===i?'on':'')+'" data-a="fpd" data-i="'+i+'">'+d.n+'<br><small class="mut">+'+(i===3?500:d.win)+' \ud83e\ude99</small></button>').join('')+'</div>'+
  '<div class="mut">Table</div><div class="row" style="margin:6px 0 16px">'+TABLES.map((d,i)=>'<button class="sm '+(FP.tab===i?'on':'')+'" data-a="fpt" data-i="'+i+'">'+d.n+'</button>').join('')+'</div>'+
  '<button class="big" data-a="fpgo" style="background:linear-gradient(#ffd24a,#e09b00);color:#2a1a00;justify-content:center">PLAY</button>'+
  '<p class="mut">Knock out 7 of the 13 marbles from the ring before your opponent. Knock one out and you shoot again (max 2 bonus shots in a row).</p></div>')}
@@ -665,7 +665,7 @@ function startFree(){
  const D=DIFF[FP.diff],T=TABLES[FP.tab],rar=pick(D.rar),pool=LIST.filter(m=>m.r===rar);
  const nm=pick(NAMES.slice(0,29));
  startMatch({tag:'FREEPLAY \u00b7 '+D.n.toUpperCase(),oppName:nm,oppDef:pick(pool),skill:D.sk,pegs:pegSet(T.pegs),fr:T.fr,wind:T.wind||0,theme:T.theme,R:240,back:fpScreen,
-  onEnd:win=>{const coins=win?D.win:D.lose;S.coins+=coins;if(win)S.wins++;showResult({win,title:win?'YOU WIN!':'YOU LOST',sub:subScore(),coins,btns:[{t:'Rematch',a:'fpgo',p:1},{t:'Menu',a:'freeplay'}]})}})}
+  onEnd:win=>{const coins=FP.diff===3?(win?500:0):(win?D.win:D.lose);S.coins+=coins;if(win)S.wins++;showResult({win,title:win?'YOU WIN!':'YOU LOST',sub:subScore(),coins,btns:[{t:'Rematch',a:'fpgo',p:1},{t:'Menu',a:'freeplay'}]})}})}
 const BE={diff:1};
 function beScreen(){
  showUI('<div class="wrap"><div class="top"><button class="back" data-a="menu">← Menu</button>'+coinChip()+'</div><div class="h2">⭕ Bullseye</div>'+
