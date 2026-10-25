@@ -239,15 +239,22 @@ const RAW=[
  ['Ninja Nibbles',2,7,260],['Coral',2,8,175],['Iron Tofu',2,5,215],['Kendo Kai',2,2,350],['Monsoon',2,4,200],['Saffron',2,6,45],
  ['Obsidian',3,11,280],['Phoenix Pan',3,10,18],['Tsunami Tai',3,8,195],['Zephyr',3,6,165],
  ['Emperor Bao',4,9,205],['Volcana',4,10,6],['Eclipse',4,11,270],
- ['Abyss Lord',5,8,225],['Solar Sovereign',5,10,38]
+ ['Abyss Lord',5,8,225],['Solar Sovereign',5,10,38],
+ ['Wobble',0,0,75],['Biscotti',0,2,30],['Peaches',0,1,15],['Chester',0,3,200],
+ ['Tangerine',1,4,25],['Pip',1,7,120],['Walnut',1,5,32],['Fizz',1,2,180],
+ ['Samurai Sam',2,6,340],['Ember Chan',2,10,10],['Brook',2,8,190],['Grizzly Gus',2,5,28],
+ ['Thunder Lo',3,4,50],['Frostbite',3,9,195],['Specter',3,11,265],
+ ['Grand Master Bo',4,6,45],['Leviathan',4,8,215],
+ ['Doom Bringer',5,11,350],['Star Weaver',5,7,260],
+ ['Cosmic Emperor',6,10,300]
 ];
 const isUlt=p=>p.r===7&&!p.boss;
 const powOf=p=>p.hboss?1.6:(isUlt(p)?2.0:(p.ex?1.8:RAR[p.r].mul));
 const ROSTER=RAW.map((a,i)=>({key:i,name:a[0],r:a[1],w:a[2],hue:a[3],red:!!a[4],scale:1}));
-const SKINS=[{key:100,name:'Jack-O-Lantern Panda',r:8,w:13,hue:28,hw:'skin',ex:true,scale:1}];
+const SKINS=[{key:1000,name:'Jack-O-Lantern Panda',r:8,w:13,hue:28,hw:'skin',ex:true,scale:1}];
 const HBOSS={key:-2,name:'Boss Pumpkin King',r:7,w:13,hue:28,scale:1.25,boss:true,hboss:true,hw:'boss'};
 const HW={id:'haunt',n:'Haunted Graveyard',el:'Halloween',ico:'\u{1F383}',col:'#ff7a1a',col2:'#3a1055',sky:0x180a2a,hT:0x8a6cc0,hB:0x201030,sun:0xff9a50,sI:.55,top:0x3a2f4a,side:0x1d1530,rar:[4,6],tip:'Beware the Soul Slam'};
-const getP=k=>k>=100?SKINS[k-100]:ROSTER[k];
+const getP=k=>k>=1000?SKINS[k-1000]:ROSTER[k];
 const BOSSES=[
  {name:'Boss Bamboo Brute',r:2,w:5, hue:30},
  {name:'Boss Kraken Paw',  r:3,w:8, hue:200},
@@ -268,9 +275,25 @@ const KEY='pandaFight3D_save_v1';
 function defSave(){return{pvpWins:0,hwWins:0,bestSurv:0,coins:400,owned:{0:1},sel:0,prog:[0,0,0,0,0],unlocked:1,claimed:[0,0,0,0,0],wins:0,losses:0,last:[],mute:false,seenHelp:false};}
 let S=defSave();
 try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(defSave(),JSON.parse(raw));}catch(e){}
+try{if(S.owned&&S.owned[100]){S.owned[1000]=S.owned[100];delete S.owned[100];}if(S.sel===100)S.sel=1000;}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
-function skill(){const l=S.last;const avg=l.length?l.reduce((a,b)=>a+b,0)/l.length:0;return Math.round(clamp(avg*.6+Math.min(40,S.wins*.8),0,100));}
-function ownedCount(){return Object.keys(S.owned).filter(k=>S.owned[k]>0&&+k<100).length;}
+function skill(){const l=S.last||[];return l.length?Math.round(clamp(l.reduce((a,b)=>a+b,0)/l.length,0,100)):0;}
+function luckMul(sk){return .3+1.5*Math.pow(clamp(sk,0,100)/100,1.5);}
+function recordSkill(sc){
+ if(sc==null){S.skillDelta=0;return;}
+ const before=skill();S.last=S.last||[];S.last.push(Math.round(clamp(sc,0,100)));while(S.last.length>10)S.last.shift();
+ S.skillDelta=skill()-before;save();
+}
+function perfScore(win){
+ const left=Math.ceil(P.hp);
+ if(pvp){if(pvpForfeit)return null;if(winnerP)return Math.min(100,55+left*.45);if(!P.dead&&Math.round(P.hp)===Math.round(RM.hp))return 40;return 25*(1-clamp(RM.hp,0,100)/100);}
+ if(surv)return Math.min(100,Math.max(0,waveN-1)*10);
+ if(hw)return win?Math.min(100,60+left*.4):30*(1-clamp(ENEMIES[0].hp,0,100)/100);
+ if(ffa){const pl=win?1:(placeP||5);return Math.min(100,{1:60+left*.4,2:45,3:30,4:15,5:5}[pl]);}
+ if(win)return Math.min(100,left*(.75+.06*curW)+10+(isBoss?10:0));
+ return 40*(1-clamp(ENEMIES[0].hp,0,100)/100);
+}
+function ownedCount(){return Object.keys(S.owned).filter(k=>S.owned[k]>0&&+k<1000).length;}
 
 /* ===================================================== AUDIO ===================================================== */
 let AC=null;
@@ -939,7 +962,7 @@ const PFX='pandafight26-',CODE_CH='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 function makeCode(){let c='';for(let i=0;i<5;i++)c+=CODE_CH[Math.floor(Math.random()*CODE_CH.length)];return c;}
 function pvpSend(o){try{if(pvpConn&&pvpConn.open)pvpConn.send(o);}catch(e){}}
 function pvpSetStatus(h){const el=$('pvpStatus');if(el)el.innerHTML=h;}
-function saneSel(k){k=+k;return(k===100||(Number.isInteger(k)&&k>=0&&k<ROSTER.length))?k:0;}
+function saneSel(k){k=+k;return(k===1000||(Number.isInteger(k)&&k>=0&&k<ROSTER.length))?k:0;}
 function loadPeer(cb){
  if(window.Peer){cb(true);return;}
  try{const sc=document.createElement('script');sc.src='https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';sc.onload=()=>cb(!!window.Peer);sc.onerror=()=>cb(false);document.head.appendChild(sc);}catch(e){cb(false);}
@@ -1184,6 +1207,12 @@ function menuUpdate(rdt){
 
 /* ===================================================== RESULT ===================================================== */
 function showResult(win){
+ const sc=perfScore(win);recordSkill(sc);
+ showResultInner(win);
+ try{const h=document.querySelector('#ui .res h1');if(h){const d=S.skillDelta|0;
+  h.insertAdjacentHTML('afterend',`<div style="font-weight:900;margin:6px 0;color:${d>0?'#7dff6a':d<0?'#ff8a6a':'#ffe14d'}">\u{1F3AF} Skill ${skill()} ${d>0?'\u25B2 +'+d:d<0?'\u25BC '+d:'\u2014 no change'}${sc==null?' (match abandoned)':''}</div>`);}}catch(e){}
+}
+function showResultInner(win){
  hudShow(false);
  const left=Math.ceil(P.hp),taken=100-left,wm=1+curW*.5,E1=ENEMIES[0];
  if(pvp){
@@ -1217,9 +1246,9 @@ function showResult(win){
   return;
  }
  if(hw){
-  const first=!(S.owned[100]|0);
+  const first=!(S.owned[1000]|0);
   if(win){
-   SFX.win();const coins=Math.round((2500+left*40)*(taken===0?1.5:1));S.coins+=coins;S.hwWins=(S.hwWins|0)+1;if(first)S.owned[100]=1;save();
+   SFX.win();const coins=Math.round((2500+left*40)*(taken===0?1.5:1));S.coins+=coins;S.hwWins=(S.hwWins|0)+1;if(first)S.owned[1000]=1;save();
    ui(topbar('Victory','')+`<div class="panel res" style="text-align:center;border-color:#ff7a1a"><h1 style="color:#ffa24a">\u{1F383} PUMPKIN KING DEFEATED!</h1>
     <div style="margin:12px 0;text-align:left"><div class="rrow"><span>Damage taken</span><span>${taken}</span></div>
     <div class="rrow"><span>Health left</span><span>${left} ❤️</span></div>
@@ -1249,7 +1278,7 @@ function showResult(win){
   if(isBoss)coins*=3;
   coins+=koB;
   S.coins+=coins;
-  if(!ffa){S.wins++;S.last.push(left);if(S.last.length>10)S.last.shift();S.prog[curW]++;}
+  if(!ffa){S.wins++;S.prog[curW]++;}
   let reward=null,unlockMsg='';
   if(!ffa&&isBoss&&!S.claimed[curW]){
    S.claimed[curW]=1;
@@ -1286,7 +1315,7 @@ function showResult(win){
 }
 
 /* ===================================================== PACKS ===================================================== */
-function weights(boost,minR){let tot=0;const ws=RAR.map((r,i)=>{if(i<minR)return 0;const w=r.w*(1+boost*i*.8);tot+=w;return w;});return{ws,tot};}
+function weights(sk,minR){let tot=0;const L=sk==null?1:luckMul(sk);const ws=RAR.map((r,i)=>{if(i<minR)return 0;const w=r.w*(i>=1?Math.pow(L,i*.5):1);tot+=w;return w;});return{ws,tot};}
 function rollRarity(boost,minR){const{ws,tot}=weights(boost,minR||0);let x=Math.random()*tot;for(let i=0;i<ws.length;i++){x-=ws[i];if(x<=0&&ws[i]>0)return i;}return minR||0;}
 function oddsPct(boost,minR){const{ws,tot}=weights(boost,minR||0);return ws.map(w=>w/tot*100);}
 function give(p){const had=S.owned[p.key]|0;S.owned[p.key]=had+1;if(had){const d=RAR[p.r].dust;S.coins+=d;return{p,isNew:false,dust:d};}return{p,isNew:true,dust:0};}
@@ -1297,8 +1326,8 @@ const PACKS={
 };
 function buyPack(kind){
  const k=PACKS[kind];if(S.coins<k.cost){toast('Not enough coins 🪙');return;}
- S.coins-=k.cost;const boost=skill()/100,res=[];
- if(kind==='single'){res.push(give(pick(ROSTER.filter(p=>p.r===rollRarity(0,0)))));}
+ S.coins-=k.cost;const boost=skill(),res=[];
+ if(kind==='single'){res.push(give(pick(ROSTER.filter(p=>p.r===rollRarity(null,0)))));}
  else if(kind==='skill'){
   const rs=[];for(let i=0;i<10;i++)rs.push(rollRarity(boost,0));
   if(!rs.some(r=>r>=1))rs[9]=rollRarity(boost,1);
@@ -1335,7 +1364,7 @@ function mainMenu(){
    <button class="btn alt" data-act="survival">\u{1F9DF} SURVIVAL \u00B7 Endless Waves</button>
    <button class="btn alt" data-act="freeplay">\u{1F465} FREEPLAY \u00B7 5-Panda Brawl</button>
    <div class="row"><button class="btn alt" data-act="collection">🐼 Pandas ${ownedCount()}/${ROSTER.length}</button><button class="btn alt" data-act="shop">🎁 Shop</button></div>
-   <div class="row"><button class="btn sm alt" data-act="help">❓ How to play</button><button class="btn sm alt" data-act="settings">⚙️ Settings</button></div>
+   <div class="row"><button class="btn sm alt" data-act="savemenu">\u{1F4BE} Save</button><button class="btn sm alt" data-act="help">❓ How to play</button><button class="btn sm alt" data-act="settings">⚙️ Settings</button></div>
    <div class="stats">🪙 ${S.coins.toLocaleString()} · 🏆 ${S.wins} wins · 🎯 Skill ${skill()}</div>
   </div></div>`);
 }
@@ -1348,7 +1377,7 @@ function freeplayScreen(){
 }
 function hwScreen(){
  state='menu';hudShow(false);
- const sel=getP(S.sel),rc=RAR[sel.r],own=(S.owned[100]|0)>0;
+ const sel=getP(S.sel),rc=RAR[sel.r],own=(S.owned[1000]|0)>0;
  ui(topbar('Halloween of 26','menu')+`<div class="eqbar"><img src="${thumb(sel)}" alt=""><div><b style="color:${rc.c}">${sel.name}</b><br><small>${rc.n} · ${WEP[sel.w].ico} ${WEP[sel.w].n}</small></div><button class="btn sm alt" data-act="collection">Change</button></div>
  <div class="panel" style="text-align:center;margin-top:0;border-color:#ff7a1a"><h2 style="color:#ffa24a">\u{1F383} Boss Pumpkin King</h2>
   <small>A towering 1v1 boss in the Haunted Graveyard. Huge scythe, heals as he hits, and a telegraphed <b>SOUL SLAM</b> you have to dash out of. Beat him for big coins every time — the first win unlocks an <b>exclusive skin</b>.</small>
@@ -1402,15 +1431,15 @@ function detailPanel(){
 }
 function shopScreen(){
  state='menu';hudShow(false);
- const sk=skill(),oS=oddsPct(sk/100,0),oB=oddsPct(0,0),oL=oddsPct(sk/100,4);
+ const sk=skill(),oS=oddsPct(sk,0),oB=oddsPct(null,0),oL=oddsPct(sk,4);
  const rows=(o,from)=>RAR.map((r,i)=>i<from||i>7?'':`<div style="color:${r.c}"><span>${r.n}</span><span>${o[i]<1?o[i].toFixed(2):o[i].toFixed(1)}%</span></div>`).join('');
  const bt=(k,c)=>`<button class="btn ${S.coins<c?'dim':''}" data-act="buy" data-v="${k}">🪙 ${c.toLocaleString()}</button>`;
  ui(topbar('Shop','menu')+`<div class="panel" style="text-align:center;margin-top:0"><b>🎯 Your Skill: ${sk}/100</b><div class="skillbar"><i style="width:${sk}%"></i></div>
- <small style="opacity:.85">Win with lots of health left and clear bosses to raise your skill. Higher skill = better Skill Pack odds!</small></div>
+ <small style="opacity:.85">Your skill goes <b>up when you play well</b> and <b>down when you play badly</b> in EVERY mode (campaign, freeplay, survival, boss, PvP). Skill Pack &amp; Legend Pack luck: <b>\u00D7${luckMul(sk).toFixed(2)}</b> \u2014 below about 60 skill they are WORSE than a plain Bamboo Pack, so get good first!</small></div>
  <div class="packs">
   <div class="pack"><div class="pi">🎁</div><h3>Bamboo Pack</h3><p>1 random panda</p><div class="odds">${rows(oB,0)}</div>${bt('single',150)}</div>
-  <div class="pack skillp"><div class="pi">🔥🎁</div><h3>Skill Pack ×10</h3><p>10 random pandas · odds boosted by your skill · at least 1 Uncommon+</p><div class="odds">${rows(oS,0)}</div>${bt('skill',1200)}</div>
-  <div class="pack legend"><div class="pi">👑🎁</div><h3>Legend Pack</h3><p>1 panda — Legendary or better!</p><div class="odds">${rows(oL,4)}</div>${bt('legend',2500)}</div>
+  <div class="pack skillp"><div class="pi">🔥🎁</div><h3>Skill Pack ×10</h3><p>10 random pandas · luck depends on your skill · at least 1 Uncommon+</p><div class="odds">${rows(oS,0)}</div>${bt('skill',1200)}</div>
+  <div class="pack legend"><div class="pi">👑🎁</div><h3>Legend Pack</h3>1 panda — Legendary or better! (luck depends on your skill)<div class="odds">${rows(oL,4)}</div>${bt('legend',2500)}</div>
  </div><p style="text-align:center;opacity:.85;font-size:13px">Duplicates turn into coins. Beat each world's first boss for a free panda!</p>`,'solid');
 }
 let revealList=[];
@@ -1434,14 +1463,66 @@ function helpScreen(){
  <li>Dash dodges through attacks. Holding block too long breaks your guard.</li>
  <li>The <b>less damage you take, the more coins you win</b> (flawless = bonus!).</li>
  <li>Every <b>5th fight is a BOSS</b> 💀 (triple coins + a free panda the first time).</li></ul>
- <h3>🐼 Pandas</h3><p>80 pandas from Common to Ultimate (and the better ones are really hard to find). Each carries a weapon — the <b>⚡ Thunder Hammer</b> is the strongest of all, and only ONE panda in the whole game owns it: the Ultimate Red Panda!</p>
+ <h3>🐼 Pandas</h3><p>100 pandas from Common to Ultimate (and the better ones are really hard to find). Each carries a weapon — the <b>⚡ Thunder Hammer</b> is the strongest of all, and only ONE panda in the whole game owns it: the Ultimate Red Panda!</p>
  <h3>🌍 Worlds</h3><p>5 elemental arenas: Earth, Water, Ice, Air and Lava. Each world is harder than the last and has its own hazards.</p></div>
  <div class="row"><button class="btn grn" data-act="menu">Got it!</button></div>`,'solid');
+}
+/* ---------- SAVE / LOAD (link based) ---------- */
+function cleanSave(o){
+ const d=defSave(),n=(v,lo,hi,def)=>{v=+v;return Number.isFinite(v)?Math.max(lo,Math.min(hi,Math.floor(v))):def;};
+ if(!o||typeof o!=='object')throw new Error('bad');
+ const r=defSave();
+ r.coins=n(o.coins,0,1e12,d.coins);r.wins=n(o.wins,0,1e7,0);r.losses=n(o.losses,0,1e7,0);
+ r.bestSurv=n(o.bestSurv,0,1e5,0);r.hwWins=n(o.hwWins,0,1e6,0);r.pvpWins=n(o.pvpWins,0,1e6,0);
+ r.unlocked=n(o.unlocked,1,5,1);r.mute=!!o.mute;r.seenHelp=true;
+ r.owned={};if(o.owned&&typeof o.owned==='object'){for(const k of Object.keys(o.owned)){const ki=+k;if(Number.isInteger(ki)&&((ki>=0&&ki<ROSTER.length)||ki===1000)){const c=n(o.owned[k],0,999,0);if(c>0)r.owned[ki]=c;}}}
+ if(!Object.keys(r.owned).length)r.owned={0:1};
+ r.prog=[0,1,2,3,4].map(i=>n(o.prog&&o.prog[i],0,100000,0));
+ r.claimed=[0,1,2,3,4].map(i=>(o.claimed&&o.claimed[i])?1:0);
+ r.last=Array.isArray(o.last)?o.last.slice(-10).map(v=>n(v,0,100,0)):[];
+ let sel=n(o.sel,0,1000,0);if(!r.owned[sel])sel=+Object.keys(r.owned)[0];r.sel=sel;
+ return r;
+}
+function b64u(str){return btoa(unescape(encodeURIComponent(str))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+function unb64u(b){b=b.replace(/-/g,'+').replace(/_/g,'/');while(b.length%4)b+='=';return decodeURIComponent(escape(atob(b)));}
+function encodeSave(){return b64u(JSON.stringify(cleanSave(S)));}
+function decodeSave(str){str=String(str||'').trim();const m=str.match(/save=([A-Za-z0-9_\-]+)/);if(m)str=m[1];str=str.replace(/[^A-Za-z0-9_\-]/g,'');if(str.length<10)throw new Error('short');return cleanSave(JSON.parse(unb64u(str)));}
+function saveLink(){return location.href.split('#')[0].split('?')[0]+'#save='+encodeSave();}
+function clearSaveHash(){try{if(location.hash)history.replaceState(null,'',location.href.split('#')[0]);}catch(e){}}
+function saveCopy(){
+ const l=saveLink();
+ const fb=()=>{try{const t=$('saveLink');t.focus();t.select();document.execCommand('copy');toast('Save link copied! \u{1F4CB}');}catch(e){toast('Select the link and copy it');}};
+ try{navigator.clipboard.writeText(l).then(()=>toast('Save link copied! \u{1F4CB}'),fb);}catch(e){fb();}
+}
+let pendingSave=null;
+function importPrompt(o){
+ pendingSave=o;state='menu';hudShow(false);
+ ui(topbar('Load Save','')+`<div class="panel res" style="text-align:center"><h2>\u{1F4BE} Load this save?</h2>
+  <div style="margin:10px 0;text-align:left"><div class="rrow"><span>Coins</span><span>${o.coins.toLocaleString()} \u{1FA99}</span></div>
+  <div class="rrow"><span>Pandas</span><span>${Object.keys(o.owned).filter(k=>+k<1000).length}/${ROSTER.length}</span></div>
+  <div class="rrow"><span>Campaign wins</span><span>${o.wins}</span></div>
+  <div class="rrow"><span>Best survival wave</span><span>${o.bestSurv}</span></div></div>
+  <p style="color:#ffb36a;font-weight:800">This will REPLACE your current progress on this device.</p>
+  <div class="row"><button class="btn grn" data-act="saveapply">Load it</button><button class="btn alt" data-act="savecancel">Cancel</button></div></div>`,'dark');
+}
+function saveApply(){if(!pendingSave)return;S=pendingSave;pendingSave=null;save();clearSaveHash();mainMenu();toast('Save loaded! \u2705');}
+function saveScreen(confirmDel){
+ state='menu';hudShow(false);
+ const link=saveLink();
+ ui(topbar('Save','menu')+`<div class="panel" style="text-align:center;margin-top:0"><b>\u{1F4BE} Your progress saves automatically in this browser.</b><br>
+  <small>To back it up or move to another device, copy your save link and open it there. Anyone with the link can load your save, so keep it private.</small>
+  <textarea id="saveLink" readonly rows="4" style="width:100%;margin:10px 0;padding:8px;border-radius:10px;border:2px solid #2e6b4a;background:#06120c;color:#9fe8b0;font-size:11px;word-break:break-all">${link}</textarea>
+  <div class="row"><button class="btn grn" data-act="savecopy">\u{1F4CB} Copy save link</button></div></div>
+ <div class="panel" style="text-align:center"><b>Load a save</b><br><small>Paste a save link here:</small>
+  <input id="saveIn" placeholder="Paste save link\u2026" autocomplete="off" style="width:100%;margin:8px 0;padding:10px;border-radius:10px;border:2px solid #2e6b4a;background:#06120c;color:#fff;font-size:14px">
+  <div class="row"><button class="btn alt" data-act="saveload">Load</button></div></div>
+ <div class="panel" style="text-align:center;border-color:#a33">${confirmDel?`<b style="color:#ff8a6a">\u26A0\uFE0F Delete ALL progress?</b><br><small>This erases every panda, your coins, skill and records on this device. Copy your save link first if you might want it back!</small>
+  <div class="row" style="margin-top:10px"><button class="btn" style="background:linear-gradient(#ff7a6a,#d93b2b);color:#fff;box-shadow:0 5px 0 #8a1f14" data-act="savedelyes">Yes, delete everything</button><button class="btn alt" data-act="savedelno">Cancel</button></div>`:`<button class="btn sm dim" data-act="savedel">\u{1F5D1}\uFE0F Delete progress</button>`}</div>`,'solid');
 }
 function settingsScreen(){
  ui(topbar('Settings','menu')+`<div class="panel"><div class="row"><button class="btn alt" data-act="mute">${S.mute?'🔇 Sound: OFF':'🔊 Sound: ON'}</button></div>
  <p style="text-align:center;opacity:.8">Wins: ${S.wins} · Losses: ${S.losses} · Pandas: ${ownedCount()}/${ROSTER.length}</p>
- <div class="row"><button class="btn sm dim" data-act="reset">Reset all progress</button></div></div>`,'solid');
+ <div class="row"><button class="btn sm alt" data-act="savemenu">\u{1F4BE} Save / Delete progress</button></div></div>`,'solid');
 }
 function pauseScreen(){ui(`<div class="panel res" style="text-align:center;margin-top:20vh"><h1>⏸ Paused</h1><div class="row"><button class="btn grn" data-act="resume">Resume</button><button class="btn alt" data-act="quit">Quit to Menu</button></div></div>`,'dark');}
 
@@ -1453,7 +1534,14 @@ const ACT={
  buy:v=>buyPack(v),rev:v=>revealOne(+v),
  revall:()=>{revealList.forEach((g,i)=>setTimeout(()=>revealOne(i),i*140));},
  mute:()=>{S.mute=!S.mute;save();settingsScreen();},
- reset:()=>{if(confirm('Really erase ALL progress?')){S=defSave();save();mainMenu();}},
+ savemenu:()=>saveScreen(),
+ savecopy:()=>saveCopy(),
+ saveload:()=>{try{importPrompt(decodeSave($('saveIn').value));}catch(e){toast('That save link is not valid');}},
+ saveapply:()=>saveApply(),
+ savecancel:()=>{clearSaveHash();mainMenu();},
+ savedel:()=>saveScreen(true),
+ savedelno:()=>saveScreen(false),
+ savedelyes:()=>{S=defSave();try{localStorage.removeItem(KEY);}catch(e){}save();clearSaveHash();mainMenu();toast('Progress deleted');},
  resume:()=>{paused=false;hideUI();},
  quit:()=>{paused=false;mainMenu();}
 };
@@ -1478,6 +1566,7 @@ function loop(now){
 }
 mainMenu();
 if(!S.seenHelp){S.seenHelp=true;save();helpScreen();}
+try{if((location.hash||'').indexOf('#save=')===0){try{importPrompt(decodeSave(location.hash));}catch(e){clearSaveHash();toast('That save link is not valid');}}}catch(e){}
 try{const rq=new URLSearchParams(location.search).get('room');if(rq){pvpScreen();pvpJoinRoom(rq);}}catch(e){}
 requestAnimationFrame(loop);
 </script>
