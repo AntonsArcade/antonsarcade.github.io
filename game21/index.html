@@ -86,7 +86,7 @@ body{background:radial-gradient(circle at 15% -10%,#4b2a9a,transparent 50%),radi
 <div class="jp"><span class="ad">HIT 8 / 9 / 10 NUMBERS TO WIN</span><div class="jt j1"><small>MINI JACKPOT</small><b id="j1"></b></div><div class="jt j2"><small>MAJOR JACKPOT</small><b id="j2"></b></div><div class="jt j3"><small>MEGA JACKPOT</small><b id="j3"></b></div></div>
 <div class="card">
  <div class="hd"><div class="logo"><i>❯</i> ROYALE <span>80</span></div><div class="cnt h"><small>HEADS</small><span id="ch">0</span></div><div class="cnt t"><small>TAILS</small><span id="ct">0</span></div><div class="cnt g"><small>GAME</small><span id="gm"></span></div></div>
- <div class="stat"><span id="st"></span><span id="ck"></span></div><div class="bar"><i id="bar"></i></div><div class="lr" id="lr"></div><button class="btn" id="sk" style="display:none;margin-top:8px">Skip to results ⏭</button>
+ <div class="stat"><span id="st"></span><span id="ck"></span></div><div class="bar"><i id="bar"></i></div><div class="lr" id="lr"></div>
  <div id="stage"><div id="bands"></div><div class="ov" id="ov"></div></div>
 </div>
 <div class="panel"><div class="lbl" id="tkl">YOUR LIVE TICKET</div><div class="tk" id="tk"></div></div>
@@ -116,7 +116,7 @@ function drawHC(){if(hcDone===nGames||!nGames)return;hcDone=nGames;const ix=[...
  $('hc').innerHTML='<div>Hot: '+hot.map(ch).join('')+'</div><div>Cold: '+cold.map(ch).join('')+'</div>';
  $('hs').innerHTML=hist.map(h=>`<div>Game ${h.g} · <b style="color:${h.low>10?'#ff8da0':h.low<10?'#7db5ff':'#ffd34d'}">${h.low>10?'HEADS':h.low<10?'TAILS':'EVENS'}</b> ${h.low}–${20-h.low}<br><small style="color:var(--mute)">${[...h.nums].sort((a,b)=>a-b).join(' ')}</small></div>`).join('')}
 function skip(){if(phase!=='draw'||!live||live.n+live.h+live.t+live.e)return;document.querySelectorAll('.ball').forEach(b=>b.remove());for(let k=0;k<20;k++)landed.add(k);launched=19;settle();lastRes=resHtml;phase='res';render()}
-$('sk').onclick=skip;
+
 const cells=[];
 function band(k,from){const b=document.createElement('div');b.className='band '+k;b.innerHTML='<div class="lab">'+(k==='h'?'HEADS':'TAILS')+'</div><div class="g"></div>';const g=b.lastChild;
  for(let i=from;i<from+40;i++){const c=document.createElement('button');c.className='c';c.textContent=i;c.style.setProperty('--bc',col(i));c.onclick=()=>{picks.has(i)?picks.delete(i):picks.size<10&&picks.add(i);render()};g.appendChild(c);cells[i]=c}
@@ -195,7 +195,7 @@ function render(){
  else if(phase==='draw'){a='🔴 LIVE · game #'+game;b=shown.size+' / 20';f=e/DRAW}
  else{a='Results · game #'+game;b='next game in '+Math.max(0,Math.ceil(CY-e))+'s';f=e/CY}
  $('st').textContent=a;$('ck').textContent=b;$('bar').style.width=Math.min(100,f*100)+'%';
- $('lr').innerHTML=lastRes;drawHC();$('sk').style.display=(phase==='draw'&&live&&!(live.n+live.h+live.t+live.e))?'':'none';
+ $('lr').innerHTML=lastRes;drawHC();
 }
 const SEED=[12450,84210,1250000],J=[...SEED],JI=[7,23,95];
 const SP={slow:[2.5,2.3,50],normal:[1.2,1.1,24],turbo:[.35,.3,7]};let speed='slow';
