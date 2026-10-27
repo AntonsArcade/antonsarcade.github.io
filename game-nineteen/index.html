@@ -272,7 +272,7 @@ const WORLDS=[
 
 /* ===================================================== SAVE ===================================================== */
 const KEY='pandaFight3D_save_v1';
-function defSave(){return{pvpWins:0,hwWins:0,bestSurv:0,coins:400,owned:{0:1},sel:0,prog:[0,0,0,0,0],unlocked:1,claimed:[0,0,0,0,0],wins:0,losses:0,last:[],mute:false,seenHelp:false};}
+function defSave(){return{pvpWins:0,name:'',hwWins:0,bestSurv:0,coins:400,owned:{0:1},sel:0,prog:[0,0,0,0,0],unlocked:1,claimed:[0,0,0,0,0],wins:0,losses:0,last:[],mute:false,seenHelp:false};}
 let S=defSave();
 try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(defSave(),JSON.parse(raw));}catch(e){}
 try{if(S.owned&&S.owned[100]){S.owned[1000]=S.owned[100];delete S.owned[100];}if(S.sel===100)S.sel=1000;}catch(e){}
@@ -286,7 +286,7 @@ function recordSkill(sc){
 }
 function perfScore(win){
  const left=Math.ceil(P.hp);
- if(pvp){if(pvpForfeit)return null;if(winnerP)return Math.min(100,55+left*.45);if(!P.dead&&Math.round(P.hp)===Math.round(RM.hp))return 40;return 25*(1-clamp(RM.hp,0,100)/100);}
+ if(pvp){if(pvpForfeit)return null;const n=FIGHTERS.length;if(winnerP)return Math.min(100,55+left*.45);if(n>2)return {2:45,3:30,4:15,5:5}[placeP||n]||5;const o=ENEMIES[0];if(!P.dead&&Math.round(P.hp)===Math.round(o.hp))return 40;return 25*(1-clamp(o.hp,0,100)/100);}
  if(surv)return Math.min(100,Math.max(0,waveN-1)*10);
  if(hw)return win?Math.min(100,60+left*.4):30*(1-clamp(ENEMIES[0].hp,0,100)/100);
  if(ffa){const pl=win?1:(placeP||5);return Math.min(100,{1:60+left*.4,2:45,3:30,4:15,5:5}[pl]);}
@@ -617,7 +617,7 @@ function buildArena(wi){
 }
 
 /* ===================================================== FIGHTERS ===================================================== */
-let P=null,menuF=null,FIGHTERS=[],ENEMIES=[],placeP=0,ffa=false,surv=false,hw=false,pvp=false,pvpHost=false,RM=null,remoteSel=0,pvpWorld=0,pvpStd=true,pvpConn=null,pvpPeer=null,pvpSendT=0,pvpMyRm=false,pvpOppRm=false,pvpForfeit=false,pvpClosing=false,pvpGot=false,waveN=0,waveT=0,survCoins=0,survBuffs=[];
+let P=null,menuF=null,FIGHTERS=[],ENEMIES=[],placeP=0,ffa=false,surv=false,hw=false,pvp=false,pvpHost=false,pvpWorld=0,pvpStd=true,pvpConn=null,pvpPeer=null,pvpSendT=0,pvpForfeit=false,pvpClosing=false,pvpGot=false,pvpMe=0,pvpGuests=[],pvpPlayers=[],RMS={},pvpLive=false,pvpCode='',pvpTry=0,waveN=0,waveT=0,survCoins=0,survBuffs=[];
 let state='menu',paused=false,curW=0,isBoss=false,fightN=1,fightT=90,cdT=0,koT=0,winnerP=false,timeScale=1,hitStop=0,shake=0;
 const camDir={x:0,z:1};
 
@@ -642,7 +642,7 @@ function koFighter(f,killer){
  if(f.dead)return;
  killer=killer||f.lastHitBy;
  f.dead=true;f.hp=0;f.koT=0;f.atk=-1;f.blocking=false;
- if(pvp&&f.isPlayer&&RM){pvpSend({t:'ko'});RM.victory=true;}
+ if(pvp&&f.isPlayer)pvpOut({t:'ko'});
  f.place=FIGHTERS.filter(x=>!x.dead).length+1;
  if((ffa||surv)&&killer&&killer!==f){killer.kos++;if(ffa&&killer.isPlayer)ftext(killer,'KO! +'+Math.round(100*(1+curW*.5)),'par');}
  SFX.ko();burst(f.x,1.2,f.z,0xffffff,24,9,.14);burst(f.x,1.2,f.z,RAR[f.p.r].c,18,7,.12);
@@ -651,7 +651,7 @@ function koFighter(f,killer){
  ftext(f,'K.O.!','brk');shake=Math.max(shake,.4);
  const alive=FIGHTERS.filter(x=>!x.dead);
  if(surv&&alive.length===1&&alive[0]===P){waveClear();return;}
- if(alive.length===1&&alive[0]===P){state='ko';koT=0;timeScale=.28;winnerP=true;placeP=1;P.victory=true;banner(ffa?'VICTORY!':'K.O.!',1800);flash('#fff',.4);shake=.7;}
+ if(alive.length===1&&alive[0]===P){state='ko';koT=0;timeScale=.28;winnerP=true;placeP=1;P.victory=true;banner(ffa?'VICTORY!':'K.O.!',1800);flash('#fff',.4);shake=.7;if(pvp)pvpEnd();}
 }
 function applyHit(a,d,dmg,kb,crit){
  dmg=Math.max(1,Math.round(dmg));d.hp-=dmg;d.hurt=.25;d.lastHitBy=a;
@@ -873,19 +873,20 @@ function readInput(){
 let bTimer=0,bannerCur='';
 function banner(t,ms){const b=$('banner');b.textContent=t;b.classList.remove('show','hold');void b.offsetWidth;b.classList.add('show');clearTimeout(bTimer);}
 function hudShow(v){$('hud').classList.toggle('hidden',!v);}
+function wide(){return ffa||surv||(pvp&&FIGHTERS.length>2);}
 function hudNames(){
- $('pn').textContent=P.p.name;$('pr').textContent=RAR[P.p.r].n;$('pn').style.color=RAR[P.p.r].c;
+ $('pn').textContent=P.uname||P.p.name;$('pr').textContent=RAR[P.p.r].n;$('pn').style.color=RAR[P.p.r].c;
  const solo=ENEMIES.length===1;
- $('foes').innerHTML=ENEMIES.map((e,i)=>`<div class="foe${solo?' solo':''}" id="foe${i}"><span style="color:${e.p.boss?'#ff7a5a':RAR[e.p.r].c}">${e.p.name}${e.p.boss?' \u{1F480}':''}</span><div class="mh"><i id="foeh${i}" style="width:100%"></i></div></div>`).join('');
+ $('foes').innerHTML=ENEMIES.map((e,i)=>`<div class="foe${solo?' solo':''}" id="foe${i}"><span style="color:${e.p.boss?'#ff7a5a':(e.uname?PCOL[e.slot%5]:RAR[e.p.r].c)}">${e.uname?pvpEsc(e.uname):e.p.name}${e.p.boss?' \u{1F480}':''}</span><div class="mh"><i id="foeh${i}" style="width:100%"></i></div></div>`).join('');
  const W=hw?HW:WORLDS[curW];$('wlabel').textContent=W.ico+' '+(pvp?'ONLINE PVP':hw?'HALLOWEEN BOSS':ffa?'FREEPLAY':(surv?'\u{1F9DF} WAVE '+waveN:(isBoss?'BOSS FIGHT':'Fight '+fightN+'/5')));
- $('radar').style.display=(ffa||surv)?'block':'none';
+ $('radar').style.display=wide()?'block':'none';
  ['pLag','pFill'].forEach(i=>$(i).style.width='100%');
 }
 function hudUpdate(){
  $('pFill').style.width=P.hp+'%';$('pLag').style.width=P.hp+'%';
  $('pHp').textContent=Math.ceil(P.hp);$('pGd').style.width=P.guard+'%';$('pSt').style.width=P.stam+'%';
  ENEMIES.forEach((e,i)=>{const h=$('foeh'+i),r=$('foe'+i);if(h)h.style.width=e.hp+'%';if(r)r.classList.toggle('dead',e.dead);});
- $('alive').textContent=ffa?('\u{1F465} '+FIGHTERS.filter(x=>!x.dead).length+'/5 left'):(surv?('\u{1F480} '+FIGHTERS.filter(x=>!x.dead&&!x.isPlayer).length+' left'):'');
+ $('alive').textContent=(pvp&&FIGHTERS.length>2)?('\u{1F465} '+FIGHTERS.filter(x=>!x.dead).length+'/'+FIGHTERS.length+' left'):ffa?('\u{1F465} '+FIGHTERS.filter(x=>!x.dead).length+'/5 left'):(surv?('\u{1F480} '+FIGHTERS.filter(x=>!x.dead&&!x.isPlayer).length+' left'):'');
  $('timer').textContent=surv?('W'+waveN):Math.max(0,Math.ceil(fightT));$('dtk').textContent=Math.round(100-P.hp);
 }
 function drawRadar(){
@@ -894,7 +895,7 @@ function drawRadar(){
  const fx=camDir.x,fz=camDir.z,rx=-fz,rz=fx,sc=(r-12)/ARENA_R;
  for(const f of FIGHTERS){if(f.dead)continue;
   const px=r+(f.x*rx+f.z*rz)*sc,py=r-(f.x*fx+f.z*fz)*sc;
-  g.fillStyle=f.isPlayer?'#ffffff':(f.p.boss?'#ff4a2a':RAR[f.p.r].c);
+  g.fillStyle=f.isPlayer?'#ffffff':(f.uname?PCOL[f.slot%5]:(f.p.boss?'#ff4a2a':RAR[f.p.r].c));
   g.beginPath();g.arc(px,py,f.isPlayer?8:6,0,TAU);g.fill();
   if(f.isPlayer){g.strokeStyle='#7dff6a';g.lineWidth=3;g.stroke();}
  }
@@ -957,27 +958,54 @@ function bossSlam(f,dt,live){
    rg.rotation.x=-Math.PI/2;rg.position.set(f.x,.08,f.z);rg.scale.setScalar(.6);arena.add(rg);f.slamRing=rg;}
  }
 }
-/* ---------- ONLINE PVP (peer-to-peer via PeerJS; no server of our own) ---------- */
-const PFX='pandafight26-',CODE_CH='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+/* ---------- ONLINE PVP (2-5 players; the host is the hub; peer-to-peer via PeerJS, no server of our own) ---------- */
+const PFX='pandafight26-',CODE_CH='ABCDEFGHJKMNPQRSTUVWXYZ23456789',MAXP=5;
+const PCOL=['#ffe14d','#5ad7ff','#ff8ad8','#8dff6a','#ffa24a'];
+const ICE={config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'},
+ {urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},
+ {urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'}]}};
 function makeCode(){let c='';for(let i=0;i<5;i++)c+=CODE_CH[Math.floor(Math.random()*CODE_CH.length)];return c;}
-function pvpSend(o){try{if(pvpConn&&pvpConn.open)pvpConn.send(o);}catch(e){}}
-function pvpSetStatus(h){const el=$('pvpStatus');if(el)el.innerHTML=h;}
+function pvpEsc(t){return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+/* usernames: plain letters/numbers/space/_ . - only, max 14 chars, basic bad-word filter. Applied on typing, on the host, AND on every receiving client. */
+function cleanName(s){
+ s=String(s==null?'':s).replace(/[^A-Za-z0-9 _.\-]/g,'').replace(/\s+/g,' ').trim().slice(0,14).trim();
+ const flat=s.toLowerCase().replace(/0/g,'o').replace(/1/g,'i').replace(/3/g,'e').replace(/4/g,'a').replace(/5/g,'s').replace(/[^a-z]/g,'');
+ for(const w of ['fuck','shit','bitch','cunt','nigg','fag','rape','nazi','dick','porn','slut','whore','hitler'])if(flat.indexOf(w)>=0)return '';
+ return s;
+}
+function pvpSaveName(){const el=$('pvpName');if(el){S.name=cleanName(el.value);save();}}
 function saneSel(k){k=+k;return(k===1000||(Number.isInteger(k)&&k>=0&&k<ROSTER.length))?k:0;}
+function num(v,lo,hi){v=+v;return Number.isFinite(v)?clamp(v,lo,hi):0;}
+function pvpSend(o){try{if(pvpConn&&pvpConn.open)pvpConn.send(o);}catch(e){}}
+function pvpToGuest(id,o){const g=pvpGuests.find(x=>x.id===id);if(g){try{if(g.conn.open)g.conn.send(o);}catch(e){}}}
+function pvpBcast(o,except){for(const g of pvpGuests)if(g.hello&&g.id!==except)pvpToGuest(g.id,o);}
+/* a message that starts on THIS machine: guests send to the host, the host fans it out */
+function pvpOut(o){
+ if(!pvpHost){pvpSend(o);return;}
+ if(o.t==='s'||o.t==='ko'){o.i=0;pvpBcast(o);}
+ else if(o.t==='over')pvpMarkOver();
+ else if(o.to!=null){o.from=0;pvpToGuest(o.to|0,o);}
+}
+function pvpSetStatus(h){const el=$('pvpStatus');if(el)el.innerHTML=h;else if(!$('pvpBox'))toast(String(h).replace(/<[^>]*>/g,''));}
 function loadPeer(cb){
  if(window.Peer){cb(true);return;}
  try{const sc=document.createElement('script');sc.src='https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';sc.onload=()=>cb(!!window.Peer);sc.onerror=()=>cb(false);document.head.appendChild(sc);}catch(e){cb(false);}
 }
 function pvpLeave(){
  pvpClosing=true;
- try{if(pvpConn&&pvpConn.open)pvpConn.send({t:'bye'});}catch(e){}
+ try{if(pvpHost){pvpBcast({t:'bye'});pvpGuests.forEach(g=>{try{g.conn.close();}catch(e){}});}else if(pvpConn&&pvpConn.open)pvpConn.send({t:'bye'});}catch(e){}
  try{if(pvpConn)pvpConn.close();}catch(e){}
  try{if(pvpPeer)pvpPeer.destroy();}catch(e){}
- pvpConn=null;pvpPeer=null;pvp=false;RM=null;pvpMyRm=pvpOppRm=false;pvpGot=false;pvpClosing=false;
+ pvpConn=null;pvpPeer=null;pvpGuests=[];pvpPlayers=[];RMS={};pvp=false;pvpLive=false;pvpGot=false;pvpTry=0;pvpClosing=false;
 }
 function pvpScreen(){
  state='menu';hudShow(false);
- ui(topbar('Online PvP','menu')+`<div class="panel" style="text-align:center;margin-top:0"><b>\u{1F310} 1v1 a friend online</b><br><small>One player creates a room and shares the code (or link). The other player joins with it. Works over the internet \u2014 nothing to install.</small></div>
+ ui(topbar('Online PvP','menu')+`<div class="panel" style="text-align:center;margin-top:0"><b>\u{1F310} 2–5 player free-for-all online</b><br><small>One player creates a room and shares the code (or link). Up to 4 friends join with it. Everyone fights everyone — last panda standing wins. Nothing to install.</small></div>
  <div class="panel" id="pvpBox" style="text-align:center">
+  <div style="font-weight:900;margin-bottom:6px">Your username</div>
+  <input id="pvpName" maxlength="14" placeholder="Player name" value="${pvpEsc(S.name||'')}" autocomplete="off" style="padding:9px;border-radius:10px;border:2px solid #2e6b4a;background:#06120c;color:#fff;font-weight:800;font-size:16px;text-align:center;width:200px">
+  <div><small style="opacity:.8">Letters, numbers, space, _ . - (max 14). Other players in the room can see it.</small></div>
+  <hr style="border:0;border-top:1px solid #fff3;margin:12px 0">
   <div style="font-weight:900;margin-bottom:6px">Host a match</div>
   <div class="row" style="align-items:center"><select id="pvpWorld" style="padding:8px;border-radius:10px;font-weight:800">${WORLDS.map((w,i)=>`<option value="${i}">${w.ico} ${w.n}</option>`).join('')}<option value="hw">\u{1F383} Haunted Graveyard</option></select>
   <label style="font-weight:800"><input type="checkbox" id="pvpStd" checked> Fair stats</label></div>
@@ -989,86 +1017,194 @@ function pvpScreen(){
   <div id="pvpStatus" style="margin-top:12px;font-weight:800;min-height:22px"></div>
  </div>`,'solid');
 }
-function pvpShowWaiting(code){
- const link=location.href.split('#')[0].split('?')[0]+'?room='+code;
- const b=$('pvpBox');if(!b)return;
- b.innerHTML=`<div style="font-weight:900">Room created!</div><div style="font-size:48px;font-weight:900;letter-spacing:6px;color:#ffe14d;margin:6px 0">${code}</div>
- <small>Tell your friend to press <b>Online PvP \u2192 Join</b> and enter this code,<br>or send them this link:</small>
- <div style="word-break:break-all;font-size:12px;opacity:.9;margin:8px 0">${link}</div>
- <div class="row"><button class="btn alt sm" data-act="pvpcopy" data-v="${code}">\u{1F4CB} Copy link</button><button class="btn sm dim" data-act="pvpcancel">Cancel</button></div>
- <div id="pvpStatus" style="margin-top:12px;font-weight:800">\u23F3 Waiting for your friend\u2026</div>`;
+function pvpPlayersList(){
+ const l=[{id:0,name:cleanName(S.name)||'Host',sel:S.sel}];
+ for(const g of pvpGuests)if(g.hello)l.push({id:g.id,name:g.name,sel:g.sel});
+ return l;
+}
+function pvpCleanPlayers(a){
+ const out=[],seen={};if(!Array.isArray(a))return out;
+ for(const x of a.slice(0,MAXP)){if(!x||typeof x!=='object')continue;const id=clamp(x.id|0,0,MAXP-1);if(seen[id])continue;seen[id]=1;out.push({id,name:cleanName(x.name)||('Player'+(id+1)),sel:saneSel(x.sel)});}
+ return out.sort((a,b)=>a.id-b.id);
+}
+function pvpShowLobby(){
+ state='menu';hudShow(false);
+ const W=pvpWorld==='hw'?'\u{1F383} Haunted Graveyard':(WORLDS[pvpWorld]?WORLDS[pvpWorld].ico+' '+WORLDS[pvpWorld].n:''),n=pvpPlayers.length;
+ const link=location.href.split('#')[0].split('?')[0]+'?room='+pvpCode;
+ const rows=pvpPlayers.map(p=>{const pp=getP(p.sel),rc=RAR[pp.r];
+  return `<div class="rrow" style="align-items:center"><span><span style="color:${PCOL[p.id%5]}">●</span> <b>${pvpEsc(p.name)}</b>${p.id===0?' \u{1F451}':''}${p.id===pvpMe?' (you)':''}</span><span style="opacity:.9;font-size:12px">${pvpEsc(pp.name)} <small style="color:${rc.c}">${rc.n}</small>${pvpHost&&p.id!==0?` <button class="btn sm dim" data-act="pvpkick" data-v="${p.id}">✖</button>`:''}</span></div>`;}).join('');
+ let foot;
+ if(pvpHost)foot=pvpLive?'<div style="font-weight:800">⚔️ A match is still running…</div>':(n>=2?`<button class="btn grn" data-act="pvpstart">▶ Start match (${n} players)</button>`:'<div style="font-weight:800">⏳ Waiting for players… (need 2–5)</div>');
+ else foot='<div style="font-weight:800">⏳ Waiting for the host to start…</div>';
+ ui(topbar('Online PvP','')+`<div class="panel" id="pvpLobby" style="text-align:center;margin-top:0">
+  <div style="font-weight:900">Room code</div><div style="font-size:44px;font-weight:900;letter-spacing:6px;color:#ffe14d">${pvpEsc(pvpCode)}</div>
+  ${pvpHost?`<small>Friends press <b>Online PvP → Join</b> and enter the code, or open this link:</small><div style="word-break:break-all;font-size:12px;opacity:.9;margin:6px 0">${pvpEsc(link)}</div><div class="row"><button class="btn alt sm" data-act="pvpcopy" data-v="${pvpEsc(pvpCode)}">\u{1F4CB} Copy link</button></div>`:''}
+  <div style="margin:10px 0;opacity:.9;font-size:13px">${W} · ${pvpStd?'Fair stats':'Full power'} · free-for-all</div>
+  <div style="text-align:left;margin:8px 0">${rows||'Connecting…'}</div>
+  <div style="margin:10px 0">${foot}</div>
+  <div class="row"><button class="btn sm dim" data-act="pvpleave">Leave room</button></div></div>`,'solid');
+}
+function pvpRefreshLobby(){if(state==='menu'&&($('pvpLobby')||$('pvpBox')))pvpShowLobby();}
+function pvpPushLobby(){
+ pvpPlayers=pvpPlayersList();
+ for(const g of pvpGuests)if(g.hello)pvpToGuest(g.id,{t:'lobby',players:pvpPlayers,you:g.id,world:pvpWorld,std:pvpStd?1:0,live:pvpLive?1:0});
+ pvpRefreshLobby();
 }
 function pvpHostRoom(){
- const wv=$('pvpWorld').value,std=$('pvpStd').checked;
- pvpLeave();pvpHost=true;pvpWorld=wv==='hw'?'hw':(+wv|0);pvpStd=!!std;
- pvpSetStatus('Connecting to the matchmaking service\u2026');
+ const wv=$('pvpWorld').value,std=$('pvpStd').checked;pvpSaveName();
+ pvpLeave();pvpHost=true;pvpMe=0;pvpWorld=wv==='hw'?'hw':(+wv|0);pvpStd=!!std;
+ pvpSetStatus('Connecting to the matchmaking service…');
  loadPeer(ok=>{
-  if(!ok){pvpSetStatus('\u274C Could not load the online library. Are you offline?');return;}
-  const code=makeCode();
-  try{pvpPeer=new Peer(PFX+code);}catch(e){pvpSetStatus('\u274C Online play is not available here.');return;}
-  pvpPeer.on('open',()=>pvpShowWaiting(code));
-  pvpPeer.on('connection',c=>{if(pvpConn){try{c.close();}catch(e){}return;}pvpWire(c,true);});
-  pvpPeer.on('error',e=>{if(pvpClosing)return;if(e&&e.type==='unavailable-id'){pvpHostRoom();return;}pvpSetStatus('\u274C Connection problem ('+((e&&e.type)||'error')+'). Try again.');});
+  if(!ok){pvpSetStatus('❌ Could not load the online library. Are you offline?');return;}
+  const code=makeCode();pvpCode=code;
+  try{pvpPeer=new Peer(PFX+code,ICE);}catch(e){pvpSetStatus('❌ Online play is not available here.');return;}
+  pvpPeer.on('open',()=>{pvpPlayers=pvpPlayersList();pvpShowLobby();});
+  pvpPeer.on('connection',c=>pvpHostAccept(c));
+  /* the free matchmaking server drops idle hosts: reconnect so the room code keeps working */
+  pvpPeer.on('disconnected',()=>{try{if(!pvpClosing&&pvpPeer&&!pvpPeer.destroyed)pvpPeer.reconnect();}catch(e){}});
+  pvpPeer.on('error',e=>{if(pvpClosing)return;const t=e&&e.type;if(t==='unavailable-id'){pvpHostRoom();return;}if(t==='peer-unavailable')return;pvpSetStatus('❌ Connection problem ('+(t||'error')+').');});
  });
+}
+function pvpHostAccept(c){
+ const used={};pvpGuests.forEach(g=>used[g.id]=1);let id=0;for(let i=1;i<MAXP;i++)if(!used[i]){id=i;break;}
+ const deny=why=>{const go=()=>{try{c.send({t:'deny',why:why});}catch(e){}setTimeout(()=>{try{c.close();}catch(e){}},500);};if(c.open)go();else c.on('open',go);};
+ if(pvpLive){deny('That match is already running. Try again when it ends.');return;}
+ if(!id){deny('This room is full (5 players).');return;}
+ const g={id:id,conn:c,hello:false,name:'',sel:0,cnt:0,ct:0};pvpGuests.push(g);
+ c.on('data',m=>{if(T-g.ct>1){g.ct=T;g.cnt=0;}if(++g.cnt>200)return;pvpHostData(g,m);});
+ c.on('close',()=>pvpGuestGone(g));c.on('error',()=>{});
+}
+function pvpGuestGone(g){
+ const k=pvpGuests.indexOf(g);if(k<0)return;pvpGuests.splice(k,1);
+ try{g.conn.close();}catch(e){}
+ if(!g.hello)return;
+ if(pvp&&pvpLive&&RMS[g.id]){pvpBcast({t:'left',i:g.id});pvpFighterLeft(RMS[g.id]);}
+ pvpPushLobby();
+}
+function pvpKick(id){const g=pvpGuests.find(x=>x.id===id);if(!g)return;pvpToGuest(id,{t:'kick'});setTimeout(()=>pvpGuestGone(g),200);}
+function pvpHostData(g,m){
+ if(!m||typeof m!=='object')return;
+ if(!g.hello){
+  if(m.t!=='hello')return;
+  g.hello=true;g.sel=saneSel(m.sel);
+  let nm=cleanName(m.name)||('Player'+(g.id+1));
+  const taken=n=>pvpPlayersList().some(p=>p.name.toLowerCase()===n.toLowerCase());
+  if(taken(nm)){let k=2;const b=nm.slice(0,11);while(taken(b+' '+k))k++;nm=b+' '+k;}
+  g.name=nm;pvpPushLobby();return;
+ }
+ const f=RMS[g.id],to=m.to|0;
+ switch(m.t){
+  case 's':if(pvp&&f&&!f.dead){const sn=pvpCleanSnap(m);f.snap=sn;f.snapT=T;pvpBcast(Object.assign({t:'s',i:g.id},sn),g.id);}break;
+  case 'hit':if(!pvp||!f)break;
+   if(to===0)pvpDefend(m,g.id);
+   else if(to!==g.id&&RMS[to])pvpToGuest(to,{t:'hit',from:g.id,dmg:num(m.dmg,1,90),crit:m.crit?1:0,kb:num(m.kb,0,20),gd:num(m.gd,0,80),ax:num(m.ax,-14,14),az:num(m.az,-14,14)});break;
+  case 'res':if(!pvp||!f)break;
+   if(to===0)pvpOnRes(m,g.id);
+   else if(to!==g.id&&RMS[to])pvpToGuest(to,{t:'res',from:g.id,r:String(m.r).slice(0,8),dmg:num(m.dmg,1,90),crit:m.crit?1:0});break;
+  case 'ko':if(pvp&&f){pvpRemoteKo(g.id);pvpBcast({t:'ko',i:g.id},g.id);}break;
+  case 'over':if(pvp)pvpMarkOver();break;
+  case 'bye':pvpGuestGone(g);break;
+ }
+}
+function pvpMarkOver(){if(!pvpHost||!pvpLive)return;pvpLive=false;pvpBcast({t:'over'});pvpPushLobby();}
+function pvpEnd(){if(pvpHost)pvpMarkOver();else pvpSend({t:'over'});}
+function pvpStartMatch(){
+ if(!pvpHost||pvpLive)return;
+ const pl=pvpPlayersList();if(pl.length<2){toast('Need at least 2 players');return;}
+ pvpPlayers=pl;
+ for(const g of pvpGuests)if(g.hello)pvpToGuest(g.id,{t:'start',world:pvpWorld,std:pvpStd?1:0,players:pl,you:g.id});
+ startPvp(pvpWorld,pvpStd,pl,0);
 }
 function pvpJoinRoom(raw){
  const code=String(raw||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8);
  if(code.length<3){pvpSetStatus('Enter the room code first.');return;}
- pvpLeave();pvpHost=false;pvpSetStatus('Connecting to room '+code+'\u2026');
+ pvpSaveName();
+ pvpLeave();pvpHost=false;pvpCode=code;pvpSetStatus('Connecting to room '+pvpEsc(code)+'…');
  loadPeer(ok=>{
-  if(!ok){pvpSetStatus('\u274C Could not load the online library. Are you offline?');return;}
-  try{pvpPeer=new Peer();}catch(e){pvpSetStatus('\u274C Online play is not available here.');return;}
-  pvpPeer.on('open',()=>{
-   const c=pvpPeer.connect(PFX+code,{reliable:true});pvpWire(c,false);
-   setTimeout(()=>{if(!pvpGot&&pvpPeer&&!pvp)pvpSetStatus('\u274C Could not reach that room. Check the code and try again.');},12000);
-  });
-  pvpPeer.on('error',e=>{if(pvpClosing)return;pvpSetStatus(e&&e.type==='peer-unavailable'?'\u274C Room not found. Check the code.':'\u274C Connection problem ('+((e&&e.type)||'error')+'). Try again.');});
+  if(!ok){pvpSetStatus('❌ Could not load the online library. Are you offline?');return;}
+  try{pvpPeer=new Peer(undefined,ICE);}catch(e){pvpSetStatus('❌ Online play is not available here.');return;}
+  pvpPeer.on('open',()=>pvpDial(code));
+  pvpPeer.on('disconnected',()=>{try{if(!pvpClosing&&pvpPeer&&!pvpPeer.destroyed)pvpPeer.reconnect();}catch(e){}});
+  pvpPeer.on('error',e=>{if(pvpClosing)return;const t=e&&e.type;
+   if(t==='peer-unavailable'){
+    if(pvpTry<3&&!pvpGot){pvpTry++;pvpSetStatus('Looking for room '+pvpEsc(code)+'… (try '+(pvpTry+1)+' of 4)');setTimeout(()=>{if(pvpPeer&&!pvpGot&&!pvpClosing)pvpDial(code);},1800);}
+    else pvpSetStatus('❌ Room not found. Check the code, and make sure the host is still on the lobby screen.');
+    return;}
+   pvpSetStatus('❌ Connection problem ('+(t||'error')+'). Try again.');});
  });
 }
-function pvpWire(c,isHost){
+function pvpDial(code){
+ let c;try{c=pvpPeer.connect(PFX+code,{reliable:true});}catch(e){pvpSetStatus('❌ Could not connect.');return;}
+ pvpWire(c);
+ setTimeout(()=>{if(!pvpGot&&pvpPeer&&c===pvpConn&&!c.open)pvpSetStatus('❌ Found the room but could not connect. Some networks (school, mobile data) block direct connections — try another network.');},14000);
+}
+function pvpWire(c){
  pvpConn=c;
- const onOpen=()=>{pvpSend({t:'hello',sel:S.sel});pvpSetStatus(isHost?'Friend joined! Starting\u2026':'Connected! Waiting for the host\u2026');};
+ const onOpen=()=>{pvpSend({t:'hello',name:cleanName(S.name),sel:S.sel});pvpSetStatus('Connected! Joining the lobby…');};
  if(c.open)onOpen();else c.on('open',onOpen);
- c.on('data',onPvpData);c.on('close',onPvpClose);c.on('error',()=>pvpSetStatus('\u274C Connection error.'));
+ c.on('data',onPvpData);c.on('close',()=>{if(c===pvpConn)onPvpClose();});c.on('error',()=>pvpSetStatus('❌ Connection error.'));
 }
 function onPvpClose(){
- if(pvpClosing)return;
- if(pvp&&RM&&(state==='fight'||state==='countdown'||state==='ko')){pvpForfeit=true;state='result';timeScale=1;pvpConn=null;showResult(true);}
- else if(pvp&&state==='result'){const e=$('rmStatus');if(e)e.textContent='Opponent left.';pvpConn=null;}
- else pvpSetStatus('Opponent disconnected.');
+ if(pvpClosing||pvpHost)return;
+ pvpConn=null;
+ if(pvp&&P&&!P.dead&&(state==='fight'||state==='countdown')){pvpForfeit=true;state='result';timeScale=1;showResult(true);}
+ else if(state==='result'){const e=$('rmStatus');if(e)e.textContent='The host left the room.';}
+ else if(state==='menu'){pvpLeave();pvpScreen();pvpSetStatus('The host closed the room.');}
 }
 function onPvpData(m){
  if(!m||typeof m!=='object')return;
  switch(m.t){
-  case 'hello':pvpGot=true;remoteSel=saneSel(m.sel);
-   if(pvpHost&&!pvp){pvpSend({t:'start',world:pvpWorld,std:pvpStd?1:0});startPvp(pvpWorld,pvpStd,true);}break;
-  case 'start':if(!pvpHost){pvpWorld=m.world==='hw'?'hw':clamp(+m.world|0,0,4);pvpStd=!!m.std;startPvp(pvpWorld,pvpStd,false);}break;
-  case 's':if(RM&&pvp){RM.snap={x:clamp(+m.x||0,-14,14),z:clamp(+m.z||0,-14,14),fa:+m.fa||0,vx:clamp(+m.vx||0,-30,30),vz:clamp(+m.vz||0,-30,30),a:(m.a|0),at:+m.at||0,rc:+m.rc||0,b:m.b?1:0,bt:+m.bt||0,d:+m.d||0,h:+m.h||0,hp:clamp(+m.hp,0,100),g:clamp(+m.g||0,0,100),st:clamp(+m.st||0,0,100),sn:+m.sn||0,w:m.w?1:0,vc:m.vc?1:0};RM.snapT=T;}break;
-  case 'hit':pvpDefend(m);break;
-  case 'res':pvpOnRes(m);break;
-  case 'ko':if(pvp&&RM&&state==='fight'&&!RM.dead){RM.hp=0;koFighter(RM,P);}break;
-  case 'rm':pvpOppRm=true;{const e=$('rmStatus');if(e)e.textContent=pvpMyRm?'Starting\u2026':'Opponent wants a rematch!';}pvpMaybeRematch();break;
+  case 'lobby':pvpGot=true;pvpMe=clamp(m.you|0,0,MAXP-1);pvpPlayers=pvpCleanPlayers(m.players);pvpWorld=m.world==='hw'?'hw':clamp(+m.world|0,0,4);pvpStd=!!m.std;pvpLive=!!m.live;pvpRefreshLobby();break;
+  case 'start':if(pvpHost)break;pvpGot=true;pvpWorld=m.world==='hw'?'hw':clamp(+m.world|0,0,4);pvpStd=!!m.std;{const pl=pvpCleanPlayers(m.players),me=clamp(m.you|0,0,MAXP-1);if(pl.length>=2&&pl.some(x=>x.id===me))startPvp(pvpWorld,pvpStd,pl,me);}break;
+  case 's':{const f=RMS[m.i|0];if(pvp&&f&&!f.dead){f.snap=pvpCleanSnap(m);f.snapT=T;}}break;
+  case 'hit':pvpDefend(m,m.from|0);break;
+  case 'res':pvpOnRes(m,m.from|0);break;
+  case 'ko':pvpRemoteKo(m.i|0);break;
+  case 'left':pvpFighterLeft(RMS[m.i|0]);break;
+  case 'over':pvpLive=false;{const e=$('rmStatus');if(e)e.textContent='Match over — head back to the lobby.';}break;
+  case 'deny':{const w=cleanName(String(m.why||'').replace(/[^A-Za-z0-9 .,()'-]/g,'')) ;pvpLeave();pvpScreen();pvpSetStatus('❌ '+pvpEsc(String(m.why||'Could not join').replace(/[^A-Za-z0-9 .,()'\-]/g,'').slice(0,80)));}break;
+  case 'kick':pvpLeave();pvpScreen();pvpSetStatus('You were removed from the room by the host.');break;
   case 'bye':onPvpClose();break;
  }
 }
+function pvpCleanSnap(m){return{x:num(m.x,-14,14),z:num(m.z,-14,14),fa:num(m.fa,-50,50),vx:num(m.vx,-30,30),vz:num(m.vz,-30,30),a:clamp(m.a|0,-1,9),at:num(m.at,0,10),rc:num(m.rc,0,10),b:m.b?1:0,bt:num(m.bt,0,50),d:num(m.d,0,10),h:num(m.h,0,10),hp:num(m.hp,0,100),g:num(m.g,0,100),st:num(m.st,0,100),sn:num(m.sn,0,10),w:m.w?1:0,vc:m.vc?1:0};}
+function pvpRemoteKo(i){const f=RMS[i];if(!pvp||!f||f.dead)return;f.hp=0;if(state==='fight')koFighter(f,null);else f.dead=true;}
+function pvpFighterLeft(f){
+ if(!f||f.left)return;f.left=true;
+ if(!pvp)return;
+ if(P&&!P.dead&&(state==='fight'||state==='countdown')){
+  const others=ENEMIES.filter(e=>e!==f&&!e.dead&&!e.left);
+  if(!others.length){pvpForfeit=true;state='result';timeScale=1;showResult(true);pvpEnd();return;}
+ }
+ if(state==='fight')koFighter(f,null);else f.dead=true;
+}
 function stdFighter(f){f.pow=1;f.def=.03;f.ult=false;f.perk=1;f.stCost=1;f.spd=5.3;f.scale=1;f.dmgMul=1;f.model.g.scale.setScalar(1);}
-function startPvp(wi,std,host){
- pvp=true;pvpHost=host;ffa=false;surv=false;hw=false;pvpForfeit=false;pvpMyRm=pvpOppRm=false;
- curW=wi==='hw'?4:wi;isBoss=false;hideUI();clearFighters();
+function pvpTag(f,txt,col){
+ try{const c=document.createElement('canvas');c.width=256;c.height=64;const g=c.getContext('2d');g.font='bold 34px sans-serif';g.textAlign='center';g.lineWidth=7;g.strokeStyle='rgba(0,0,0,.8)';g.strokeText(txt,128,44);g.fillStyle=col;g.fillText(txt,128,44);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false}));sp.scale.set(2.4,.6,1);sp.position.y=2.7;sp.renderOrder=10;f.g.add(sp);}catch(e){}
+}
+function startPvp(wi,std,players,me){
+ pvp=true;pvpMe=me;ffa=false;surv=false;hw=false;pvpForfeit=false;pvpLive=true;
+ curW=wi==='hw'?4:wi;isBoss=false;hideUI();clearFighters();RMS={};
  buildArena(wi);
- P=mkFighter(getP(S.sel),true,0);
- RM=mkFighter(getP(remoteSel),false,.5);RM.remote=true;RM.ai=null;RM.snap=null;RM.snapT=T;
- if(std){stdFighter(P);stdFighter(RM);}else{RM.dmgMul=1;}
- FIGHTERS=[P,RM];ENEMIES=[RM];
- const zs=host?-4.2:4.2;
- P.x=0;P.z=zs;P.face=host?0:Math.PI;RM.x=0;RM.z=-zs;RM.face=host?Math.PI:0;
+ const ps=players.slice().sort((a,b)=>a.id-b.id),n=ps.length,rad=n===2?4.2:5.2;
+ let mine=null;const others=[];
+ ps.forEach((pl,i)=>{
+  const isMe=pl.id===me;
+  const f=mkFighter(getP(pl.sel),isMe,.5);f.slot=pl.id;f.uname=pl.name;
+  if(isMe)mine=f;else{f.remote=true;f.ai=null;f.snap=null;f.snapT=T;RMS[pl.id]=f;others.push(f);pvpTag(f,pl.name,PCOL[pl.id%5]);}
+  if(std)stdFighter(f);else if(!isMe)f.dmgMul=1;
+  const a=i*TAU/n+Math.PI*.25;f.x=Math.sin(a)*rad;f.z=Math.cos(a)*rad;f.face=Math.atan2(-f.x,-f.z);
+ });
+ P=mine;FIGHTERS=[P].concat(others);ENEMIES=others;
  FIGHTERS.forEach(f=>pickTarget(f));
- camDir.x=0;camDir.z=host?1:-1;fightT=90;state='countdown';cdT=3.2;timeScale=1;hitStop=0;shake=0;bannerCur='';placeP=0;winnerP=false;
+ const cl=Math.hypot(P.x,P.z)||1;camDir.x=-P.x/cl;camDir.z=-P.z/cl;
+ fightT=n>2?120:90;state='countdown';cdT=3.2;timeScale=1;hitStop=0;shake=0;bannerCur='';placeP=0;winnerP=false;
  hudNames();hudShow(true);hudUpdate();
- camera.position.set(0,8,host?-12:12);
+ camera.position.set(P.x*2.2,8,P.z*2.2);
 }
 function pvpSnap(){const f=P;return{t:'s',x:+f.x.toFixed(2),z:+f.z.toFixed(2),fa:+f.face.toFixed(2),vx:+(f.vx+f.kx).toFixed(2),vz:+(f.vz+f.kz).toFixed(2),a:f.atk,at:+f.atkT.toFixed(2),rc:+(f.rec||0).toFixed(2),b:f.blocking?1:0,bt:+f.blockT.toFixed(2),d:+Math.max(0,f.dash).toFixed(2),h:+Math.max(0,f.hurt).toFixed(2),hp:+f.hp.toFixed(1),g:Math.round(f.guard),st:Math.round(f.stam),sn:+Math.max(0,f.stun).toFixed(2),w:f.whiff?1:0,vc:f.victory?1:0};}
-function pvpTick(dt){pvpSendT-=dt;if(pvpSendT<=0){pvpSendT=.05;pvpSend(pvpSnap());}}
+function pvpTick(dt){pvpSendT-=dt;if(pvpSendT<=0){pvpSendT=.05;pvpOut(pvpSnap());}}
 function updateRemote(f,dt){
  if(f.dead){f.koT+=dt;return;}
  const s=f.snap;if(!s)return;
@@ -1084,13 +1220,14 @@ function hitRemote(a,d){
  const fx=Math.sin(a.face),fz=Math.cos(a.face),dt=(dx*fx+dz*fz)/dist;
  if(dist>reach+.25||dt<.3)return false;
  let dmg=a.wep.dmg*a.pow*rnd(.9,1.1)*(1-d.def);const crit=Math.random()<.1;if(crit)dmg*=1.5;
- pvpSend({t:'hit',dmg:Math.max(1,Math.round(dmg)),crit:crit?1:0,kb:a.wep.kb,gd:Math.max(14,a.wep.dmg*a.pow*1.7),ax:+a.x.toFixed(2),az:+a.z.toFixed(2)});
+ pvpOut({t:'hit',to:d.slot,dmg:Math.max(1,Math.round(dmg)),crit:crit?1:0,kb:a.wep.kb,gd:Math.max(14,a.wep.dmg*a.pow*1.7),ax:+a.x.toFixed(2),az:+a.z.toFixed(2)});
  return true;
 }
-function pvpDefend(m){
- if(!RM||!P||P.dead||RM.dead||state!=='fight')return;
- const a=RM,d=P,dmg=clamp(Math.round(+m.dmg)||1,1,90),kb=clamp(+m.kb||5,0,20),gd=clamp(+m.gd||14,0,80),crit=!!m.crit;
- const sx=a.x,sz=a.z;a.x=clamp(+m.ax||0,-14,14);a.z=clamp(+m.az||0,-14,14);
+function pvpDefend(m,fid){
+ const a=RMS[fid];
+ if(!a||!P||P.dead||a.dead||state!=='fight')return;
+ const d=P,dmg=clamp(Math.round(+m.dmg)||1,1,90),kb=num(m.kb,0,20)||5,gd=num(m.gd,0,80)||14,crit=!!m.crit;
+ const sx=a.x,sz=a.z;a.x=num(m.ax,-14,14);a.z=num(m.az,-14,14);
  const dx=d.x-a.x,dz=d.z-a.z,dist=Math.hypot(dx,dz)||1;
  let r='hit';
  if(d.dash>0){ftext(d,'DODGE!','dod');r='dodge';}
@@ -1101,24 +1238,23 @@ function pvpDefend(m){
    r='block';if(d.hp<=0){d.hp=0;koFighter(d,a);}}
  }else{applyHit(a,d,dmg,kb,crit);}
  a.x=sx;a.z=sz;
- pvpSend({t:'res',r:r,dmg:dmg,crit:crit?1:0});
+ pvpOut({t:'res',to:fid,r:r,dmg:dmg,crit:crit?1:0});
 }
-function pvpOnRes(m){
- if(!pvp||!RM||!P||P.dead)return;
- if(m.r==='parry'){P.stun=.85;P.atk=-1;P.poise=0;ftext(RM,'PARRY!','par');SFX.parry();hitStop=.1;shake=.3;}
- else if(m.r==='block'){ftext(RM,'BLOCK','blk');SFX.block();burst(RM.x,1.3,RM.z,0x7fd0ff,8,5,.09);}
- else if(m.r==='dodge'){ftext(RM,'DODGE!','dod');}
+function pvpOnRes(m,fid){
+ const D=RMS[fid];
+ if(!pvp||!D||!P||P.dead)return;
+ if(m.r==='parry'){P.stun=.85;P.atk=-1;P.poise=0;ftext(D,'PARRY!','par');SFX.parry();hitStop=.1;shake=.3;}
+ else if(m.r==='block'){ftext(D,'BLOCK','blk');SFX.block();burst(D.x,1.3,D.z,0x7fd0ff,8,5,.09);}
+ else if(m.r==='dodge'){ftext(D,'DODGE!','dod');}
  else if(m.r==='hit'){
   const dmg=clamp(Math.round(+m.dmg)||1,1,90);
-  ftext(RM,(m.crit?'CRIT ':'')+dmg,m.crit?'crit':'dmgE');
-  burst(RM.x,1.3*RM.scale,RM.z,P.p.w===12?0x9fe8ff:0xffe08a,10+Math.round(dmg/3),6,.1);
+  ftext(D,(m.crit?'CRIT ':'')+dmg,m.crit?'crit':'dmgE');
+  burst(D.x,1.3*D.scale,D.z,P.p.w===12?0x9fe8ff:0xffe08a,10+Math.round(dmg/3),6,.1);
   SFX.hit();shake=Math.max(shake,.12+dmg*.007);hitStop=Math.min(.1,.03+dmg*.0025);
-  if(P.p.w===12){bolt(RM.x,RM.z);SFX.thunder();shake=Math.max(shake,.7);}
+  if(P.p.w===12){bolt(D.x,D.z);SFX.thunder();shake=Math.max(shake,.7);}
   if(P.ult)P.hp=Math.min(100,P.hp+dmg*.08*P.perk);
  }
 }
-function pvpMaybeRematch(){if(pvpMyRm&&pvpOppRm&&pvpHost){pvpSend({t:'start',world:pvpWorld,std:pvpStd?1:0});startPvp(pvpWorld,pvpStd,true);}}
-function pvpRematch(){if(!pvpConn){toast('Opponent has left');return;}pvpMyRm=true;pvpSend({t:'rm'});const e=$('rmStatus');if(e)e.textContent=pvpOppRm?'Starting\u2026':'Waiting for opponent\u2026';pvpMaybeRematch();}
 /* ---------- SURVIVAL ---------- */
 function spawnWave(){
  waveN++;
@@ -1168,6 +1304,7 @@ function timeUp(){
  winnerP=alive[0]===P&&(alive.length<2||alive[0].hp>alive[1].hp);
  placeP=winnerP?1:1+alive.filter(x=>x.hp>=P.hp&&x!==P).length+(P.dead?1:0);
  if(winnerP)P.victory=true;
+ if(pvp)pvpEnd();
 }
 function fightUpdate(rdt){
  const stopped=hitStop>0;hitStop-=rdt;
@@ -1191,14 +1328,14 @@ function fightUpdate(rdt){
  if(state==='fight'||state==='countdown'){const k=Math.min(1,rdt*2.5);camDir.x+=(tx-camDir.x)*k;camDir.z+=(tz-camDir.z)*k;}
  else{const a=.3*rdt,c=Math.cos(a),s=Math.sin(a);const nx=camDir.x*c-camDir.z*s,nz=camDir.x*s+camDir.z*c;camDir.x=nx;camDir.z=nz;}
  const cl=Math.hypot(camDir.x,camDir.z)||1;camDir.x/=cl;camDir.z/=cl;
- const mx=(ffa||surv)?(px*2+ex)/3:(px+ex)/2,mz=(ffa||surv)?(pz*2+ez)/3:(pz+ez)/2;
- const back=((ffa||surv)?8+Math.min(tl,8)*.4:7.2+tl*.5)*portrait,hgt=((ffa||surv)?6+Math.min(tl,8)*.2:5.2+tl*.18)*portrait;
+ const mx=wide()?(px*2+ex)/3:(px+ex)/2,mz=wide()?(pz*2+ez)/3:(pz+ez)/2;
+ const back=(wide()?8+Math.min(tl,8)*.4:7.2+tl*.5)*portrait,hgt=(wide()?6+Math.min(tl,8)*.2:5.2+tl*.18)*portrait;
  const tgt=_v.set(mx-camDir.x*back,hgt,mz-camDir.z*back);
  const kk=1-Math.exp(-rdt*6);camera.position.lerp(tgt,kk);
  shake=Math.max(0,shake-rdt*2.2);
  camera.position.x+=rnd(-1,1)*shake*.3;camera.position.y+=rnd(-1,1)*shake*.3;
  camera.lookAt(mx,1.0,mz);
- hudUpdate();if(ffa||surv)drawRadar();
+ hudUpdate();if(wide())drawRadar();
 }
 function menuUpdate(rdt){
  if(menuF){menuF.face=Math.sin(T*.4)*.7+.5;menuF.vx=menuF.vz=0;animFighter(menuF,rdt,T);}
@@ -1216,20 +1353,21 @@ function showResultInner(win){
  hudShow(false);
  const left=Math.ceil(P.hp),taken=100-left,wm=1+curW*.5,E1=ENEMIES[0];
  if(pvp){
-  const draw=!pvpForfeit&&!winnerP&&!P.dead&&Math.round(P.hp)===Math.round(RM.hp);
+  const n=FIGHTERS.length,place=winnerP?1:(placeP||n);
+  const draw=n===2&&!pvpForfeit&&!winnerP&&!P.dead&&Math.round(P.hp)===Math.round(ENEMIES[0].hp);
   let coins=0,title,col;
-  if(pvpForfeit){title='\u{1F3F3}\uFE0F OPPONENT LEFT';col='#ffe14d';}
-  else if(winnerP){coins=300+left*4+(taken===0?150:0);S.pvpWins=(S.pvpWins|0)+1;title='\u{1F3C6} YOU WIN!';col='#7dff6a';SFX.win();}
+  if(pvpForfeit){title='\u{1F3F3}️ EVERYONE LEFT';col='#ffe14d';}
+  else if(winnerP){coins=300+(n-2)*120+left*4+(taken===0?150:0);S.pvpWins=(S.pvpWins|0)+1;title='\u{1F3C6} YOU WIN!';col='#7dff6a';SFX.win();}
   else if(draw){coins=100;title='\u{1F91D} DRAW';col='#ffe14d';}
-  else{coins=40;title='\u{1F4A5} DEFEATED';col='#ff6a6a';SFX.lose();}
+  else{coins=40+Math.max(0,n-place)*35;title=n===2?'\u{1F4A5} DEFEATED':'\u{1F3C5} PLACE #'+place+' of '+n;col='#ff9d6a';SFX.lose();}
   S.coins+=coins;save();
   ui(topbar('Online PvP','')+`<div class="panel res" style="text-align:center"><h1 style="color:${col}">${title}</h1>
-   <div style="font-weight:800;opacity:.9">vs ${RM.p.name}</div>
-   <div style="margin:12px 0;text-align:left"><div class="rrow"><span>Your health</span><span>${left} \u2764\uFE0F</span></div>
+   <div style="font-weight:800;opacity:.9">vs ${ENEMIES.map(e=>pvpEsc(e.uname||e.p.name)).join(', ')}</div>
+   <div style="margin:12px 0;text-align:left"><div class="rrow"><span>Your health</span><span>${left} ❤️</span></div>
    <div class="rrow"><span>Online wins</span><span>${S.pvpWins|0}</span></div>
    <div class="rrow tot"><span>Reward</span><span>+${coins} \u{1FA99}</span></div></div>
-   <div id="rmStatus" style="font-weight:800;min-height:22px"></div>
-   <div class="row" style="margin-top:10px">${pvpForfeit?'':'<button class="btn grn" data-act="pvprematch">Rematch \u21BA</button>'}<button class="btn alt" data-act="pvpleave">Leave</button></div></div>`,'dark');
+   <div id="rmStatus" style="font-weight:800;min-height:22px">${pvpLive&&!pvpForfeit?'The match is still running…':''}</div>
+   <div class="row" style="margin-top:10px"><button class="btn grn" data-act="pvplobby">Back to lobby</button><button class="btn alt" data-act="pvpleave">Leave</button></div></div>`,'dark');
   return;
  }
  if(surv){
@@ -1359,7 +1497,7 @@ function mainMenu(){
   <div class="menuBot">
    <div class="eqname"><span style="color:${rc.c}">${rc.n}</span> · ${p.name} · ${WEP[p.w].ico} ${WEP[p.w].n}</div>
    <button class="btn big" data-act="worlds">⚔️ FIGHT</button>
-   <button class="btn alt" data-act="pvp">\u{1F310} ONLINE PVP \u00B7 1v1 a Friend</button>
+   <button class="btn alt" data-act="pvp">\u{1F310} ONLINE PVP \u00B7 2\u20135 Players</button>
    <button class="btn alt" data-act="hwevent" style="background:linear-gradient(#ffa24a,#e0560c);color:#2a0f00;box-shadow:0 5px 0 #8a3200,0 8px 16px #0006">\u{1F383} HALLOWEEN OF 26 · Pumpkin King</button>
    <button class="btn alt" data-act="survival">\u{1F9DF} SURVIVAL \u00B7 Endless Waves</button>
    <button class="btn alt" data-act="freeplay">\u{1F465} FREEPLAY \u00B7 5-Panda Brawl</button>
@@ -1473,7 +1611,7 @@ function cleanSave(o){
  if(!o||typeof o!=='object')throw new Error('bad');
  const r=defSave();
  r.coins=n(o.coins,0,1e12,d.coins);r.wins=n(o.wins,0,1e7,0);r.losses=n(o.losses,0,1e7,0);
- r.bestSurv=n(o.bestSurv,0,1e5,0);r.hwWins=n(o.hwWins,0,1e6,0);r.pvpWins=n(o.pvpWins,0,1e6,0);
+ r.bestSurv=n(o.bestSurv,0,1e5,0);r.hwWins=n(o.hwWins,0,1e6,0);r.pvpWins=n(o.pvpWins,0,1e6,0);r.name=cleanName(o.name);
  r.unlocked=n(o.unlocked,1,5,1);r.mute=!!o.mute;r.seenHelp=true;
  r.owned={};if(o.owned&&typeof o.owned==='object'){for(const k of Object.keys(o.owned)){const ki=+k;if(Number.isInteger(ki)&&((ki>=0&&ki<ROSTER.length)||ki===1000)){const c=n(o.owned[k],0,999,0);if(c>0)r.owned[ki]=c;}}}
  if(!Object.keys(r.owned).length)r.owned={0:1};
@@ -1527,7 +1665,7 @@ function settingsScreen(){
 function pauseScreen(){ui(`<div class="panel res" style="text-align:center;margin-top:20vh"><h1>⏸ Paused</h1><div class="row"><button class="btn grn" data-act="resume">Resume</button><button class="btn alt" data-act="quit">Quit to Menu</button></div></div>`,'dark');}
 
 const ACT={
- menu:()=>{pvpLeave();mainMenu();},pvp:()=>pvpScreen(),pvpcreate:()=>pvpHostRoom(),pvpjoin:()=>pvpJoinRoom($('pvpCode').value),pvpcancel:()=>{pvpLeave();pvpScreen();},pvprematch:()=>pvpRematch(),pvpleave:()=>{pvpLeave();mainMenu();},pvpcopy:v=>{const l=location.href.split('#')[0].split('?')[0]+'?room='+v;try{navigator.clipboard.writeText(l).then(()=>toast('Link copied!'),()=>toast(l));}catch(e){toast(l);}},freeplay:()=>freeplayScreen(),hwevent:()=>hwScreen(),hw:()=>startFight(4,'hw'),survival:()=>survivalScreen(),surv:v=>startFight(+v,'surv'),ffa:v=>startFight(+v,true),worlds:()=>worldsScreen(),collection:()=>collectionScreen(),shop:()=>shopScreen(),help:()=>helpScreen(),settings:()=>settingsScreen(),
+ menu:()=>{pvpLeave();mainMenu();},pvp:()=>pvpScreen(),pvpcreate:()=>pvpHostRoom(),pvpjoin:()=>pvpJoinRoom($('pvpCode').value),pvpcancel:()=>{pvpLeave();pvpScreen();},pvpstart:()=>pvpStartMatch(),pvplobby:()=>{if(!pvpHost&&!pvpConn){pvpLeave();pvpScreen();pvpSetStatus('The host left the room.');}else pvpShowLobby();},pvpkick:v=>pvpKick(+v),pvpleave:()=>{pvpLeave();mainMenu();},pvpcopy:v=>{const l=location.href.split('#')[0].split('?')[0]+'?room='+v;try{navigator.clipboard.writeText(l).then(()=>toast('Link copied!'),()=>toast(l));}catch(e){toast(l);}},freeplay:()=>freeplayScreen(),hwevent:()=>hwScreen(),hw:()=>startFight(4,'hw'),survival:()=>survivalScreen(),surv:v=>startFight(+v,'surv'),ffa:v=>startFight(+v,true),worlds:()=>worldsScreen(),collection:()=>collectionScreen(),shop:()=>shopScreen(),help:()=>helpScreen(),settings:()=>settingsScreen(),
  play:v=>startFight(+v,false),
  sel:v=>{colSel=+v;detailPanel();},
  equip:v=>{S.sel=+v;save();detailPanel();document.querySelectorAll('.cgrid .card').forEach(c=>{const old=c.querySelector('.eqd');if(old)old.remove();if(+c.dataset.v===S.sel){const d=document.createElement('div');d.className='eqd';d.textContent='EQUIPPED';c.appendChild(d);}});},
