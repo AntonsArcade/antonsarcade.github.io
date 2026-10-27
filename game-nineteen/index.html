@@ -996,7 +996,7 @@ function pvpLeave(){
  try{if(pvpHost){pvpBcast({t:'bye'});pvpGuests.forEach(g=>{try{g.conn.close();}catch(e){}});}else if(pvpConn&&pvpConn.open)pvpConn.send({t:'bye'});}catch(e){}
  try{if(pvpConn)pvpConn.close();}catch(e){}
  try{if(pvpPeer)pvpPeer.destroy();}catch(e){}
- pvpConn=null;pvpPeer=null;pvpGuests=[];pvpPlayers=[];RMS={};pvp=false;pvpLive=false;pvpGot=false;pvpTry=0;pvpClosing=false;
+ pvpBeatId++;pvpConn=null;pvpPeer=null;pvpGuests=[];pvpPlayers=[];RMS={};pvp=false;pvpLive=false;pvpGot=false;pvpTry=0;pvpClosing=false;
 }
 function pvpScreen(){
  state='menu';hudShow(false);
@@ -1034,16 +1034,26 @@ function pvpShowLobby(){
  const rows=pvpPlayers.map(p=>{const pp=getP(p.sel),rc=RAR[pp.r];
   return `<div class="rrow" style="align-items:center"><span><span style="color:${PCOL[p.id%5]}">●</span> <b>${pvpEsc(p.name)}</b>${p.id===0?' \u{1F451}':''}${p.id===pvpMe?' (you)':''}</span><span style="opacity:.9;font-size:12px">${pvpEsc(pp.name)} <small style="color:${rc.c}">${rc.n}</small>${pvpHost&&p.id!==0?` <button class="btn sm dim" data-act="pvpkick" data-v="${p.id}">✖</button>`:''}</span></div>`;}).join('');
  let foot;
- if(pvpHost)foot=pvpLive?'<div style="font-weight:800">⚔️ A match is still running…</div>':(n>=2?`<button class="btn grn" data-act="pvpstart">▶ Start match (${n} players)</button>`:'<div style="font-weight:800">⏳ Waiting for players… (need 2–5)</div>');
+ if(pvpHost)foot=(n>=2?`<button class="btn grn" data-act="pvpstart">▶ Start match (${n} players)</button>`:'<div style="font-weight:800">⏳ Waiting for players… (need 2–5)</div>')+(pvpLive?'<div style="font-size:12px;opacity:.85;margin-top:6px">Players still finishing the last match will be pulled into the new one.</div>':'');
  else foot='<div style="font-weight:800">⏳ Waiting for the host to start…</div>';
  ui(topbar('Online PvP','')+`<div class="panel" id="pvpLobby" style="text-align:center;margin-top:0">
   <div style="font-weight:900">Room code</div><div style="font-size:44px;font-weight:900;letter-spacing:6px;color:#ffe14d">${pvpEsc(pvpCode)}</div>
-  ${pvpHost?`<small>Friends press <b>Online PvP → Join</b> and enter the code, or open this link:</small><div style="word-break:break-all;font-size:12px;opacity:.9;margin:6px 0">${pvpEsc(link)}</div><div class="row"><button class="btn alt sm" data-act="pvpcopy" data-v="${pvpEsc(pvpCode)}">\u{1F4CB} Copy link</button></div>`:''}
+  ${pvpHost?`<small>Friends press <b>Online PvP → Join</b> and enter the code, or open this link:</small><div style="word-break:break-all;font-size:12px;opacity:.9;margin:6px 0">${pvpEsc(link)}</div><div class="row"><button class="btn alt sm" data-act="pvpcopy" data-v="${pvpEsc(pvpCode)}">\u{1F4CB} Copy link</button></div><div id="pvpHealth" style="font-size:12px;margin-top:6px;font-weight:800">${pvpHealthTxt()}</div><small style="opacity:.7">Keep this tab open and in front while friends join.</small>`:''}
   <div style="margin:10px 0;opacity:.9;font-size:13px">${W} · ${pvpStd?'Fair stats':'Full power'} · free-for-all</div>
   <div style="text-align:left;margin:8px 0">${rows||'Connecting…'}</div>
   <div style="margin:10px 0">${foot}</div>
   <div class="row"><button class="btn sm dim" data-act="pvpleave">Leave room</button></div></div>`,'solid');
 }
+let pvpBeatId=0;
+function pvpHealthTxt(){return(pvpPeer&&!pvpPeer.disconnected&&!pvpPeer.destroyed)?'🟢 Room is online':'🟠 Lost the matchmaking server — reconnecting… (friends can’t join until this is green)';}
+/* host heartbeat: the free matchmaking server forgets hosts whose connection stalls, so keep re-registering */
+function pvpBeat(id){
+ if(id!==pvpBeatId||!pvpPeer||pvpClosing||!pvpHost)return;
+ try{if(pvpPeer.disconnected&&!pvpPeer.destroyed)pvpPeer.reconnect();}catch(e){}
+ const h=$('pvpHealth');if(h&&state==='menu')h.textContent=pvpHealthTxt();
+ setTimeout(()=>pvpBeat(id),2500);
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&pvpHost&&pvpPeer){try{if(pvpPeer.disconnected&&!pvpPeer.destroyed)pvpPeer.reconnect();}catch(e){}}});
 function pvpRefreshLobby(){if(state==='menu'&&($('pvpLobby')||$('pvpBox')))pvpShowLobby();}
 function pvpPushLobby(){
  pvpPlayers=pvpPlayersList();
@@ -1058,7 +1068,7 @@ function pvpHostRoom(){
   if(!ok){pvpSetStatus('❌ Could not load the online library. Are you offline?');return;}
   const code=makeCode();pvpCode=code;
   try{pvpPeer=new Peer(PFX+code,ICE);}catch(e){pvpSetStatus('❌ Online play is not available here.');return;}
-  pvpPeer.on('open',()=>{pvpPlayers=pvpPlayersList();pvpShowLobby();});
+  pvpPeer.on('open',()=>{pvpPlayers=pvpPlayersList();pvpShowLobby();pvpBeatId++;pvpBeat(pvpBeatId);});
   pvpPeer.on('connection',c=>pvpHostAccept(c));
   /* the free matchmaking server drops idle hosts: reconnect so the room code keeps working */
   pvpPeer.on('disconnected',()=>{try{if(!pvpClosing&&pvpPeer&&!pvpPeer.destroyed)pvpPeer.reconnect();}catch(e){}});
@@ -1068,7 +1078,7 @@ function pvpHostRoom(){
 function pvpHostAccept(c){
  const used={};pvpGuests.forEach(g=>used[g.id]=1);let id=0;for(let i=1;i<MAXP;i++)if(!used[i]){id=i;break;}
  const deny=why=>{const go=()=>{try{c.send({t:'deny',why:why});}catch(e){}setTimeout(()=>{try{c.close();}catch(e){}},500);};if(c.open)go();else c.on('open',go);};
- if(pvpLive){deny('That match is already running. Try again when it ends.');return;}
+ if(pvpLive&&state!=='menu'){deny('That match is already running. Try again when it ends.');return;}
  if(!id){deny('This room is full (5 players).');return;}
  const g={id:id,conn:c,hello:false,name:'',sel:0,cnt:0,ct:0};pvpGuests.push(g);
  c.on('data',m=>{if(T-g.ct>1){g.ct=T;g.cnt=0;}if(++g.cnt>200)return;pvpHostData(g,m);});
@@ -1109,7 +1119,7 @@ function pvpHostData(g,m){
 function pvpMarkOver(){if(!pvpHost||!pvpLive)return;pvpLive=false;pvpBcast({t:'over'});pvpPushLobby();}
 function pvpEnd(){if(pvpHost)pvpMarkOver();else pvpSend({t:'over'});}
 function pvpStartMatch(){
- if(!pvpHost||pvpLive)return;
+ if(!pvpHost||(pvpLive&&state!=='menu'))return;
  const pl=pvpPlayersList();if(pl.length<2){toast('Need at least 2 players');return;}
  pvpPlayers=pl;
  for(const g of pvpGuests)if(g.hello)pvpToGuest(g.id,{t:'start',world:pvpWorld,std:pvpStd?1:0,players:pl,you:g.id});
@@ -1127,8 +1137,8 @@ function pvpJoinRoom(raw){
   pvpPeer.on('disconnected',()=>{try{if(!pvpClosing&&pvpPeer&&!pvpPeer.destroyed)pvpPeer.reconnect();}catch(e){}});
   pvpPeer.on('error',e=>{if(pvpClosing)return;const t=e&&e.type;
    if(t==='peer-unavailable'){
-    if(pvpTry<3&&!pvpGot){pvpTry++;pvpSetStatus('Looking for room '+pvpEsc(code)+'… (try '+(pvpTry+1)+' of 4)');setTimeout(()=>{if(pvpPeer&&!pvpGot&&!pvpClosing)pvpDial(code);},1800);}
-    else pvpSetStatus('❌ Room not found. Check the code, and make sure the host is still on the lobby screen.');
+    if(pvpTry<7&&!pvpGot){pvpTry++;pvpSetStatus('Looking for room '+pvpEsc(code)+'… (try '+(pvpTry+1)+' of 8)');setTimeout(()=>{if(pvpPeer&&!pvpGot&&!pvpClosing)pvpDial(code);},2200);}
+    else pvpSetStatus('❌ The matchmaking server doesn’t know room '+pvpEsc(code)+'. Your code is fine — the HOST’s room has dropped offline (usually because their tab went to the background). Ask them to keep the game tab open and in front, or to press Leave room and Create Room again for a new code.');
     return;}
    pvpSetStatus('❌ Connection problem ('+(t||'error')+'). Try again.');});
  });
