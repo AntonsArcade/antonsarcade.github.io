@@ -148,6 +148,45 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#000c;border:2px solid #fff6;border-radius:14px;padding:10px 18px;font-weight:900;z-index:50;pointer-events:none}
 .rb{background:linear-gradient(90deg,#ff5cf4,#5cf0ff,#fff35c,#6aff7a,#ff5cf4);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:200%;animation:sh 3s linear infinite}
 @keyframes sh{to{background-position:200% 0}}
+.lbar{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;font-weight:800;font-size:13px;background:#0008;border-radius:12px;padding:6px 10px;max-width:620px;margin:0 auto 6px}
+.scr.lab{background:linear-gradient(transparent 0,transparent 24%,#07120dfa 52%)}
+.labgap{height:30vh;min-height:150px}
+.etrack{display:flex;gap:6px;margin:10px 0}
+.etk{flex:1;text-align:center;border:2px solid #fff3;border-radius:10px;padding:4px 2px;opacity:.5}
+.etk.on{opacity:1;border-color:var(--ec);background:#0006}
+.etk.nx{opacity:.9;border-style:dashed;border-color:var(--ec)}
+.etk i{display:block;font-style:normal;font-size:13px;color:var(--ec)}
+.etk small{font-size:10px;font-weight:800}
+.erow{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:4px;font-size:13px;font-weight:800;padding:3px 0;border-bottom:1px solid #fff2}
+.erow.eh{opacity:.7;font-size:11px}
+.erow .ev{text-align:right}.erow .up{color:#7dff6a}
+.eab{display:flex;gap:8px;align-items:flex-start;background:#0006;border-radius:10px;padding:6px 8px;margin:4px 0;font-size:13px}
+.eab.lock{opacity:.55}.eab.newab{border:2px solid #ffe14d}
+.eab .ei{font-size:20px}.evnew{background:#ffe14d;color:#221;border-radius:6px;padding:0 5px;font-size:10px;font-weight:900}
+.rq{display:flex;justify-content:space-between;font-weight:800;font-size:14px;padding:3px 0}.rq.ok{color:#9dff8a}.rq.no{color:#ffb0a0}
+.pbar{position:relative;height:16px;background:#000a;border-radius:9px;overflow:hidden;margin:8px 0;border:2px solid #000}
+.pbar i{display:block;height:100%;background:linear-gradient(90deg,#5cf06a,#ffe14d)}
+.pbar span{position:absolute;inset:0;text-align:center;font-size:11px;font-weight:900;line-height:12px;text-shadow:0 1px 0 #000}
+.pbar.sm{height:12px;margin:4px 0}.pbar.sm span{line-height:8px;font-size:9px}
+.chip{background:#0008;color:#fff;border:2px solid #fff5;border-radius:14px;padding:4px 10px;font-weight:800;font-family:inherit;cursor:pointer}.chip.on{background:#2fbf3a;color:#021}
+.estrip{display:flex;gap:8px;overflow-x:auto;max-width:620px;margin:0 auto 14px;padding:4px 2px 10px;-webkit-overflow-scrolling:touch;touch-action:pan-x}
+.emini{flex:none;width:84px;position:relative;text-align:center;background:linear-gradient(#22344a,#111a28);border:3px solid var(--rc);border-radius:12px;padding:4px;cursor:pointer}
+.emini.on{outline:3px solid #fff;outline-offset:1px}
+.emini img{width:100%;height:68px;object-fit:contain}.emini b{display:block;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.evb{position:absolute;right:4px;bottom:34px;background:#000b;border-radius:8px;padding:0 4px;font-size:10px;font-style:normal;font-weight:900;letter-spacing:-1px}
+.emini .evb{bottom:18px}
+.qrow{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #fff2}.qrow>div{flex:1}.qdone{color:#9dff8a;font-weight:900}.qwait{opacity:.5}
+.evring{position:fixed;left:50%;top:26%;width:40px;height:40px;margin:-20px;border-radius:50%;border:6px solid #fff;box-shadow:0 0 40px #fff,inset 0 0 30px #fff;animation:evr 1.2s ease-out forwards;pointer-events:none;z-index:30}
+@keyframes evr{0%{transform:scale(.2);opacity:1}100%{transform:scale(14);opacity:0}}
+#evoBan{position:absolute;left:50%;top:calc(max(8px,env(safe-area-inset-top)) + 100px);transform:translateX(-50%);padding:4px 14px;border-radius:14px;background:#000b;border:2px solid var(--ec,#fff);font-weight:900;font-size:13px;opacity:0;white-space:nowrap;max-width:94vw;overflow:hidden;text-overflow:ellipsis}
+#evoBan.show{animation:evb 3.6s ease-out forwards}
+@keyframes evb{0%{opacity:0;transform:translateX(-50%) scale(.7)}10%{opacity:1;transform:translateX(-50%) scale(1)}80%{opacity:1}100%{opacity:0}}
+#bA1{right:140px;bottom:122px;width:56px;height:56px;background:#8e44ad!important;font-size:24px!important;display:none}
+#bA2{right:0;bottom:112px;width:56px;height:56px;background:#c0392b!important;font-size:24px!important;display:none}
+#bA1.cdn,#bA2.cdn{filter:grayscale(.8) brightness(.6);font-size:20px!important}
+#abBar{position:absolute;bottom:34px;left:12px;display:flex;flex-direction:column;gap:4px;pointer-events:none}
+.abc{background:#000a;border:2px solid #ffe14d;border-radius:10px;padding:3px 9px;font-size:12px;font-weight:900;display:none}.abc.cdn{opacity:.55;border-color:#fff5}
+@media (pointer:coarse){#abBar{display:none}}
 </style>
 </head>
 <body>
@@ -169,11 +208,15 @@ canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-acti
   <canvas id="radar" width="176" height="176"></canvas>
   <div id="dmgtaken">Damage taken: <b id="dtk">0</b></div>
   <div id="banner"></div>
+  <div id="evoBan"></div>
+  <div id="abBar"><div class="abc" id="abc1"></div><div class="abc" id="abc2"></div></div>
   <button id="pauseBtn">❚❚</button>
-  <div id="keys">WASD move · SPACE attack · K block (tap right before a hit = PARRY) · L dash</div>
+  <div id="keys">WASD move · SPACE attack · K block (tap right before a hit = PARRY) · L dash · Q / R evolution abilities</div>
   <div id="joyZone"><div id="joy"><div id="knob"></div></div></div>
   <div id="btns">
     <button id="bDash">💨</button>
+    <button id="bA1"></button>
+    <button id="bA2"></button>
     <button id="bBlk">🛡️</button>
     <button id="bAtk">⚔️</button>
   </div>
@@ -270,12 +313,109 @@ const WORLDS=[
  {id:'lava', n:'Volcano Core',el:'Fire & Lava',ico:'🔥',col:'#ff5a1f',col2:'#7a1a08',sky:0x2a0c0c,hT:0xff9a66,hB:0x4a1008,sun:0xff8a50,sI:.8,top:0x3a2a2a,side:0x201010,rar:[4,7],tip:'Lava pools burn everyone'}
 ];
 
+/* ===================================================== EVOLUTION DATA ===================================================== */
+const EVO_NAMES=['Base','Awakened','Ascended','Transcendent'];
+const EVO_COL=['#ffffff','#7dff6a','#5ad7ff','#ffd24a'];
+// bonuses per stage. "hp" is applied as effective health (damage reduction) because health is a fixed 100-point bar everywhere in the game.
+const EVO_STATS=[{dmg:0,hp:0,stam:0,spd:0},{dmg:.04,hp:.05,stam:.06,spd:.01},{dmg:.08,hp:.10,stam:.12,spd:.02},{dmg:.13,hp:.16,stam:.18,spd:.03}];
+const AURAS=[
+ {id:'',n:'Rarity colour',col:null},
+ {id:'ember',n:'Ember',col:'#ff7a3a'},
+ {id:'starlight',n:'Starlight',col:'#fff2a0'},
+ {id:'sakura',n:'Sakura',col:'#ff9ad8'},
+ {id:'void',n:'Void',col:'#b06cff'}
+];
+const EVQ=[
+ {id:'q1',n:'Awakening',d:'Evolve any panda to Stage 2',t:1,coins:300,sh:5},
+ {id:'q2',n:'Rising Power',d:'Evolve a Rare or higher panda to Stage 3',t:1,coins:800,sh:12},
+ {id:'q3',n:'Boss Breaker',d:'Defeat a boss with an evolved panda',t:1,coins:600,sh:10,aura:'ember'},
+ {id:'q4',n:'Evolved Warrior',d:'Win 10 fights with an evolved panda',t:10,coins:500,sh:8},
+ {id:'q5',n:'Transcendence',d:'Reach Stage 4 with one panda',t:1,coins:2000,sh:30,aura:'starlight'},
+ {id:'q6',n:'Evolution Collector',d:'Evolve 5 pandas to Stage 2 or higher',t:5,coins:1000,sh:15,aura:'sakura'},
+ {id:'q7',n:'Evolved Survivor',d:'Reach wave 10 in Survival with an evolved panda',t:1,coins:700,sh:12},
+ {id:'q8',n:'Brawl Champion',d:'Win a Freeplay brawl with an evolved panda',t:1,coins:400,sh:8},
+ {id:'q9',n:'Master of Evolution',d:'Evolve 3 pandas to Stage 4',t:3,coins:5000,sh:60,aura:'void'}
+];
+const EVD=[
+ {id:'d_win',d:'Win 3 fights',t:3,ev:'win',sh:3,coins:150},
+ {id:'d_boss',d:'Defeat a boss',t:1,ev:'boss',sh:4,coins:200},
+ {id:'d_surv',d:'Clear 5 waves in Survival',t:5,ev:'wave',sh:4,coins:200},
+ {id:'d_ffa',d:'Win a Freeplay brawl',t:1,ev:'ffa',sh:3,coins:150},
+ {id:'d_parry',d:'Land 5 parries',t:5,ev:'parry',sh:3,coins:150},
+ {id:'d_play',d:'Finish 3 fights',t:3,ev:'play',sh:2,coins:100}
+];
+const ABIL={
+ bamboo:{n:'Bamboo Burst',ico:'🎋',cd:9,cost:14,col:0x7dff6a,d:'A burst in front of you: 1.1× weapon damage and a short stagger.'},
+ iron:{n:'Iron Hide',ico:'🛡️',cd:14,cost:10,col:0xc8d0e0,d:'For 3s you take 45% less damage.'},
+ spirit:{n:'Spirit Dash',ico:'💨',cd:6,cost:12,col:0x9fe8ff,d:'A lightning-fast dash that dodges attacks.'},
+ thunder:{n:'Thunder Paw',ico:'⚡',cd:10,cost:14,col:0xffe14d,d:'Your next hit lands +50% harder with a 50% chance to stagger.'},
+ heal:{n:'Healing Focus',ico:'💚',cd:20,cost:8,col:0x6aff9a,d:'Channel 2s to restore 12 HP (only below 90% HP). Attacking, blocking or being hit interrupts it.'}
+};
+const ULTA={
+ bamboo:{n:'Bamboo Storm',ico:'🌪️',cd:24,cost:22,col:0x7dff6a,d:'A 360° storm: 1.5× damage to everything nearby with big knockback.'},
+ iron:{n:'Diamond Hide',ico:'💎',cd:28,cost:18,col:0xc8d0e0,d:'For 4s you take 60% less damage; heals 8 HP and refills your guard.'},
+ spirit:{n:'Spirit Rush',ico:'🌀',cd:20,cost:20,col:0x9fe8ff,d:'Strike everyone close (1.0×) then rush away untouchable.'},
+ thunder:{n:'Thunder Slam',ico:'🌩️',cd:26,cost:22,col:0xffe14d,d:'Shockwave: 1.4× damage, staggers for 1s, lightning on every rival.'},
+ heal:{n:'Spirit Bloom',ico:'🌸',cd:30,cost:16,col:0x6aff9a,d:'Channel 3s to restore 22 HP and guard. Not interrupted by hits.'}
+};
+const PASS=[
+ {n:'Bamboo Skin',d:'+4% damage reduction',k:'def'},
+ {n:'Quick Paws',d:'+12% stamina regeneration',k:'sreg'},
+ {n:'Keen Eye',d:'+5% critical hit chance',k:'crit'},
+ {n:'Vital Spark',d:'Heal 5% of the damage you deal',k:'steal'},
+ {n:'Steady Guard',d:'+25% guard regeneration',k:'greg'}
+];
+function evoKit(p){
+ const k=p.key>=1000?p.key-1000+101:p.key,order=['bamboo','iron','spirit','thunder','heal'];
+ const wb={12:3,13:3,5:3,9:1,1:0,10:0,7:2,3:2,11:2};
+ const a=(wb[p.w]!==undefined)?wb[p.w]:(k*7+p.w*3+p.r)%5;
+ const b=(a+1+(k%4))%5;
+ return{pass:PASS[(k+p.r*3+p.w)%5],a1:order[a],a2:order[b]};
+}
+// cost of going from level lv (0..2) to lv+1. Ultimate / Exclusive pandas can't be duplicated, so they need no duplicates (but more shards).
+function evoReq(p,lv){
+ const r=p.r,sp=!!(p.ex||(r===7&&!p.boss));
+ let dup=[1,2,3][lv];if(r>=6)dup=[1,1,2][lv];else if(r>=4)dup=[1,2,2][lv];
+ if(sp)dup=0;
+ return{dup:dup,coins:Math.round([250,750,1800][lv]*(1+r*.3)/10)*10,sh:Math.round([3,8,16][lv]*(1+r*.12)*(sp?1.5:1))};
+}
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+function dailyPick(ds){
+ let h=0;for(let i=0;i<ds.length;i++)h=(h*31+ds.charCodeAt(i))>>>0;
+ const ids=[];for(let k=0;ids.length<3&&k<60;k++){const i=(h+k*7+k*k)%EVD.length;if(ids.indexOf(i)<0)ids.push(i);}
+ for(let i=0;ids.length<3&&i<EVD.length;i++)if(ids.indexOf(i)<0)ids.push(i);
+ return ids;
+}
+function cleanEvo(o,owned){
+ const e={st:{},shards:0,q:{},aura:'',auras:{},cnt:{win:0,boss:0},daily:{d:'',p:[0,0,0],c:[0,0,0]}};
+ if(!o||typeof o!=='object')return e;
+ const n=(v,lo,hi)=>{v=+v;return Number.isFinite(v)?Math.max(lo,Math.min(hi,Math.floor(v))):lo;};
+ if(o.st&&typeof o.st==='object')for(const k of Object.keys(o.st)){const ki=+k;if(!Number.isInteger(ki)||!((ki>=0&&ki<ROSTER.length)||ki===1000))continue;if(owned&&!(owned[ki]>0))continue;const lv=n(o.st[k],0,3);if(lv>0)e.st[ki]=lv;}
+ e.shards=n(o.shards,0,1e9);
+ if(o.q&&typeof o.q==='object')for(const q of EVQ){const x=o.q[q.id];if(x&&typeof x==='object')e.q[q.id]={p:n(x.p,0,q.t),c:x.c?1:0};}
+ if(o.auras&&typeof o.auras==='object')for(const a of AURAS)if(a.id&&o.auras[a.id])e.auras[a.id]=1;
+ e.aura=(typeof o.aura==='string'&&(o.aura===''||e.auras[o.aura]))?o.aura:'';
+ if(o.cnt&&typeof o.cnt==='object'){e.cnt.win=n(o.cnt.win,0,1e7);e.cnt.boss=n(o.cnt.boss,0,1e7);}
+ const dd=o.daily;
+ if(dd&&typeof dd==='object'&&typeof dd.d==='string'&&dd.d.length<16){e.daily.d=dd.d;for(let i=0;i<3;i++){e.daily.p[i]=n(dd.p&&dd.p[i],0,1000);e.daily.c[i]=(dd.c&&dd.c[i])?1:0;}}
+ return e;
+}
+
 /* ===================================================== SAVE ===================================================== */
 const KEY='pandaFight3D_save_v1';
-function defSave(){return{pvpWins:0,name:'',hwWins:0,bestSurv:0,coins:400,owned:{0:1},sel:0,prog:[0,0,0,0,0],unlocked:1,claimed:[0,0,0,0,0],wins:0,losses:0,last:[],mute:false,seenHelp:false};}
+function defSave(){return{pvpWins:0,name:'',hwWins:0,bestSurv:0,coins:400,owned:{0:1},sel:0,prog:[0,0,0,0,0],unlocked:1,claimed:[0,0,0,0,0],wins:0,losses:0,last:[],mute:false,seenHelp:false,evo:cleanEvo(null)};}
 let S=defSave();
 try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(defSave(),JSON.parse(raw));}catch(e){}
 try{if(S.owned&&S.owned[100]){S.owned[1000]=S.owned[100];delete S.owned[100];}if(S.sel===100)S.sel=1000;}catch(e){}
+/* validate whatever was loaded so a damaged / older save can never crash the game */
+try{
+ if(!S||typeof S!=='object'||Array.isArray(S))S=defSave();
+ if(!Number.isFinite(+S.coins)||S.coins<0)S.coins=defSave().coins;S.coins=Math.floor(+S.coins);
+ if(!S.owned||typeof S.owned!=='object'||!Object.keys(S.owned).length)S.owned={0:1};
+ if(!(S.owned[S.sel]>0))S.sel=+Object.keys(S.owned)[0]||0;
+ if(!Array.isArray(S.prog))S.prog=[0,0,0,0,0];if(!Array.isArray(S.claimed))S.claimed=[0,0,0,0,0];if(!Array.isArray(S.last))S.last=[];
+}catch(e){S=defSave();}
+S.evo=cleanEvo(S.evo,S.owned);
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 function skill(){const l=S.last||[];return l.length?Math.round(clamp(l.reduce((a,b)=>a+b,0)/l.length,0,100)):0;}
 function luckMul(sk){return .3+1.5*Math.pow(clamp(sk,0,100)/100,1.5);}
@@ -316,6 +456,8 @@ const SFX={
  win:()=>{[523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,.25,'triangle',.09),i*120));},
  lose:()=>{[392,330,262,196].forEach((f,i)=>setTimeout(()=>tone(f,.3,'triangle',.09),i*160));},
  beep:()=>tone(660,.1,'square',.06),
+ evolve:()=>{[392,523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>tone(f,.28,'triangle',.09),i*90));setTimeout(()=>tone(1568,.7,'sine',.07),580);},
+ ability:()=>{tone(520,.15,'square',.05,400);},
  go:()=>tone(990,.3,'square',.08),
  reveal:r=>{for(let i=0;i<=Math.min(r,5);i++)setTimeout(()=>tone(350+i*120+r*30,.2,'triangle',.08),i*70);}
 };
@@ -621,7 +763,7 @@ let P=null,menuF=null,FIGHTERS=[],ENEMIES=[],placeP=0,ffa=false,surv=false,hw=fa
 let state='menu',paused=false,curW=0,isBoss=false,fightN=1,fightT=90,cdT=0,koT=0,winnerP=false,timeScale=1,hitStop=0,shake=0;
 const camDir={x:0,z:1};
 
-function mkFighter(p,isP,diff){
+function mkFighter(p,isP,diff,evo,aur){
  const m=buildPanda(p);scene.add(m.g);
  const ult=isUlt(p),w=WEP[p.w],sc=(p.scale||1)*(ult?1.12:(p.ex?1.1:1));
  const f={p,isPlayer:isP,model:m,g:m.g,x:0,z:0,vx:0,vz:0,kx:0,kz:0,face:0,hp:100,guard:100,wep:w,scale:sc,
@@ -631,11 +773,14 @@ function mkFighter(p,isP,diff){
  if(p.ex){f.ult=true;f.perk=.8;f.stCost=.6;f.spd*=1.15;f.def=.26;}
  if(p.hboss){f.ult=true;f.perk=.5;f.stCost=.85;f.def=.15;f.dmgMul=.5;}
  m.g.scale.setScalar(sc);
+ f.stRegen=1;f.gRegen=1;f.critB=0;f.steal=0;f.ironT=0;f.ironMul=1;f.thunderT=0;f.healT=0;f.healAmt=0;f.healU=false;f.ab=null;f.evoLv=0;f.kit=null;
+ if(!p.boss&&!p.hboss){const lv=(evo!==undefined&&evo!==null)?clamp(evo|0,0,3):(isP?evoLv(p.key):0);const loc=isP&&(evo===undefined||evo===null);applyEvo(f,lv,loc);if(lv)buildEvoFX(m,p,lv,auraColor(loc,aur));}
+ else if(p.boss&&!p.hboss)buildEvoFX(m,p,2,'#ff4a2a');
  if(!isP){const d=clamp(diff,0,1.2);f.ai={think:0,strafe:Math.random()<.5?1:-1,flipT:rnd(.8,2),atkT:rnd(.6,1.4),blockT:0,gap:lerp(1.1,.35,clamp(d,0,1)),
   blockP:.1+.6*d,dashP:.05+.3*d,rt:lerp(.4,.08,clamp(d,0,1)),seen:false,reactT:0,kind:0,dashNow:false,diff:d};}
  return f;
 }
-function clearFighters(){FIGHTERS.forEach(f=>scene.remove(f.g));if(menuF)scene.remove(menuF.g);P=menuF=null;FIGHTERS=[];ENEMIES=[];}
+function clearFighters(){labMode=false;FIGHTERS.forEach(f=>{scene.remove(f.g);disposeFighter(f);});if(menuF){scene.remove(menuF.g);disposeFighter(menuF);}P=menuF=null;FIGHTERS=[];ENEMIES=[];}
 
 function dot(f,a){if(f.dead||state!=='fight')return;f.hp-=a;if(f.hp<=0){f.hp=0;koFighter(f);}}
 function koFighter(f,killer){
@@ -654,7 +799,8 @@ function koFighter(f,killer){
  if(alive.length===1&&alive[0]===P){state='ko';koT=0;timeScale=.28;winnerP=true;placeP=1;P.victory=true;banner(ffa?'VICTORY!':'K.O.!',1800);flash('#fff',.4);shake=.7;if(pvp)pvpEnd();}
 }
 function applyHit(a,d,dmg,kb,crit){
- dmg=Math.max(1,Math.round(dmg));d.hp-=dmg;d.hurt=.25;d.lastHitBy=a;
+ dmg=Math.max(1,Math.round(dmg*(d.ironT>0?d.ironMul:1)));d.hp-=dmg;d.hurt=.25;d.lastHitBy=a;
+ if(a.steal)a.hp=Math.min(100,a.hp+dmg*a.steal);
  const dx=d.x-a.x,dz=d.z-a.z,l=Math.hypot(dx,dz)||1;
  const po=d.poise>0,kk=kb*(po?.5:1);
  d.kx+=dx/l*kk;d.kz+=dz/l*kk;
@@ -685,10 +831,10 @@ function hitOne(a,d){
  if(dist>reach||dt<.3)return false;
  if(d.dash>0){ftext(d,'DODGE!','dod');return false;}
  let dmg=a.wep.dmg*a.pow*rnd(.9,1.1)*a.dmgMul*(1-d.def);
- const crit=Math.random()<.1;if(crit)dmg*=1.5;
+ const crit=Math.random()<(.1+(a.critB||0));if(crit)dmg*=1.5;
  if(d.blocking){
   if(d.blockT<.16){a.stun=.85;a.atk=-1;a.poise=0;d.guard=Math.min(100,d.guard+25);
-   ftext(d,'PARRY!','par');SFX.parry();hitStop=.1;shake=.3;burst(d.x+dx/dist*.8,1.4,d.z+dz/dist*.8,0xffe14d,16,7,.12);flash('#ffe9a0',.25);return true;}
+   ftext(d,'PARRY!','par');SFX.parry();hitStop=.1;shake=.3;burst(d.x+dx/dist*.8,1.4,d.z+dz/dist*.8,0xffe14d,16,7,.12);flash('#ffe9a0',.25);if(d.isPlayer)evoEvent('parry',1,true);return true;}
   const chip=Math.max(1,Math.round(dmg*.2));d.hp-=chip;d.lastHitBy=a;
   d.guard-=Math.max(14,a.wep.dmg*a.pow*1.7);
   d.kx+=dx/dist*3;d.kz+=dz/dist*3;
@@ -697,7 +843,9 @@ function hitOne(a,d){
   if(d.hp<=0){d.hp=0;koFighter(d,a);}
   return true;
  }
+ const emp=a.thunderT>0;if(emp)dmg*=1.5;
  applyHit(a,d,dmg,a.wep.kb,crit);
+ if(emp){a.thunderT=0;if(!d.dead&&Math.random()<.5){d.stun=Math.max(d.stun,.7);d.atk=-1;ftext(d,'⚡ STAGGER','brk');}bolt(d.x,d.z);}
  return true;
 }
 function resolveAttack(a){
@@ -710,7 +858,7 @@ function resolveAttack(a){
 function stepFighter(f,I,dt){
  const o=f.opp||f;
  if(f.dead){f.koT+=dt;f.vx=f.vz=0;return;}
- f.dashCd-=dt;f.blockT+=dt;f.stun-=dt;f.slow-=dt;f.hurt-=dt;f.poise-=dt;if(f.ult&&f.hp>0)f.hp=Math.min(100,f.hp+1.2*f.perk*dt);f.stamD-=dt;if(f.stamD<=0)f.stam=Math.min(100,f.stam+(f.blocking?12:34)*dt);
+ f.dashCd-=dt;f.blockT+=dt;f.stun-=dt;f.slow-=dt;f.hurt-=dt;f.poise-=dt;if(f.ult&&f.hp>0)f.hp=Math.min(100,f.hp+1.2*f.perk*dt);f.stamD-=dt;if(f.stamD<=0)f.stam=Math.min(100,f.stam+(f.blocking?12:34)*(f.stRegen||1)*dt);
  if(f.burn>0){f.burn-=dt;f.burnA+=dt;if(f.burnA>=.5){f.burnA=0;dot(f,1.5);burst(f.x,1.4,f.z,0xff8a1a,4,3,.09,-3);}}
  const stunned=f.stun>0;
  if(stunned&&f.atk>=0)f.atk=-1;
@@ -718,7 +866,8 @@ function stepFighter(f,I,dt){
  if(wantBlock&&!f.blocking){f.blocking=true;f.blockT=0;}
  if(!wantBlock)f.blocking=false;
  if(f.blocking){f.guard-=22*dt;if(f.guard<=0){f.guard=0;f.blocking=false;f.stun=.9;ftext(f,'GUARD BREAK!','brk');}}
- else f.guard=Math.min(100,f.guard+(f.atk<0?22:10)*dt);
+ else f.guard=Math.min(100,f.guard+(f.atk<0?22:10)*(f.gRegen||1)*dt);
+ if(f.ab||f.healT>0||f.ironT>0||f.thunderT>0){abTick(f,dt);if(f.ab){if(I.ab1)useAbility(f,0,I);if(I.ab2)useAbility(f,1,I);}}
  // dash
  if(I.dash&&f.dashCd<=0&&!stunned&&f.dash<=0&&f.stam>=22){
   let dx=I.mx,dz=I.mz,l=Math.hypot(dx,dz);
@@ -739,7 +888,7 @@ function stepFighter(f,I,dt){
  }
  // movement
  let tx=I.mx,tz=I.mz;const tl=Math.hypot(tx,tz);if(tl>1){tx/=tl;tz/=tl;}
- const sp=f.spd*(f.slow>0?.55:1)*(f.atk>=0?.4:1)*(f.blocking?.5:1);
+ const sp=f.spd*(f.slow>0?.55:1)*(f.atk>=0?.4:1)*(f.blocking?.5:1)*(f.healT>0?.5:1);
  if(stunned){tx=0;tz=0;}
  if(f.dash>0){f.vx=f.dvx;f.vz=f.dvz;f.dash-=dt;}
  else{const k=1-Math.exp(-ENV.grip*dt);f.vx+=(tx*sp-f.vx)*k;f.vz+=(tz*sp-f.vz)*k;}
@@ -766,6 +915,7 @@ function animFighter(f,dt,t){
  f.ph+=sp*dt*2.4;
  const mv=sp>.4?1:0,idle=Math.sin(t*2.2+f.p.key*1.3);
  m.g.position.set(f.x,0,f.z);m.g.rotation.y=f.face;
+ animEvo(f,dt,t);
  if(f.dead){const k=clamp(f.koT*3,0,1);m.g.rotation.x=-k*1.45;m.g.position.y=.12*k*f.scale;
   m.armR.rotation.x=.4;m.armL.rotation.x=.4;m.shield.visible=false;m.legR.rotation.x=0;m.legL.rotation.x=0;return;}
  m.legR.rotation.x=Math.sin(f.ph)*.7*mv;m.legL.rotation.x=-Math.sin(f.ph)*.7*mv;
@@ -781,7 +931,7 @@ function animFighter(f,dt,t){
  m.armL.rotation.x+=(al-m.armL.rotation.x)*Math.min(1,dt*18);
  const tilt=-.35*clamp(f.hurt/.25,0,1);
  m.body.rotation.x=lean+tilt;m.g.position.y=yoff;
- m.shield.visible=f.blocking;if(f.blocking)m.shield.material.color.setHex(f.blockT<.2?0xffe066:0x66ccff);
+ m.shield.visible=f.blocking||f.ironT>0;if(f.blocking)m.shield.material.color.setHex(f.blockT<.2?0xffe066:0x66ccff);else if(f.ironT>0)m.shield.material.color.setHex(0xd9dde8);
  if(m.cape)m.cape.rotation.x=.15+Math.min(.5,sp*.06)+Math.sin(t*3)*.05;
  if(m.wep.userData.upd)m.wep.userData.upd();
  if(m.rar>=5){m.orbit.rotation.y=t*1.6;if(m.rar===7)m.orbitMats.forEach((mt,i)=>mt.color.setHSL((t*.3+i*.12)%1,1,.6));}
@@ -844,16 +994,16 @@ function aiIntent(f,o,dt){
 }
 
 /* ===================================================== INPUT ===================================================== */
-const keys={};const joy={x:0,y:0};let touchAtk=false,touchBlk=false,dashQ=false;
-const KMAP={KeyW:'u',ArrowUp:'u',KeyS:'d',ArrowDown:'d',KeyA:'l',ArrowLeft:'l',KeyD:'r',ArrowRight:'r',Space:'a',KeyJ:'a',KeyZ:'a',KeyK:'b',ShiftLeft:'b',ShiftRight:'b',KeyX:'b',KeyL:'x',KeyE:'x',KeyC:'x'};
-addEventListener('keydown',e=>{const k=KMAP[e.code];if(!k)return;keys[k]=true;if(k==='x'&&!e.repeat)dashQ=true;if(state==='fight'||state==='countdown')e.preventDefault();au();});
+const keys={};const joy={x:0,y:0};let touchAtk=false,touchBlk=false,dashQ=false,ab1Q=false,ab2Q=false;
+const KMAP={KeyW:'u',ArrowUp:'u',KeyS:'d',ArrowDown:'d',KeyA:'l',ArrowLeft:'l',KeyD:'r',ArrowRight:'r',Space:'a',KeyJ:'a',KeyZ:'a',KeyK:'b',ShiftLeft:'b',ShiftRight:'b',KeyX:'b',KeyL:'x',KeyE:'x',KeyC:'x',KeyQ:'q1',KeyR:'q2'};
+addEventListener('keydown',e=>{const k=KMAP[e.code];if(!k)return;keys[k]=true;if(k==='x'&&!e.repeat)dashQ=true;if(k==='q1'&&!e.repeat)ab1Q=true;if(k==='q2'&&!e.repeat)ab2Q=true;if(state==='fight'||state==='countdown')e.preventDefault();au();});
 addEventListener('keyup',e=>{const k=KMAP[e.code];if(k)keys[k]=false;});
 function readInput(){
  let ix=(keys.r?1:0)-(keys.l?1:0)+joy.x,iy=(keys.u?1:0)-(keys.d?1:0)+joy.y;
  const l=Math.hypot(ix,iy);if(l>1){ix/=l;iy/=l;}
  const fx=camDir.x,fz=camDir.z,rx=-fz,rz=fx;
- const I={mx:fx*iy+rx*ix,mz:fz*iy+rz*ix,attack:!!(keys.a||touchAtk),block:!!(keys.b||touchBlk),dash:dashQ};
- dashQ=false;return I;
+ const I={mx:fx*iy+rx*ix,mz:fz*iy+rz*ix,attack:!!(keys.a||touchAtk),block:!!(keys.b||touchBlk),dash:dashQ,ab1:ab1Q,ab2:ab2Q};
+ dashQ=false;ab1Q=false;ab2Q=false;return I;
 }
 (function setupTouch(){
  const zone=$('joyZone'),jb=$('joy'),kn=$('knob');let id=null,ox=0,oy=0;
@@ -867,6 +1017,8 @@ function readInput(){
  hold($('bAtk'),()=>touchAtk=true,()=>touchAtk=false);
  hold($('bBlk'),()=>touchBlk=true,()=>touchBlk=false);
  hold($('bDash'),()=>dashQ=true,()=>{});
+ hold($('bA1'),()=>ab1Q=true,()=>{});
+ hold($('bA2'),()=>ab2Q=true,()=>{});
 })();
 
 /* ===================================================== HUD ===================================================== */
@@ -875,7 +1027,7 @@ function banner(t,ms){const b=$('banner');b.textContent=t;b.classList.remove('sh
 function hudShow(v){$('hud').classList.toggle('hidden',!v);}
 function wide(){return ffa||surv||(pvp&&FIGHTERS.length>2);}
 function hudNames(){
- $('pn').textContent=P.uname||P.p.name;$('pr').textContent=RAR[P.p.r].n;$('pn').style.color=RAR[P.p.r].c;
+ $('pn').textContent=P.uname||P.p.name;$('pr').textContent=RAR[P.p.r].n+(P.evoLv?' · ★'+(P.evoLv+1):'');$('pn').style.color=RAR[P.p.r].c;
  const solo=ENEMIES.length===1;
  $('foes').innerHTML=ENEMIES.map((e,i)=>`<div class="foe${solo?' solo':''}" id="foe${i}"><span style="color:${e.p.boss?'#ff7a5a':(e.uname?PCOL[e.slot%5]:RAR[e.p.r].c)}">${e.uname?pvpEsc(e.uname):e.p.name}${e.p.boss?' \u{1F480}':''}</span><div class="mh"><i id="foeh${i}" style="width:100%"></i></div></div>`).join('');
  const W=hw?HW:WORLDS[curW];$('wlabel').textContent=W.ico+' '+(pvp?'ONLINE PVP':hw?'HALLOWEEN BOSS':ffa?'FREEPLAY':(surv?'\u{1F9DF} WAVE '+waveN:(isBoss?'BOSS FIGHT':'Fight '+fightN+'/5')));
@@ -887,7 +1039,7 @@ function hudUpdate(){
  $('pHp').textContent=Math.ceil(P.hp);$('pGd').style.width=P.guard+'%';$('pSt').style.width=P.stam+'%';
  ENEMIES.forEach((e,i)=>{const h=$('foeh'+i),r=$('foe'+i);if(h)h.style.width=e.hp+'%';if(r)r.classList.toggle('dead',e.dead);});
  $('alive').textContent=(pvp&&FIGHTERS.length>2)?('\u{1F465} '+FIGHTERS.filter(x=>!x.dead).length+'/'+FIGHTERS.length+' left'):ffa?('\u{1F465} '+FIGHTERS.filter(x=>!x.dead).length+'/5 left'):(surv?('\u{1F480} '+FIGHTERS.filter(x=>!x.dead&&!x.isPlayer).length+' left'):'');
- $('timer').textContent=surv?('W'+waveN):Math.max(0,Math.ceil(fightT));$('dtk').textContent=Math.round(100-P.hp);
+ abHud();$('timer').textContent=surv?('W'+waveN):Math.max(0,Math.ceil(fightT));$('dtk').textContent=Math.round(100-P.hp);
 }
 function drawRadar(){
  const c=$('radar'),g=c.getContext('2d'),W=176,r=W/2;
@@ -914,7 +1066,7 @@ function startFight(wi,free){
  if(surv){
   P.x=0;P.z=0;P.face=0;ENEMIES=[];
   camDir.x=0;camDir.z=1;fightT=1e9;state='countdown';cdT=3.2;timeScale=1;hitStop=0;shake=0;bannerCur='';placeP=0;winnerP=false;
-  spawnWave();hudShow(true);hudUpdate();camera.position.set(0,8,-12);return;
+  spawnWave();hudShow(true);hudUpdate();evoBanner();camera.position.set(0,8,-12);return;
  }
  const n=ffa?4:1;
  for(let i=0;i<n;i++){
@@ -928,7 +1080,7 @@ function startFight(wi,free){
  else{P.x=0;P.z=-4.2;ENEMIES[0].x=0;ENEMIES[0].z=4.2;P.face=0;ENEMIES[0].face=Math.PI;}
  FIGHTERS.forEach(f=>pickTarget(f));
  camDir.x=0;camDir.z=1;fightT=(ffa||hw)?120:90;state='countdown';cdT=3.2;timeScale=1;hitStop=0;shake=0;bannerCur='';placeP=0;winnerP=false;
- hudNames();hudShow(true);hudUpdate();
+ hudNames();hudShow(true);hudUpdate();evoBanner();
  camera.position.set(0,8,-12);
 }
 function bossSlam(f,dt,live){
@@ -1018,13 +1170,13 @@ function pvpScreen(){
  </div>`,'solid');
 }
 function pvpPlayersList(){
- const l=[{id:0,name:cleanName(S.name)||'Host',sel:S.sel}];
- for(const g of pvpGuests)if(g.hello)l.push({id:g.id,name:g.name,sel:g.sel});
+ const l=[{id:0,name:cleanName(S.name)||'Host',sel:S.sel,evo:evoLv(S.sel),aur:S.evo.aura}];
+ for(const g of pvpGuests)if(g.hello)l.push({id:g.id,name:g.name,sel:g.sel,evo:g.evo|0,aur:g.aur||''});
  return l;
 }
 function pvpCleanPlayers(a){
  const out=[],seen={};if(!Array.isArray(a))return out;
- for(const x of a.slice(0,MAXP)){if(!x||typeof x!=='object')continue;const id=clamp(x.id|0,0,MAXP-1);if(seen[id])continue;seen[id]=1;out.push({id,name:cleanName(x.name)||('Player'+(id+1)),sel:saneSel(x.sel)});}
+ for(const x of a.slice(0,MAXP)){if(!x||typeof x!=='object')continue;const id=clamp(x.id|0,0,MAXP-1);if(seen[id])continue;seen[id]=1;out.push({id,name:cleanName(x.name)||('Player'+(id+1)),sel:saneSel(x.sel),evo:clamp(x.evo|0,0,3),aur:cleanAur(x.aur)});}
  return out.sort((a,b)=>a.id-b.id);
 }
 function pvpShowLobby(){
@@ -1096,7 +1248,7 @@ function pvpHostData(g,m){
  if(!m||typeof m!=='object')return;
  if(!g.hello){
   if(m.t!=='hello')return;
-  g.hello=true;g.sel=saneSel(m.sel);
+  g.hello=true;g.sel=saneSel(m.sel);g.evo=clamp(m.evo|0,0,3);g.aur=cleanAur(m.aur);
   let nm=cleanName(m.name)||('Player'+(g.id+1));
   const taken=n=>pvpPlayersList().some(p=>p.name.toLowerCase()===n.toLowerCase());
   if(taken(nm)){let k=2;const b=nm.slice(0,11);while(taken(b+' '+k))k++;nm=b+' '+k;}
@@ -1107,7 +1259,7 @@ function pvpHostData(g,m){
   case 's':if(pvp&&f&&!f.dead){const sn=pvpCleanSnap(m);f.snap=sn;f.snapT=T;pvpBcast(Object.assign({t:'s',i:g.id},sn),g.id);}break;
   case 'hit':if(!pvp||!f)break;
    if(to===0)pvpDefend(m,g.id);
-   else if(to!==g.id&&RMS[to])pvpToGuest(to,{t:'hit',from:g.id,dmg:num(m.dmg,1,90),crit:m.crit?1:0,kb:num(m.kb,0,20),gd:num(m.gd,0,80),ax:num(m.ax,-14,14),az:num(m.az,-14,14)});break;
+   else if(to!==g.id&&RMS[to])pvpToGuest(to,{t:'hit',from:g.id,dmg:num(m.dmg,1,90),crit:m.crit?1:0,kb:num(m.kb,0,20),gd:num(m.gd,0,80),ax:num(m.ax,-14,14),az:num(m.az,-14,14),sp:num(m.sp,0,1.2)});break;
   case 'res':if(!pvp||!f)break;
    if(to===0)pvpOnRes(m,g.id);
    else if(to!==g.id&&RMS[to])pvpToGuest(to,{t:'res',from:g.id,r:String(m.r).slice(0,8),dmg:num(m.dmg,1,90),crit:m.crit?1:0});break;
@@ -1150,7 +1302,7 @@ function pvpDial(code){
 }
 function pvpWire(c){
  pvpConn=c;
- const onOpen=()=>{pvpSend({t:'hello',name:cleanName(S.name),sel:S.sel});pvpSetStatus('Connected! Joining the lobby…');};
+ const onOpen=()=>{pvpSend({t:'hello',name:cleanName(S.name),sel:S.sel,evo:evoLv(S.sel),aur:S.evo.aura});pvpSetStatus('Connected! Joining the lobby…');};
  if(c.open)onOpen();else c.on('open',onOpen);
  c.on('data',onPvpData);c.on('close',()=>{if(c===pvpConn)onPvpClose();});c.on('error',()=>pvpSetStatus('❌ Connection error.'));
 }
@@ -1188,7 +1340,7 @@ function pvpFighterLeft(f){
  }
  if(state==='fight')koFighter(f,null);else f.dead=true;
 }
-function stdFighter(f){f.pow=1;f.def=.03;f.ult=false;f.perk=1;f.stCost=1;f.spd=5.3;f.scale=1;f.dmgMul=1;f.model.g.scale.setScalar(1);}
+function stdFighter(f){f.stRegen=1;f.gRegen=1;f.critB=0;f.steal=0;f.ab=null;f.ironT=0;f.thunderT=0;f.healT=0;f.pow=1;f.def=.03;f.ult=false;f.perk=1;f.stCost=1;f.spd=5.3;f.scale=1;f.dmgMul=1;f.model.g.scale.setScalar(1);}
 function pvpTag(f,txt,col){
  try{const c=document.createElement('canvas');c.width=256;c.height=64;const g=c.getContext('2d');g.font='bold 34px sans-serif';g.textAlign='center';g.lineWidth=7;g.strokeStyle='rgba(0,0,0,.8)';g.strokeText(txt,128,44);g.fillStyle=col;g.fillText(txt,128,44);
   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false}));sp.scale.set(2.4,.6,1);sp.position.y=2.7;sp.renderOrder=10;f.g.add(sp);}catch(e){}
@@ -1201,8 +1353,8 @@ function startPvp(wi,std,players,me){
  let mine=null;const others=[];
  ps.forEach((pl,i)=>{
   const isMe=pl.id===me;
-  const f=mkFighter(getP(pl.sel),isMe,.5);f.slot=pl.id;f.uname=pl.name;
-  if(isMe)mine=f;else{f.remote=true;f.ai=null;f.snap=null;f.snapT=T;RMS[pl.id]=f;others.push(f);pvpTag(f,pl.name,PCOL[pl.id%5]);}
+  const f=mkFighter(getP(pl.sel),isMe,.5,isMe?undefined:pl.evo,isMe?undefined:pl.aur);f.slot=pl.id;f.uname=pl.name;
+  if(isMe)mine=f;else{f.remote=true;f.ai=null;f.snap=null;f.snapT=T;RMS[pl.id]=f;others.push(f);pvpTag(f,pl.name+(pl.evo?' '+'★'.repeat(pl.evo):''),PCOL[pl.id%5]);}
   if(std)stdFighter(f);else if(!isMe)f.dmgMul=1;
   const a=i*TAU/n+Math.PI*.25;f.x=Math.sin(a)*rad;f.z=Math.cos(a)*rad;f.face=Math.atan2(-f.x,-f.z);
  });
@@ -1210,7 +1362,7 @@ function startPvp(wi,std,players,me){
  FIGHTERS.forEach(f=>pickTarget(f));
  const cl=Math.hypot(P.x,P.z)||1;camDir.x=-P.x/cl;camDir.z=-P.z/cl;
  fightT=n>2?120:90;state='countdown';cdT=3.2;timeScale=1;hitStop=0;shake=0;bannerCur='';placeP=0;winnerP=false;
- hudNames();hudShow(true);hudUpdate();
+ hudNames();hudShow(true);hudUpdate();evoBanner();
  camera.position.set(P.x*2.2,8,P.z*2.2);
 }
 function pvpSnap(){const f=P;return{t:'s',x:+f.x.toFixed(2),z:+f.z.toFixed(2),fa:+f.face.toFixed(2),vx:+(f.vx+f.kx).toFixed(2),vz:+(f.vz+f.kz).toFixed(2),a:f.atk,at:+f.atkT.toFixed(2),rc:+(f.rec||0).toFixed(2),b:f.blocking?1:0,bt:+f.blockT.toFixed(2),d:+Math.max(0,f.dash).toFixed(2),h:+Math.max(0,f.hurt).toFixed(2),hp:+f.hp.toFixed(1),g:Math.round(f.guard),st:Math.round(f.stam),sn:+Math.max(0,f.stun).toFixed(2),w:f.whiff?1:0,vc:f.victory?1:0};}
@@ -1229,8 +1381,9 @@ function hitRemote(a,d){
  const reach=a.wep.reach*a.scale+.55*d.scale;
  const fx=Math.sin(a.face),fz=Math.cos(a.face),dt=(dx*fx+dz*fz)/dist;
  if(dist>reach+.25||dt<.3)return false;
- let dmg=a.wep.dmg*a.pow*rnd(.9,1.1)*(1-d.def);const crit=Math.random()<.1;if(crit)dmg*=1.5;
- pvpOut({t:'hit',to:d.slot,dmg:Math.max(1,Math.round(dmg)),crit:crit?1:0,kb:a.wep.kb,gd:Math.max(14,a.wep.dmg*a.pow*1.7),ax:+a.x.toFixed(2),az:+a.z.toFixed(2)});
+ let dmg=a.wep.dmg*a.pow*rnd(.9,1.1)*(1-d.def);const crit=Math.random()<(.1+(a.critB||0));if(crit)dmg*=1.5;
+ let sp=0;if(a.thunderT>0){dmg*=1.5;a.thunderT=0;if(Math.random()<.5)sp=.7;bolt(d.x,d.z);}
+ pvpOut({t:'hit',to:d.slot,dmg:Math.max(1,Math.round(dmg)),crit:crit?1:0,kb:a.wep.kb,gd:Math.max(14,a.wep.dmg*a.pow*1.7),ax:+a.x.toFixed(2),az:+a.z.toFixed(2),sp:sp});
  return true;
 }
 function pvpDefend(m,fid){
@@ -1242,11 +1395,11 @@ function pvpDefend(m,fid){
  let r='hit';
  if(d.dash>0){ftext(d,'DODGE!','dod');r='dodge';}
  else if(d.blocking){
-  if(d.blockT<.16){d.guard=Math.min(100,d.guard+25);ftext(d,'PARRY!','par');SFX.parry();hitStop=.1;shake=.3;burst(d.x,1.4,d.z,0xffe14d,16,7,.12);flash('#ffe9a0',.25);r='parry';}
+  if(d.blockT<.16){d.guard=Math.min(100,d.guard+25);ftext(d,'PARRY!','par');SFX.parry();hitStop=.1;shake=.3;burst(d.x,1.4,d.z,0xffe14d,16,7,.12);flash('#ffe9a0',.25);r='parry';evoEvent('parry',1,true);}
   else{const chip=Math.max(1,Math.round(dmg*.2));d.hp-=chip;d.lastHitBy=a;d.guard-=gd;d.kx+=dx/dist*3;d.kz+=dz/dist*3;ftext(d,'BLOCK','blk');SFX.block();burst(d.x,1.3,d.z,0x7fd0ff,8,5,.09);shake=Math.max(shake,.1);
    if(d.guard<=0){d.guard=0;d.blocking=false;d.stun=1;ftext(d,'GUARD BREAK!','brk');SFX.hit();}
    r='block';if(d.hp<=0){d.hp=0;koFighter(d,a);}}
- }else{applyHit(a,d,dmg,kb,crit);}
+ }else{applyHit(a,d,dmg,kb,crit);if(m.sp>0&&!d.dead){d.stun=Math.max(d.stun,num(m.sp,0,1.2));d.atk=-1;ftext(d,'⚡ STAGGER','brk');}}
  a.x=sx;a.z=sz;
  pvpOut({t:'res',to:fid,r:r,dmg:dmg,crit:crit?1:0});
 }
@@ -1299,7 +1452,9 @@ function waveClear(){
  P.hp=Math.min(100,P.hp+25);P.stam=100;
  const b=pick(SURV_BUFFS);b[1]();survBuffs.push(b[0]);
  if(waveN>(S.bestSurv|0))S.bestSurv=waveN;
- save();SFX.win();banner('WAVE '+waveN+' CLEAR!',1500);
+ let wsh=0;if(waveN%5===0)wsh=addShards(3+Math.floor(waveN/5));
+ evoEvent('wave',1,true);evoEvent('wavenum',waveN,true);
+ save();SFX.win();banner('WAVE '+waveN+' CLEAR!',1500);if(wsh)setTimeout(()=>ftext(P,'+'+wsh+' 💎 shards','par'),400);
  ftext(P,'+'+c+' \u{1FA99}','par');setTimeout(()=>{},0);
  ftext(P,b[0],'dod');
  waveT=2.8;
@@ -1349,7 +1504,7 @@ function fightUpdate(rdt){
 }
 function menuUpdate(rdt){
  if(menuF){menuF.face=Math.sin(T*.4)*.7+.5;menuF.vx=menuF.vz=0;animFighter(menuF,rdt,T);}
- const a=T*.12;camera.position.set(Math.sin(a)*2.5,2.0,5.8);camera.lookAt(0,.35,0);
+ const a=T*.12;if(labMode){camera.position.set(Math.sin(a)*1.2,1.8,10.4);camera.lookAt(0,-.95,0);}else{camera.position.set(Math.sin(a)*2.5,2.0,5.8);camera.lookAt(0,.35,0);}
 }
 
 /* ===================================================== RESULT ===================================================== */
@@ -1365,9 +1520,9 @@ function showResultInner(win){
  if(pvp){
   const n=FIGHTERS.length,place=winnerP?1:(placeP||n);
   const draw=n===2&&!pvpForfeit&&!winnerP&&!P.dead&&Math.round(P.hp)===Math.round(ENEMIES[0].hp);
-  let coins=0,title,col;
+  let coins=0,title,col,pvsh=0;
   if(pvpForfeit){title='\u{1F3F3}️ EVERYONE LEFT';col='#ffe14d';}
-  else if(winnerP){coins=300+(n-2)*120+left*4+(taken===0?150:0);S.pvpWins=(S.pvpWins|0)+1;title='\u{1F3C6} YOU WIN!';col='#7dff6a';SFX.win();}
+  else if(winnerP){coins=300+(n-2)*120+left*4+(taken===0?150:0);S.pvpWins=(S.pvpWins|0)+1;pvsh=addShards(2+(n-2));evoEvent('win',1,true);title='\u{1F3C6} YOU WIN!';col='#7dff6a';SFX.win();}
   else if(draw){coins=100;title='\u{1F91D} DRAW';col='#ffe14d';}
   else{coins=40+Math.max(0,n-place)*35;title=n===2?'\u{1F4A5} DEFEATED':'\u{1F3C5} PLACE #'+place+' of '+n;col='#ff9d6a';SFX.lose();}
   S.coins+=coins;save();
@@ -1375,6 +1530,7 @@ function showResultInner(win){
    <div style="font-weight:800;opacity:.9">vs ${ENEMIES.map(e=>pvpEsc(e.uname||e.p.name)).join(', ')}</div>
    <div style="margin:12px 0;text-align:left"><div class="rrow"><span>Your health</span><span>${left} ❤️</span></div>
    <div class="rrow"><span>Online wins</span><span>${S.pvpWins|0}</span></div>
+   ${pvsh?`<div class="rrow"><span>\u{1F48E} Evolution Shards</span><span>+${pvsh}</span></div>`:''}
    <div class="rrow tot"><span>Reward</span><span>+${coins} \u{1FA99}</span></div></div>
    <div id="rmStatus" style="font-weight:800;min-height:22px">${pvpLive&&!pvpForfeit?'The match is still running…':''}</div>
    <div class="row" style="margin-top:10px"><button class="btn grn" data-act="pvplobby">Back to lobby</button><button class="btn alt" data-act="pvpleave">Leave</button></div></div>`,'dark');
@@ -1396,16 +1552,17 @@ function showResultInner(win){
  if(hw){
   const first=!(S.owned[1000]|0);
   if(win){
-   SFX.win();const coins=Math.round((2500+left*40)*(taken===0?1.5:1));S.coins+=coins;S.hwWins=(S.hwWins|0)+1;if(first)S.owned[1000]=1;save();
+   SFX.win();const coins=Math.round((2500+left*40)*(taken===0?1.5:1));S.coins+=coins;S.hwWins=(S.hwWins|0)+1;if(first)S.owned[1000]=1;const hsh=addShards(8);evoEvent('win',1,true);evoEvent('boss',1,true);evoEvent('play',1,true);save();
    ui(topbar('Victory','')+`<div class="panel res" style="text-align:center;border-color:#ff7a1a"><h1 style="color:#ffa24a">\u{1F383} PUMPKIN KING DEFEATED!</h1>
     <div style="margin:12px 0;text-align:left"><div class="rrow"><span>Damage taken</span><span>${taken}</span></div>
     <div class="rrow"><span>Health left</span><span>${left} ❤️</span></div>
     ${taken===0?'<div class="rrow"><span>✨ FLAWLESS ×1.5</span><span></span></div>':''}
+    <div class="rrow"><span>\u{1F48E} Evolution Shards</span><span>+${hsh}</span></div>
     <div class="rrow tot"><span>Reward</span><span>+${coins} \u{1FA99}</span></div></div>
     ${first?`<div style="font-weight:900;color:#ffa24a;margin:8px 0">\u{1F383} EXCLUSIVE SKIN UNLOCKED!</div><div style="max-width:150px;margin:0 auto;position:relative">${cardHTML(SKINS[0],{show:true})}<div class="nw">NEW!</div></div><p>Equip it in <b>Pandas ▸ Exclusive Skins</b>.</p>`:'<p style="opacity:.85">You already own the Jack-O-Lantern skin — coins only this time!</p>'}
     <div class="row" style="margin-top:14px"><button class="btn grn" data-act="hw" data-v="4">Fight Again ▶</button><button class="btn alt" data-act="collection">Pandas</button><button class="btn alt" data-act="menu">Menu</button></div></div>`,'dark');
   }else{
-   SFX.lose();S.losses++;S.coins+=25;save();
+   SFX.lose();S.losses++;S.coins+=25;evoEvent('play',1,true);save();
    ui(topbar('Defeat','')+`<div class="panel res" style="text-align:center;border-color:#ff7a1a"><h1 style="color:#ff6a6a">\u{1F480} CRUSHED BY THE PUMPKIN KING</h1>
     <p>Watch for the <b>SOUL SLAM</b> — when the orange circle grows under him, <b>dash</b> out of it or <b>block</b> it. Parry his scythe swings, and don't forget stamina!</p>
     <div class="rrow tot"><span>Consolation</span><span>+25 \u{1FA99}</span></div>
@@ -1427,14 +1584,15 @@ function showResultInner(win){
   coins+=koB;
   S.coins+=coins;
   if(!ffa){S.wins++;S.prog[curW]++;}
-  let reward=null,unlockMsg='';
+  let reward=null,unlockMsg='',sh=ffa?2:(isBoss?5+curW*2:1);
+  evoEvent('win',1,true);evoEvent('play',1,true);if(ffa)evoEvent('ffa',1,true);if(isBoss&&!ffa)evoEvent('boss',1,true);
   if(!ffa&&isBoss&&!S.claimed[curW]){
    S.claimed[curW]=1;
    const tier=[1,2,3,4,5][curW];
-   const g=give(pick(ROSTER.filter(x=>x.r===tier)));reward=g;
+   const g=give(pick(ROSTER.filter(x=>x.r===tier)));reward=g;sh+=10;
    if(curW<4&&S.unlocked<curW+2){S.unlocked=curW+2;unlockMsg=`\u{1F513} ${WORLDS[curW+1].n} unlocked!`;}
   }
-  save();
+  addShards(sh);save();
   html=topbar('Victory','')+`<div class="panel res" style="text-align:center"><h1 style="color:#7dff6a">\u{1F3C6} ${ffa?'LAST PANDA STANDING!':'YOU WIN!'}</h1>
    <div style="opacity:.9;font-weight:800">${ffa?'You beat all 4 rivals':E1.p.name+' defeated'}</div>
    <div style="margin:12px 0;text-align:left">
@@ -1444,12 +1602,13 @@ function showResultInner(win){
     ${flawless?'<div class="rrow"><span>\u2728 FLAWLESS \u00D71.5</span><span></span></div>':''}
     ${isBoss?'<div class="rrow"><span>\u{1F480} BOSS BONUS \u00D73</span><span></span></div>':''}
     ${koRow}
+    <div class="rrow"><span>\u{1F48E} Evolution Shards</span><span>+${sh}</span></div>
     <div class="rrow tot"><span>Reward</span><span>+${coins} \u{1FA99}</span></div></div>
    ${unlockMsg?`<div style="font-size:20px;font-weight:900;color:#ffe14d;margin:8px 0">${unlockMsg}</div>`:''}
-   ${reward?`<div style="font-weight:900;margin:8px 0">\u{1F381} First boss clear reward!</div><div style="max-width:140px;margin:0 auto;position:relative">${cardHTML(reward.p,{show:true})}${reward.isNew?'<div class="nw">NEW!</div>':`<div class="dust">DUPLICATE +${reward.dust}\u{1FA99}</div>`}</div>`:''}
+   ${reward?`<div style="font-weight:900;margin:8px 0">\u{1F381} First boss clear reward!</div><div style="max-width:140px;margin:0 auto;position:relative">${cardHTML(reward.p,{show:true})}${reward.isNew?'<div class="nw">NEW!</div>':`<div class="dust">DUPLICATE +${reward.dust}\u{1FA99} +${reward.sh}\u{1F48E}</div>`}</div>`:''}
    <div class="row" style="margin-top:14px"><button class="btn grn" data-act="${again}" data-v="${curW}">${ffa?'Play Again':'Next Fight'} \u25B6</button><button class="btn alt" data-act="${ffa?'freeplay':'worlds'}">${ffa?'Maps':'Worlds'}</button><button class="btn alt" data-act="menu">Menu</button></div></div>`;
  }else{
-  SFX.lose();S.losses++;
+  SFX.lose();S.losses++;evoEvent('play',1,true);
   const pc=ffa?Math.round(({2:30,3:15,4:8,5:4}[pl]||4)*wm):10,coins=pc+koB;S.coins+=coins;save();
   html=topbar('Defeat','')+`<div class="panel res" style="text-align:center"><h1 style="color:#ff6a6a">${P.dead?'\u{1F4A5} DEFEATED':'\u23F1 TIME UP'}</h1>
    <div style="font-weight:800;opacity:.9">${ffa?'You finished '+ord(pl)+' of 5':E1.p.name+' was too strong this time'}</div>
@@ -1466,7 +1625,7 @@ function showResultInner(win){
 function weights(sk,minR){let tot=0;const L=sk==null?1:luckMul(sk);const ws=RAR.map((r,i)=>{if(i<minR)return 0;const w=r.w*(i>=1?Math.pow(L,i*.5):1);tot+=w;return w;});return{ws,tot};}
 function rollRarity(boost,minR){const{ws,tot}=weights(boost,minR||0);let x=Math.random()*tot;for(let i=0;i<ws.length;i++){x-=ws[i];if(x<=0&&ws[i]>0)return i;}return minR||0;}
 function oddsPct(boost,minR){const{ws,tot}=weights(boost,minR||0);return ws.map(w=>w/tot*100);}
-function give(p){const had=S.owned[p.key]|0;S.owned[p.key]=had+1;if(had){const d=RAR[p.r].dust;S.coins+=d;return{p,isNew:false,dust:d};}return{p,isNew:true,dust:0};}
+function give(p){const had=S.owned[p.key]|0;S.owned[p.key]=had+1;if(had){const d=RAR[p.r].dust,sh=1+Math.floor(p.r/2);S.coins+=d;addShards(sh);return{p,isNew:false,dust:d,sh:sh};}return{p,isNew:true,dust:0};}
 const PACKS={
  single:{cost:150,n:1},
  skill:{cost:1200,n:10},
@@ -1496,7 +1655,7 @@ function cardHTML(p,o){o=o||{};const rc=RAR[p.r],owned=S.owned[p.key]|0,show=own
   <img src="${thumb(p)}" class="${show?'':'sil'}" alt="">
   <div class="cn">${show?p.name:'???'}</div>
   <div class="cw">${WEP[p.w].ico} ${show?WEP[p.w].n:'?'}</div>
-  ${owned>1?`<div class="cnt">x${owned}</div>`:''}${(o.eq&&S.sel===p.key)?'<div class="eqd">EQUIPPED</div>':''}</div>`;}
+  ${owned>1?`<div class="cnt">x${owned}</div>`:''}${(o.eq&&S.sel===p.key)?'<div class="eqd">EQUIPPED</div>':''}${(show&&owned>0&&evoLv(p.key))?`<div class="evb" style="color:${EVO_COL[evoLv(p.key)]}">${evoBadge(evoLv(p.key))}</div>`:''}</div>`;}
 
 function mainMenu(){
  state='menu';paused=false;hudShow(false);hideUI();
@@ -1505,12 +1664,13 @@ function mainMenu(){
  ui(`<div class="menu"><div><div class="logo">🐼 PANDA FIGHT <span>3D</span></div><div class="tag">Collect · Equip · Smash</div></div>
   <div></div>
   <div class="menuBot">
-   <div class="eqname"><span style="color:${rc.c}">${rc.n}</span> · ${p.name} · ${WEP[p.w].ico} ${WEP[p.w].n}</div>
+   <div class="eqname"><span style="color:${rc.c}">${rc.n}</span> · ${p.name}${evoTxt(p)} · ${WEP[p.w].ico} ${WEP[p.w].n}</div>
    <button class="btn big" data-act="worlds">⚔️ FIGHT</button>
    <button class="btn alt" data-act="pvp">\u{1F310} ONLINE PVP \u00B7 2\u20135 Players</button>
    <button class="btn alt" data-act="hwevent" style="background:linear-gradient(#ffa24a,#e0560c);color:#2a0f00;box-shadow:0 5px 0 #8a3200,0 8px 16px #0006">\u{1F383} HALLOWEEN OF 26 · Pumpkin King</button>
    <button class="btn alt" data-act="survival">\u{1F9DF} SURVIVAL \u00B7 Endless Waves</button>
    <button class="btn alt" data-act="freeplay">\u{1F465} FREEPLAY \u00B7 5-Panda Brawl</button>
+   <button class="btn alt" data-act="evomenu" style="background:linear-gradient(#8dff7a,#2fbf3a);color:#052b0a;box-shadow:0 5px 0 #17782a,0 8px 16px #0006">🧬 EVOLUTION LAB · 💎 ${S.evo.shards}</button>
    <div class="row"><button class="btn alt" data-act="collection">🐼 Pandas ${ownedCount()}/${ROSTER.length}</button><button class="btn alt" data-act="shop">🎁 Shop</button></div>
    <div class="row"><button class="btn sm alt" data-act="savemenu">\u{1F4BE} Save</button><button class="btn sm alt" data-act="help">❓ How to play</button><button class="btn sm alt" data-act="settings">⚙️ Settings</button></div>
    <div class="stats">🪙 ${S.coins.toLocaleString()} · 🏆 ${S.wins} wins · 🎯 Skill ${skill()}</div>
@@ -1561,7 +1721,7 @@ function collectionScreen(){
  state='menu';hudShow(false);
  const list=ROSTER.slice().sort((a,b)=>a.r-b.r||a.key-b.key);
  colSel=S.sel;
- ui(topbar(`Pandas ${ownedCount()}/${ROSTER.length}`,'menu')+`<div class="cgrid">${list.map(p=>cardHTML(p,{act:'sel',eq:true,sel:p.key===colSel})).join('')}</div><div style="max-width:980px;margin:16px auto 8px;font-weight:900;color:#ffa24a;font-size:18px;text-shadow:0 2px 0 #000">\u{1F383} EXCLUSIVE SKINS</div><div class="cgrid">${SKINS.map(p=>cardHTML(p,{act:'sel',eq:true,sel:p.key===colSel})).join('')}</div><div class="detail" id="detail"></div>`,'solid');
+ ui(topbar(`Pandas ${ownedCount()}/${ROSTER.length} · 🧬${evoCount()}`,'menu')+`<div class="cgrid">${list.map(p=>cardHTML(p,{act:'sel',eq:true,sel:p.key===colSel})).join('')}</div><div style="max-width:980px;margin:16px auto 8px;font-weight:900;color:#ffa24a;font-size:18px;text-shadow:0 2px 0 #000">\u{1F383} EXCLUSIVE SKINS</div><div class="cgrid">${SKINS.map(p=>cardHTML(p,{act:'sel',eq:true,sel:p.key===colSel})).join('')}</div><div class="detail" id="detail"></div>`,'solid');
  detailPanel();
 }
 function statBar(l,v,max){return `<div style="font-size:12px;font-weight:800">${l} <span style="float:right">${v}</span></div><div class="sbar"><i style="width:${clamp(v/max*100,4,100)}%"></i></div>`;}
@@ -1569,12 +1729,12 @@ function detailPanel(){
  const p=getP(colSel),rc=RAR[p.r],w=WEP[p.w],own=(S.owned[p.key]|0)>0;
  $('detail').innerHTML=`<div class="dr"><img src="${thumb(p)}" class="${own?'':'sil'}" style="${own?'':'filter:brightness(0) opacity(.5)'}" alt="">
   <div style="flex:1"><div class="${p.r===7?'rb':''}" style="font-weight:900;font-size:13px;color:${rc.c}">${rc.n.toUpperCase()}</div>
-  <div style="font-size:20px;font-weight:900">${own?p.name:'???'}</div>
+  <div style="font-size:20px;font-weight:900">${own?p.name:'???'}${own&&evoLv(p.key)?` <span style="color:${EVO_COL[evoLv(p.key)]};font-size:15px">${evoBadge(evoLv(p.key))} ${EVO_NAMES[evoLv(p.key)]}</span>`:''}</div>
   <div style="font-size:13px;opacity:.9;margin-bottom:6px">${w.ico} ${w.n}${p.w===12?' — the ultimate weapon!':''}</div>
   ${isUlt(p)&&own?'<div style="font-size:12px;font-weight:800;color:#9fe8ff;margin-bottom:6px">\u26A1 ULTIMATE: 2\u00D7 damage \u00B7 30% damage reduction \u00B7 +20% speed \u00B7 half stamina cost \u00B7 regenerates health \u00B7 heals when it hits \u00B7 hammer shockwave hits nearby rivals</div>':''}
   ${p.ex&&own?'<div style="font-size:12px;font-weight:800;color:#ffa24a;margin-bottom:6px">\u{1F383} EXCLUSIVE: 1.8× damage · 26% damage reduction · +15% speed · 40% cheaper stamina · regenerates health · heals when it hits · cursed scythe sets foes ablaze</div>':''}
   ${statBar('Damage / hit',Math.round(w.dmg*powOf(p)),60)}${statBar('Reach',w.reach.toFixed(1),3.2)}${statBar('Defense',(isUlt(p)?30:(p.ex?26:Math.round(p.r*1.8)))+'%',30)}</div></div>
-  <div style="margin-top:8px;text-align:center">${own?(S.sel===p.key?'<button class="btn dim sm">Equipped ✔</button>':'<button class="btn grn" data-act="equip" data-v="'+p.key+'">Equip</button>'):'<div style="font-weight:800;opacity:.85">'+(p.ex?'Exclusive — beat the \u{1F383} Halloween of 26 boss to unlock!':'Not unlocked yet — find it in the Shop!')+'</div>'}</div>`;
+  <div style="margin-top:8px;text-align:center">${own?(S.sel===p.key?'<button class="btn dim sm">Equipped ✔</button>':'<button class="btn grn" data-act="equip" data-v="'+p.key+'">Equip</button>')+(own?' <button class="btn alt" data-act="evolab" data-v="'+p.key+'">🧬 Evolve</button>':''):'<div style="font-weight:800;opacity:.85">'+(p.ex?'Exclusive — beat the \u{1F383} Halloween of 26 boss to unlock!':'Not unlocked yet — find it in the Shop!')+'</div>'}</div>`;
  document.querySelectorAll('.cgrid .card').forEach(c=>c.classList.toggle('selc',+c.dataset.v===colSel));
 }
 function shopScreen(){
@@ -1594,7 +1754,7 @@ let revealList=[];
 function revealScreen(res){
  revealList=res;state='menu';
  ui(topbar('Pack Opened!','')+`<div style="text-align:center;margin-bottom:10px;opacity:.9;font-weight:800">Tap a card to reveal it</div>
- <div class="cgrid" style="max-width:${res.length===1?'160px':'980px'}">${res.map((g,i)=>`<div style="position:relative">${cardHTML(g.p,{back:true,show:true,act:'rev',v:i})}${g.isNew?'<div class="nw">NEW!</div>':`<div class="dust">DUPLICATE +${g.dust}🪙</div>`}</div>`).join('')}</div>
+ <div class="cgrid" style="max-width:${res.length===1?'160px':'980px'}">${res.map((g,i)=>`<div style="position:relative">${cardHTML(g.p,{back:true,show:true,act:'rev',v:i})}${g.isNew?'<div class="nw">NEW!</div>':`<div class="dust">DUPLICATE +${g.dust}🪙 +${g.sh}💎</div>`}</div>`).join('')}</div>
  <div class="row" style="margin-top:16px"><button class="btn alt" data-act="revall">Reveal All</button><button class="btn grn" data-act="shop">Done</button></div>`,'solid');
  SFX.beep();
 }
@@ -1605,13 +1765,14 @@ function revealOne(i){
 }
 function helpScreen(){
  ui(topbar('How to Play','menu')+`<div class="panel"><h3>🎮 Controls</h3>
- <p><b>Phone:</b> drag on the left side to move · ⚔️ attack · 🛡️ block (hold) · 💨 dash<br><b>Keyboard:</b> WASD move · SPACE attack · K block · L dash</p>
+ <p><b>Phone:</b> drag on the left side to move · ⚔️ attack · 🛡️ block (hold) · 💨 dash<br><b>Keyboard:</b> WASD move · SPACE attack · K block · L dash · Q / R evolution abilities</p>
  <h3>⚔️ Fighting</h3><ul><li>Everyone has <b>100 health</b>. First to zero loses.</li><li>Attacks and dashes cost <b>stamina</b> (yellow bar). Mash and you run dry.</li><li>A <b>missed swing leaves you wide open</b> and smart rivals will punish it.</li><li><b>ONLINE PVP</b>: create a room, share the code or link, and fight a friend 1v1 over the internet!</li><li><b>HALLOWEEN OF 26</b>: beat the Pumpkin King boss to unlock an exclusive skin!</li><li><b>SURVIVAL</b> is endless waves of rivals \u2014 clear each wave for coins, a heal and a power-up. Every 5th wave is a boss!</li><li><b>FREEPLAY</b> is a 5-panda free-for-all: last panda standing wins. Rivals fight each other too!</li>
  <li><b>Tap block just before a hit lands = PARRY</b> — the attacker gets stunned!</li>
  <li>Dash dodges through attacks. Holding block too long breaks your guard.</li>
  <li>The <b>less damage you take, the more coins you win</b> (flawless = bonus!).</li>
  <li>Every <b>5th fight is a BOSS</b> 💀 (triple coins + a free panda the first time).</li></ul>
  <h3>🐼 Pandas</h3><p>100 pandas from Common to Ultimate (and the better ones are really hard to find). Each carries a weapon — the <b>⚡ Thunder Hammer</b> is the strongest of all, and only ONE panda in the whole game owns it: the Ultimate Red Panda!</p>
+ <h3>🧬 Evolution</h3><p>Open the <b>Evolution Lab</b> to evolve pandas you own through 4 stages (Base → Awakened → Ascended → Transcendent). It costs <b>duplicate copies + coins + 💎 Evolution Shards</b>. Shards come from bosses, world clears, Survival milestones, Freeplay and online wins, daily challenges, quests and duplicate pandas. Evolved pandas hit harder, last longer and unlock abilities: <b>Stage 3 = Q</b>, <b>Stage 4 = R</b> (round buttons on phone). In online PvP with “Fair stats” on, evolution is cosmetic only.</p>
  <h3>🌍 Worlds</h3><p>5 elemental arenas: Earth, Water, Ice, Air and Lava. Each world is harder than the last and has its own hazards.</p></div>
  <div class="row"><button class="btn grn" data-act="menu">Got it!</button></div>`,'solid');
 }
@@ -1625,6 +1786,7 @@ function cleanSave(o){
  r.unlocked=n(o.unlocked,1,5,1);r.mute=!!o.mute;r.seenHelp=true;
  r.owned={};if(o.owned&&typeof o.owned==='object'){for(const k of Object.keys(o.owned)){const ki=+k;if(Number.isInteger(ki)&&((ki>=0&&ki<ROSTER.length)||ki===1000)){const c=n(o.owned[k],0,999,0);if(c>0)r.owned[ki]=c;}}}
  if(!Object.keys(r.owned).length)r.owned={0:1};
+ r.evo=cleanEvo(o.evo,r.owned);
  r.prog=[0,1,2,3,4].map(i=>n(o.prog&&o.prog[i],0,100000,0));
  r.claimed=[0,1,2,3,4].map(i=>(o.claimed&&o.claimed[i])?1:0);
  r.last=Array.isArray(o.last)?o.last.slice(-10).map(v=>n(v,0,100,0)):[];
@@ -1674,8 +1836,344 @@ function settingsScreen(){
 }
 function pauseScreen(){ui(`<div class="panel res" style="text-align:center;margin-top:20vh"><h1>⏸ Paused</h1><div class="row"><button class="btn grn" data-act="resume">Resume</button><button class="btn alt" data-act="quit">Quit to Menu</button></div></div>`,'dark');}
 
+/* ===================================================== EVOLUTION SYSTEM ===================================================== */
+let labMode=false,evoSel=0,evoFrom='menu',evoPrev=false,evoPending=null,evoBusy=false;
+const EVM={},EVS={};
+function evoLv(key){return(S.evo&&S.evo.st&&S.evo.st[key])|0;}
+function evoCount(){return S.evo?Object.keys(S.evo.st).filter(k=>S.evo.st[k]>0&&(S.owned[k]|0)>0).length:0;}
+function evoBadge(lv){return lv>0?'★'.repeat(lv):'';}
+function evoTxt(p){const lv=evoLv(p.key);return lv?' · '+evoBadge(lv)+' '+EVO_NAMES[lv]:'';}
+function addShards(n){n=Math.max(0,Math.floor(+n)||0);if(S.evo)S.evo.shards=Math.min(1e9,(S.evo.shards|0)+n);return n;}
+function mixCol(a,b,k){const t=new THREE.Color(a);t.lerp(new THREE.Color(b),k);return '#'+t.getHexString();}
+function lighten(c,k){const t=new THREE.Color(c);t.lerp(new THREE.Color(0xffffff),k);return '#'+t.getHexString();}
+function evoMat(col,op,add){const k=col+'|'+op+'|'+(add?1:0);if(!EVM[k]){const m=new THREE.MeshBasicMaterial({color:new THREE.Color(col),transparent:true,opacity:op,side:THREE.DoubleSide,depthWrite:false,blending:add?THREE.AdditiveBlending:THREE.NormalBlending});m._op=op;m._evm=true;EVM[k]=m;}return EVM[k];}
+function evoStd(col){if(!EVS[col]){const m=M(new THREE.Color(col),{metalness:.6,roughness:.35,emissive:new THREE.Color(col),emissiveIntensity:.3});m._evm=true;EVS[col]=m;}return EVS[col];}
+function evoPulse(t){for(const k in EVM){const m=EVM[k];m.opacity=m._op*(.82+.18*Math.sin(t*3.2));}}
+function auraColor(isLocal,aur){const id=(aur!==undefined&&aur!==null)?aur:(isLocal?(S.evo?S.evo.aura:''):'');const a=AURAS.find(x=>x.id===id);return a&&a.col?a.col:null;}
+function cleanAur(a){return AURAS.some(x=>x.id===a)?a:'';}
+
+/* ---------- visuals: additive overlay only, the panda model itself is untouched ---------- */
+function buildEvoFX(m,p,lv,col){
+ if(!lv||!m||!m.g)return null;
+ const c=col||mixCol(RAR[p.r].c,EVO_COL[lv],.6),hi=lighten(c,.5);
+ const g=new THREE.Group();m.g.add(g);
+ const fx={g:g,lv:lv,rings:[],orbs:[],flames:[],wings:[],halo:null,shell:null,orbG:null,hi:hi,c:c};
+ const aura=evoMat(c,.14+lv*.09),aura2=evoMat(c,.62),bright=evoMat(hi,.95,true);
+ const glow=(geo,sx,sy,sz,x,y,z,par)=>{const q=new THREE.Mesh(geo,bright);q.scale.set(sx,sy,sz);q.position.set(x,y,z);(par||g).add(q);return q;};
+ const sh=new THREE.Mesh(GEO.sph,aura);sh.scale.set(.9+lv*.12,1.45+lv*.1,.9+lv*.12);sh.position.y=1.2;g.add(sh);fx.shell=sh;
+ for(let i=0;i<lv;i++){const r=new THREE.Mesh(GEO.ring,aura2);r.rotation.x=-Math.PI/2;r.position.y=.06+i*.03;r.scale.setScalar(1.25+i*.3);g.add(r);fx.rings.push(r);}
+ if(m.head)[-1,1].forEach(s=>glow(GEO.sph,.09,.09,.06,s*.2,.06,.47,m.head));
+ if(lv>=2){
+  if(m.head)glow(GEO.oct,.06,.1,.03,0,.3,.47,m.head);
+  if(m.body){
+   glow(GEO.oct,.1,.15,.04,0,1.12,.52,m.body);
+   const pm=evoStd(c);[-1,1].forEach(s=>{const pd=new THREE.Mesh(GEO.sph,pm);pd.scale.set(.2,.12,.22);pd.position.set(s*.68,1.47,0);m.body.add(pd);});
+  }
+  const og=new THREE.Group();og.position.y=1.2;g.add(og);fx.orbG=og;
+  const n=lv>=3?8:5;
+  for(let i=0;i<n;i++){const a=i/n*TAU,o=new THREE.Mesh(GEO.oct,bright);o.scale.setScalar(.085);o.position.set(Math.cos(a)*1.05,Math.sin(a*2)*.45,Math.sin(a)*1.05);og.add(o);fx.orbs.push(o);}
+ }
+ if(lv>=3){
+  if(m.head){const h=glow(GEO.tor,.42,.42,.42,0,.78,0,m.head);h.rotation.x=Math.PI/2;fx.halo=h;}
+  if(m.body)[-1,1].forEach(sg=>{for(let i=0;i<3;i++){const w=glow(GEO.box,.04,1.0-i*.2,.2,sg*(.4+i*.28),1.5-i*.08,-.45,m.body);w.rotation.z=sg*(.55+i*.28);fx.wings.push(w);}});
+  for(let i=0;i<6;i++){const a=i/6*TAU,q=new THREE.Mesh(GEO.cone,aura2);q.scale.set(.09,.5,.09);q.position.set(Math.cos(a)*.85,.3,Math.sin(a)*.85);g.add(q);fx.flames.push(q);}
+ }
+ m.evo=fx;return fx;
+}
+function animEvo(f,dt,t){
+ const fx=f.model&&f.model.evo;if(!fx)return;
+ fx.g.visible=!f.dead;if(f.dead)return;
+ const lv=fx.lv;
+ if(fx.orbG)fx.orbG.rotation.y=t*(1.3+lv*.35);
+ for(let i=0;i<fx.orbs.length;i++)fx.orbs[i].position.y=Math.sin(t*2+i)*.45;
+ for(let i=0;i<fx.rings.length;i++)fx.rings[i].scale.setScalar((1.25+i*.3)*(1+Math.sin(t*2.6+i)*.06));
+ fx.shell.scale.y=(1.45+lv*.1)*(1+Math.sin(t*2.2)*.03);
+ if(fx.halo)fx.halo.rotation.z=t*1.2;
+ for(let i=0;i<fx.flames.length;i++){const q=fx.flames[i];q.scale.y=.45+.25*Math.sin(t*5+i*1.3);q.position.y=.1+q.scale.y*.5;}
+ for(let i=0;i<fx.wings.length;i++)fx.wings[i].rotation.y=Math.sin(t*2+i)*.12;
+ if(Math.random()<dt*lv*3.5){const a=Math.random()*TAU,r=rnd(.3,.9);burst(f.x+Math.cos(a)*r,rnd(.2,1.8)*f.scale,f.z+Math.sin(a)*r,fx.hi,1,1.2,.06,-1.2);}
+}
+function disposeFighter(f){
+ try{f.g.traverse(o=>{if(o.isMesh&&o.material&&!o.material._evm&&!o.material.map&&o.material.dispose){const mt=o.material;if(Array.isArray(mt))mt.forEach(x=>x.dispose());else mt.dispose();}});}catch(e){}
+}
+
+/* ---------- stats & abilities ---------- */
+function applyEvo(f,lv,local){
+ f.evoLv=lv;if(!lv)return;
+ const E=EVO_STATS[lv],kit=evoKit(f.p);
+ f.pow*=1+E.dmg;f.def=Math.min(.7,1-(1-f.def)/(1+E.hp));
+ f.stRegen*=1+E.stam;f.stCost*=1-E.stam*.4;f.spd*=1+E.spd;
+ f.kit=kit;
+ const ps=kit.pass.k;
+ if(ps==='def')f.def=Math.min(.7,f.def+.04);else if(ps==='sreg')f.stRegen*=1.12;else if(ps==='crit')f.critB=.05;else if(ps==='steal')f.steal=.05;else if(ps==='greg')f.gRegen=1.25;
+ if(local){
+  const mk=(d,u)=>({id:u?kit.a2:kit.a1,u:!!u,n:d.n,ico:d.ico,cd:1.5,max:d.cd,cost:d.cost,col:d.col});
+  f.ab=[lv>=2?mk(ABIL[kit.a1],false):null,lv>=3?mk(ULTA[kit.a2],true):null];
+  if(!f.ab[0]&&!f.ab[1])f.ab=null;
+ }
+}
+function abTick(f,dt){
+ if(f.ab)for(const a of f.ab)if(a&&a.cd>0)a.cd-=dt;
+ if(f.ironT>0)f.ironT-=dt;
+ if(f.thunderT>0)f.thunderT-=dt;
+ if(f.healT>0){
+  if(f.atk>=0||f.blocking||f.dash>0||(!f.healU&&f.hurt>.12)){if(!f.healU&&f.hurt>.12)ftext(f,'INTERRUPTED','blk');f.healT=0;}
+  else{f.healT-=dt;f.hp=Math.min(100,f.hp+f.healAmt/(f.healU?3:2)*dt);if(f.healU)f.guard=Math.min(100,f.guard+25*dt);if(Math.random()<.45)burst(f.x+rnd(-.5,.5),.4,f.z+rnd(-.5,.5),0x6aff9a,1,1.6,.09,-2);}
+ }
+}
+function abStrike(f,o){
+ let any=false;
+ for(let k=0;k<18;k++){const an=k/18*TAU;burst(f.x+Math.cos(an)*o.r*.7,.4,f.z+Math.sin(an)*o.r*.7,o.col,1,4,.14,0);}
+ for(const d of FIGHTERS){
+  if(d===f||d.dead)continue;if(surv&&!f.isPlayer&&!d.isPlayer)continue;
+  const dx=d.x-f.x,dz=d.z-f.z,dist=Math.hypot(dx,dz)||.001;
+  if(dist>o.r+.55*d.scale)continue;
+  if(!o.circle){const fx=Math.sin(f.face),fz=Math.cos(f.face);if((dx*fx+dz*fz)/dist<.1)continue;}
+  any=true;
+  const base=f.wep.dmg*f.pow*f.dmgMul*o.mult*rnd(.95,1.05);
+  if(d.remote){pvpOut({t:'hit',to:d.slot,dmg:Math.max(1,Math.round(base*(1-d.def))),crit:0,kb:o.kb,gd:20,ax:+f.x.toFixed(2),az:+f.z.toFixed(2),sp:o.stun});continue;}
+  if(d.dash>0){ftext(d,'DODGE!','dod');continue;}
+  const dmg=base*(1-d.def);
+  if(d.blocking){d.guard-=20;d.hp-=Math.max(1,Math.round(dmg*.2));d.lastHitBy=f;ftext(d,'BLOCK','blk');SFX.block();if(d.hp<=0){d.hp=0;koFighter(d,f);}continue;}
+  applyHit(f,d,dmg,o.kb,false);
+  if(!d.dead){d.stun=Math.max(d.stun,o.stun);d.atk=-1;if(o.bolt)bolt(d.x,d.z);}
+ }
+ return any;
+}
+function abDir(f,I){let dx=I&&I.mx||0,dz=I&&I.mz||0,l=Math.hypot(dx,dz);if(l<.2){dx=Math.sin(f.face);dz=Math.cos(f.face);l=1;}return{x:dx/l,z:dz/l};}
+function useAbility(f,i,I){
+ const a=f.ab&&f.ab[i];if(!a||f.dead||state!=='fight')return false;
+ if(a.cd>0||f.stun>0||f.atk>=0||f.healT>0)return false;
+ if(f.stam<a.cost){ftext(f,'NO STAMINA','blk');return false;}
+ const id=a.id,u=a.u;
+ if(id==='heal'){if(f.hp>=90){ftext(f,'HP TOO HIGH','blk');return false;}f.healT=u?3:2;f.healAmt=u?22:12;f.healU=u;}
+ else if(id==='iron'){f.ironT=u?4:3;f.ironMul=u?.4:.55;if(u){f.hp=Math.min(100,f.hp+8);f.guard=100;}burst(f.x,1.2,f.z,0xc8d0e0,16,5,.12);}
+ else if(id==='thunder'){
+  if(u){abStrike(f,{r:3.4,circle:true,mult:1.4,kb:12,stun:1,bolt:true,col:0xffe14d});shake=Math.max(shake,.6);SFX.thunder();}
+  else{f.thunderT=5;burst(f.x,1.3,f.z,0xffe14d,14,5,.1);}
+ }
+ else if(id==='bamboo'){
+  if(u)abStrike(f,{r:3.6,circle:true,mult:1.5,kb:13,stun:.5,col:0x7dff6a});else abStrike(f,{r:2.6,mult:1.1,kb:8,stun:.3,col:0x7dff6a});
+  shake=Math.max(shake,u?.4:.2);
+ }
+ else if(id==='spirit'){
+  if(u)abStrike(f,{r:2.3,circle:true,mult:1.0,kb:8,stun:.4,col:0x9fe8ff});
+  const d=abDir(f,I),sp=u?24:22;f.dash=u?.3:.22;f.dvx=d.x*sp;f.dvz=d.z*sp;f.dashCd=Math.max(f.dashCd,.3);f.atk=-1;f.blocking=false;
+  for(let k=0;k<10;k++)burst(f.x-d.x*k*.3,.8,f.z-d.z*k*.3,0x9fe8ff,1,1.5,.12,0);
+ }
+ f.stam-=a.cost;f.stamD=.5;a.cd=a.max;
+ SFX.ability();ftext(f,a.ico+' '+a.n,'par');
+ return true;
+}
+const _abc=['',''];
+function abHud(){
+ for(let i=0;i<2;i++){
+  const a=P&&P.ab&&P.ab[i],b=$('bA'+(i+1)),c=$('abc'+(i+1));
+  const cd=a?Math.ceil(Math.max(0,a.cd)):0,key=a?a.id+a.u+cd+(P.stam>=a.cost?1:0):'x';
+  if(_abc[i]===key)continue;_abc[i]=key;
+  if(!a){b.style.display='none';c.style.display='none';continue;}
+  b.style.display='block';c.style.display='block';
+  b.textContent=cd>0?cd:a.ico;b.classList.toggle('cdn',cd>0);
+  c.className='abc'+(cd>0?' cdn':'');
+  c.textContent=(i?'R':'Q')+' · '+a.ico+' '+a.n+(cd>0?' · '+cd+'s':' · READY');
+ }
+}
+function evoBanner(){
+ const el=$('evoBan');if(!el||!P||!P.evoLv)return;
+ const lv=P.evoLv;let ab='';
+ if(P.ab){const n=P.ab.filter(Boolean).map(a=>a.ico+' '+a.n);if(n.length)ab=' · '+n.join(' · ');}
+ el.textContent='🧬 Stage '+(lv+1)+' · '+EVO_NAMES[lv]+ab;
+ el.style.setProperty('--ec',EVO_COL[lv]);el.classList.remove('show');void el.offsetWidth;el.classList.add('show');
+}
+
+/* ---------- quests, dailies, shards ---------- */
+function dailyEnsure(){const E=S.evo,t=todayStr();if(E.daily.d!==t)E.daily={d:t,p:[0,0,0],c:[0,0,0]};}
+function qDef(id){return EVQ.find(q=>q.id===id);}
+function qGet(id){const E=S.evo;if(!E.q[id])E.q[id]={p:0,c:0};return E.q[id];}
+function qAdd(id,n){const d=qDef(id),q=qGet(id);if(!q.c)q.p=Math.min(d.t,q.p+n);}
+function qSet(id,v){const d=qDef(id),q=qGet(id);if(!q.c&&v>q.p)q.p=Math.min(d.t,v);}
+function qRecalc(){
+ const E=S.evo,all=ROSTER.concat(SKINS);let n1=0,n3=0,r2=false;
+ for(const p of all){if((S.owned[p.key]|0)<1)continue;const lv=E.st[p.key]|0;if(lv>=1)n1++;if(lv>=3)n3++;if(lv>=2&&p.r>=2)r2=true;}
+ qSet('q1',n1>=1?1:0);qSet('q2',r2?1:0);qSet('q5',n3>=1?1:0);qSet('q6',n1);qSet('q9',n3);
+}
+function evoEvent(ev,v,ns){
+ const E=S.evo;if(!E)return;
+ dailyEnsure();
+ const ids=dailyPick(E.daily.d);
+ ids.forEach((di,i)=>{const d=EVD[di];if(d.ev===ev&&!E.daily.c[i])E.daily.p[i]=Math.min(d.t,E.daily.p[i]+(ev==='wavenum'?0:(v||1)));});
+ if(P&&P.evoLv>0){
+  if(ev==='win')qAdd('q4',1);
+  if(ev==='boss')qAdd('q3',1);
+  if(ev==='ffa')qAdd('q8',1);
+  if(ev==='wavenum'&&v>=10)qSet('q7',1);
+ }
+ qRecalc();if(!ns)save();
+}
+function evoClaim(id){
+ const d=qDef(id);if(!d)return;const q=qGet(id);
+ if(q.c||q.p<d.t)return;
+ q.c=1;S.coins+=d.coins;addShards(d.sh);
+ let extra='';if(d.aura){S.evo.auras[d.aura]=1;extra=' · '+AURAS.find(a=>a.id===d.aura).n+' aura unlocked!';}
+ save();SFX.win();toast('Claimed +'+d.coins+' 🪙 +'+d.sh+' 💎'+extra);evoQuestScreen();
+}
+function evoClaimDaily(i){
+ dailyEnsure();const E=S.evo,d=EVD[dailyPick(E.daily.d)[i]];
+ if(!d||E.daily.c[i]||E.daily.p[i]<d.t)return;
+ E.daily.c[i]=1;S.coins+=d.coins;addShards(d.sh);save();SFX.win();toast('Daily claimed +'+d.coins+' 🪙 +'+d.sh+' 💎');evoQuestScreen();
+}
+
+/* ---------- evolving ---------- */
+function evoState(p){
+ const lv=evoLv(p.key),own=S.owned[p.key]|0,dups=Math.max(0,own-1);
+ if(lv>=3)return{lv:lv,max:true,dups:dups,own:own,can:false};
+ const r=evoReq(p,lv),ok={dup:dups>=r.dup,coins:S.coins>=r.coins,sh:S.evo.shards>=r.sh};
+ const fr=[];if(r.dup)fr.push(Math.min(1,dups/r.dup));fr.push(Math.min(1,S.coins/r.coins));fr.push(Math.min(1,S.evo.shards/r.sh));
+ return{lv:lv,max:false,dups:dups,own:own,r:r,ok:ok,can:own>0&&ok.dup&&ok.coins&&ok.sh,pct:Math.round(fr.reduce((a,b)=>a+b,0)/fr.length*100)};
+}
+function doEvolve(key,expect){
+ const p=getP(key);if(!p||evoBusy)return false;
+ const st=evoState(p);
+ if(st.max||st.lv!==expect||!st.can)return false;
+ S.owned[key]=Math.max(1,(S.owned[key]|0)-st.r.dup);
+ S.coins-=st.r.coins;S.evo.shards-=st.r.sh;
+ S.evo.st[key]=st.lv+1;
+ qRecalc();save();return true;
+}
+function evoConvert(key){
+ const p=getP(key),st=evoState(p);if(!p||st.dups<1)return;
+ S.owned[key]=Math.max(1,(S.owned[key]|0)-1);const g=addShards(3+p.r*2);save();SFX.reveal(2);toast('Converted 1 duplicate → +'+g+' 💎');evoRender();
+}
+function evoStatRows(p,lv){
+ const w=WEP[p.w],ult=isUlt(p),ex=!!p.ex,def0=ult?.3:(ex?.26:p.r*.018),spd0=(5.0+p.r*.1)*(ult?1.2:1)*(ex?1.15:1);
+ const row=l=>{const E=EVO_STATS[l];return{dmg:w.dmg*powOf(p)*(1+E.dmg),hp:100*(1+E.hp)/(1-def0),sr:100*(1+E.stam),sp:spd0*(1+E.spd)};};
+ return{b:row(0),c:row(lv),n:lv<3?row(lv+1):null};
+}
+
+/* ---------- Evolution Lab UI ---------- */
+function setMenuFor(p,lv,aur){
+ if(menuF)scene.remove(menuF.g);
+ menuF=mkFighter(p,true,0,lv,aur);menuF.opp=menuF;
+}
+function evoOwnedList(){return ROSTER.concat(SKINS).filter(p=>(S.owned[p.key]|0)>0).sort((a,b)=>evoLv(b.key)-evoLv(a.key)||b.r-a.r||a.key-b.key);}
+function labFighter(){const p=getP(evoSel),lv=evoLv(p.key);setMenuFor(p,Math.min(3,lv+(evoPrev?1:0)),S.evo.aura);}
+function evoScreen(key,from){
+ if(from)evoFrom=from;
+ state='menu';hudShow(false);
+ if(key!==undefined&&key!==null&&(S.owned[key]|0)>0)evoSel=+key;
+ else if(!((S.owned[evoSel]|0)>0))evoSel=S.sel;
+ evoPrev=false;
+ clearFighters();buildArena(clamp(S.unlocked-1,0,4));labMode=true;
+ labFighter();evoRender();
+}
+function evoBack(){
+ labMode=false;
+ if(evoFrom==='collection'){setMenuFor(getP(S.sel));collectionScreen();}else mainMenu();
+}
+function evoRender(){
+ const old=$('estrip'),sl=old?old.scrollLeft:0;
+ const p=getP(evoSel),lv=evoLv(p.key),rc=RAR[p.r],st=evoState(p),kit=evoKit(p),rows=evoStatRows(p,lv),E=S.evo;
+ const next=lv+1,own=evoOwnedList();
+ const fmt={dmg:v=>v.toFixed(1),hp:v=>Math.round(v),sr:v=>Math.round(v)+'%',sp:v=>v.toFixed(2)};
+ const statLine=(lab,k)=>{const b=fmt[k](rows.b[k]),c=fmt[k](rows.c[k]),n=rows.n?fmt[k](rows.n[k]):null;
+  return `<div class="erow"><span>${lab}</span><span class="ev">${b}</span><span class="ev"><b>${c}</b></span><span class="ev ${n?'up':''}">${n?'▲ '+n:'MAX'}</span></div>`;};
+ const track=[0,1,2,3].map(i=>`<div class="etk${i<=lv?' on':''}${i===next&&!st.max?' nx':''}" style="--ec:${EVO_COL[i]}"><i>${i===0?'●':'★'.repeat(i)}</i><small>${EVO_NAMES[i]}</small></div>`).join('');
+ const abil=[
+  {l:1,t:'Passive',n:kit.pass.n,d:kit.pass.d,ico:'✦'},
+  {l:2,t:'Ability (Q)',n:ABIL[kit.a1].n,d:ABIL[kit.a1].d+' Cooldown '+ABIL[kit.a1].cd+'s.',ico:ABIL[kit.a1].ico},
+  {l:3,t:'Signature (R)',n:ULTA[kit.a2].n,d:ULTA[kit.a2].d+' Cooldown '+ULTA[kit.a2].cd+'s.',ico:ULTA[kit.a2].ico}
+ ].map(a=>`<div class="eab${lv>=a.l?'':' lock'}${a.l===next&&!st.max?' newab':''}"><span class="ei">${lv>=a.l?a.ico:'🔒'}</span><div><b>Stage ${a.l+1} · ${a.t}: ${a.n}</b>${a.l===next&&!st.max?' <span class="evnew">NEXT</span>':''}<br><small>${a.d}</small></div></div>`).join('');
+ let req='';
+ if(st.max)req='<div style="font-weight:900;color:#ffd24a;text-align:center;margin:8px 0">✨ Fully evolved — Transcendent!</div>';
+ else{
+  const line=(ic,lab,have,need,ok)=>`<div class="rq ${ok?'ok':'no'}"><span>${ic} ${lab}</span><span>${have.toLocaleString()} / ${need.toLocaleString()} ${ok?'✔':'✖'}</span></div>`;
+  req=`<div style="font-weight:900;margin:8px 0 2px">Evolve to Stage ${next+1} · ${EVO_NAMES[next]}</div>
+   ${st.r.dup?line('🐼','Duplicate copies',st.dups,st.r.dup,st.ok.dup):'<div class="rq ok"><span>🐼 Duplicates</span><span>Not needed (special rule) ✔</span></div>'}
+   ${line('🪙','Coins',S.coins,st.r.coins,st.ok.coins)}
+   ${line('💎','Evolution Shards',E.shards,st.r.sh,st.ok.sh)}
+   <div class="pbar"><i style="width:${st.pct}%"></i><span>${st.pct}% ready</span></div>`;
+ }
+ const canEv=!st.max&&st.can;
+ const evBtn=st.max?'':`<button class="btn ${canEv?'grn':'dim'}" data-act="evoask">🧬 Evolve to Stage ${next+1}</button>`;
+ const miss=(!st.max&&!st.can)?`<div style="font-size:12px;color:#ff9a8a;font-weight:800;margin-top:4px">Missing: ${[!st.ok.dup?(st.r.dup-st.dups)+' duplicate'+(st.r.dup-st.dups>1?'s':''):'',!st.ok.coins?(st.r.coins-S.coins).toLocaleString()+' coins':'',!st.ok.sh?(st.r.sh-E.shards)+' shards':''].filter(Boolean).join(', ')}</div>`:'';
+ const conv=st.dups>0?`<button class="btn alt sm" data-act="evoconv">♻ Convert 1 duplicate → ${3+p.r*2} 💎 (${st.dups} spare)</button>`:`<span style="font-size:12px;opacity:.75">No spare duplicates (pack duplicates give 💎 automatically)</span>`;
+ const auras=AURAS.filter(a=>a.id===''||E.auras[a.id]).map(a=>`<button class="chip${E.aura===a.id?' on':''}" data-act="evoaura" data-v="${a.id||'-'}" style="${a.col?'border-color:'+a.col:''}">${a.n}</button>`).join('');
+ const strip=own.map(q=>{const l=evoLv(q.key);return `<div class="emini${q.key===evoSel?' on':''}" data-act="evosel" data-v="${q.key}" style="--rc:${RAR[q.r].c}"><img src="${thumb(q)}" alt=""><b>${q.name}</b>${l?`<i class="evb" style="color:${EVO_COL[l]}">${evoBadge(l)}</i>`:''}</div>`;}).join('');
+ const spec=(p.ex||isUlt(p))?'<div style="font-size:12px;font-weight:800;color:#ffa24a;margin-top:4px">⭐ Special rule: this panda is one of a kind, so it needs no duplicates — only coins and extra shards.</div>':'';
+ ui(topbar('Evolution Lab','evoback')+`<div class="lbar"><span>💎 <b>${E.shards.toLocaleString()}</b> Evolution Shards</span><span>🧬 Evolved <b>${evoCount()}</b>/${ownedCount()+((S.owned[1000]|0)?1:0)}</span><button class="btn sm alt" data-act="evoquests">📜 Quests</button></div>
+ <div class="labgap"></div>
+ <div class="panel elab">
+  <div class="${p.r===7?'rb':''}" style="font-weight:900;font-size:12px;color:${rc.c}">${rc.n.toUpperCase()}</div>
+  <div style="font-size:22px;font-weight:900">${p.name} <span style="color:${EVO_COL[lv]}">${lv?evoBadge(lv):''}</span></div>
+  <div style="font-size:13px;opacity:.9">${WEP[p.w].ico} ${WEP[p.w].n} · Stage ${lv+1}: <b style="color:${EVO_COL[lv]}">${EVO_NAMES[lv]}</b>${evoPrev?' · <b style="color:#ffe14d">previewing Stage '+(lv+2)+'</b>':''}</div>
+  <div class="etrack">${track}</div>
+  <div class="erow eh"><span></span><span class="ev">Base</span><span class="ev">Now</span><span class="ev">Next</span></div>
+  ${statLine('⚔️ Damage','dmg')}${statLine('❤️ Health','hp')}${statLine('🔋 Stamina regen','sr')}${statLine('👟 Speed','sp')}
+  <div style="margin-top:8px">${abil}</div>
+  ${req}${miss}${spec}
+  <div class="row" style="margin-top:10px">${evBtn}${st.max?'':`<button class="btn alt sm" data-act="evoprev">${evoPrev?'👁 Show current':'👁 Preview next stage'}</button>`}${S.sel===p.key?'<button class="btn dim sm">Equipped ✔</button>':`<button class="btn sm" data-act="evoequip">Equip</button>`}</div>
+  <div style="margin-top:8px;text-align:center">${conv}</div>
+  <div style="margin-top:8px;text-align:center"><div style="font-size:12px;font-weight:800;opacity:.85;margin-bottom:4px">Aura colour (unlock more through quests)</div><div class="row" style="gap:6px">${auras}</div></div>
+  <div style="font-size:12px;opacity:.8;margin-top:8px;text-align:center">Evolution is optional. Abilities: <b>Q</b> / <b>R</b> on keyboard, or the round buttons on phone. In online PvP with “Fair stats” on, evolution is cosmetic only.</div>
+ </div>
+ <div style="max-width:620px;margin:6px auto 4px;font-weight:900;font-size:13px">Your pandas</div>
+ <div class="estrip" id="estrip">${strip}</div>`,'lab');
+ const s2=$('estrip');if(s2)s2.scrollLeft=sl;
+}
+function evoConfirm(){
+ const p=getP(evoSel),st=evoState(p);
+ if(st.max||!st.can){toast(st.max?'Already fully evolved':'You can\'t afford that yet');return;}
+ evoPending={key:p.key,lv:st.lv};
+ const r=st.r,nx=st.lv+1,rc=RAR[p.r];
+ ui(topbar('Confirm Evolution','')+`<div class="panel" style="text-align:center;margin-top:16vh">
+  <img src="${thumb(p)}" style="width:110px;height:120px;object-fit:contain" alt="">
+  <div style="font-size:20px;font-weight:900;color:${rc.c}">${p.name}</div>
+  <div style="font-size:18px;font-weight:900;margin:4px 0">Stage ${st.lv+1} → <span style="color:${EVO_COL[nx]}">Stage ${nx+1} · ${EVO_NAMES[nx]}</span></div>
+  <div style="text-align:left;margin:10px 0">
+   ${r.dup?`<div class="rrow"><span>🐼 Duplicate copies used</span><span>−${r.dup} (${st.own} → ${st.own-r.dup} owned)</span></div>`:''}
+   <div class="rrow"><span>🪙 Coins</span><span>−${r.coins.toLocaleString()} (${S.coins.toLocaleString()} → ${(S.coins-r.coins).toLocaleString()})</span></div>
+   <div class="rrow"><span>💎 Shards</span><span>−${r.sh} (${S.evo.shards} → ${S.evo.shards-r.sh})</span></div></div>
+  <div style="font-size:12px;opacity:.85;margin-bottom:8px">You keep your panda — only the listed duplicates, coins and shards are spent.</div>
+  <div class="row"><button class="btn grn" data-act="evogo">✔ Confirm</button><button class="btn alt" data-act="evocancel">Cancel</button></div></div>`,'dark');
+}
+function evoGo(){
+ if(!evoPending||evoBusy)return;
+ const pe=evoPending;evoPending=null;
+ if(!doEvolve(pe.key,pe.lv)){toast('Evolution failed — nothing was spent');evoRender();return;}
+ evoBusy=true;setTimeout(()=>{evoBusy=false;},900);
+ const p=getP(pe.key),lv=pe.lv+1,kit=evoKit(p);
+ evoSel=pe.key;evoPrev=false;labFighter();
+ SFX.evolve();flash('#ffffff',.85);
+ if(menuF){for(let k=0;k<5;k++)setTimeout(()=>burst(0,.4+k*.35,0,RAR[p.r].c,26,9,.14,0),k*120);}
+ let unlock='';
+ if(lv===1)unlock=`✦ Passive unlocked: <b>${evoKit(p).pass.n}</b> — ${evoKit(p).pass.d}`;
+ else if(lv===2)unlock=`${ABIL[kit.a1].ico} Ability unlocked: <b>${ABIL[kit.a1].n}</b> (press <b>Q</b>)`;
+ else unlock=`${ULTA[kit.a2].ico} Signature unlocked: <b>${ULTA[kit.a2].n}</b> (press <b>R</b>)`;
+ const qn=EVQ.filter(q=>{const x=S.evo.q[q.id];return x&&!x.c&&x.p>=q.t;}).length;
+ ui(`<div class="evring"></div><div class="panel res" style="text-align:center;margin-top:34vh;border-color:${EVO_COL[lv]};position:relative">
+  <h1 style="color:${EVO_COL[lv]};margin:0">✨ EVOLVED!</h1>
+  <div style="font-size:20px;font-weight:900">${p.name}</div>
+  <div style="font-size:18px;font-weight:900;margin:4px 0;color:${EVO_COL[lv]}">${evoBadge(lv)} Stage ${lv+1} · ${EVO_NAMES[lv]}</div>
+  <div style="margin:8px 0">${unlock}</div>
+  ${qn?`<div style="font-weight:900;color:#ffe14d;margin:6px 0">📜 ${qn} evolution quest reward${qn>1?'s':''} ready to claim!</div>`:''}
+  <div class="row" style="margin-top:10px"><button class="btn grn" data-act="evocancel">Continue</button></div></div>`,'lab');
+}
+function evoQuestScreen(){
+ dailyEnsure();const E=S.evo;
+ const bar=(p,t)=>`<div class="pbar sm"><i style="width:${Math.round(p/t*100)}%"></i><span>${p}/${t}</span></div>`;
+ const dids=dailyPick(E.daily.d);
+ const dl=dids.map((di,i)=>{const d=EVD[di],pr=E.daily.p[i],c=E.daily.c[i];
+  return `<div class="qrow"><div><b>${d.d}</b><br><small>Reward: ${d.coins} 🪙 + ${d.sh} 💎</small>${bar(pr,d.t)}</div>${c?'<span class="qdone">✔ Claimed</span>':(pr>=d.t?`<button class="btn grn sm" data-act="evodclaim" data-v="${i}">Claim</button>`:'<span class="qwait">…</span>')}</div>`;}).join('');
+ const ql=EVQ.map(d=>{const q=E.q[d.id]||{p:0,c:0};
+  return `<div class="qrow"><div><b>${d.n}</b> — ${d.d}<br><small>Reward: ${d.coins.toLocaleString()} 🪙 + ${d.sh} 💎${d.aura?' + '+AURAS.find(a=>a.id===d.aura).n+' aura':''}</small>${bar(Math.min(q.p,d.t),d.t)}</div>${q.c?'<span class="qdone">✔ Claimed</span>':(q.p>=d.t?`<button class="btn grn sm" data-act="evoclaim" data-v="${d.id}">Claim</button>`:'<span class="qwait">…</span>')}</div>`;}).join('');
+ ui(topbar('Evolution Quests','evocancel')+`<div class="lbar"><span>💎 <b>${E.shards.toLocaleString()}</b> Evolution Shards</span></div>
+  <div class="panel"><h3>📅 Daily challenges <small style="opacity:.7">(reset every day)</small></h3>${dl}</div>
+  <div class="panel"><h3>🧬 Evolution quests</h3>${ql}</div>
+  <div class="panel" style="font-size:13px"><b>How to earn 💎 shards:</b> beat bosses and clear worlds, reach Survival wave milestones (every 5 waves), win Freeplay and online matches, finish daily challenges and quests, get duplicate pandas from packs, or convert spare duplicates in the Lab.</div>`,'solid');
+}
+
 const ACT={
- menu:()=>{pvpLeave();mainMenu();},pvp:()=>pvpScreen(),pvpcreate:()=>pvpHostRoom(),pvpjoin:()=>pvpJoinRoom($('pvpCode').value),pvpcancel:()=>{pvpLeave();pvpScreen();},pvpstart:()=>pvpStartMatch(),pvplobby:()=>{if(!pvpHost&&!pvpConn){pvpLeave();pvpScreen();pvpSetStatus('The host left the room.');}else pvpShowLobby();},pvpkick:v=>pvpKick(+v),pvpleave:()=>{pvpLeave();mainMenu();},pvpcopy:v=>{const l=location.href.split('#')[0].split('?')[0]+'?room='+v;try{navigator.clipboard.writeText(l).then(()=>toast('Link copied!'),()=>toast(l));}catch(e){toast(l);}},freeplay:()=>freeplayScreen(),hwevent:()=>hwScreen(),hw:()=>startFight(4,'hw'),survival:()=>survivalScreen(),surv:v=>startFight(+v,'surv'),ffa:v=>startFight(+v,true),worlds:()=>worldsScreen(),collection:()=>collectionScreen(),shop:()=>shopScreen(),help:()=>helpScreen(),settings:()=>settingsScreen(),
+ menu:()=>{pvpLeave();mainMenu();},pvp:()=>pvpScreen(),pvpcreate:()=>pvpHostRoom(),pvpjoin:()=>pvpJoinRoom($('pvpCode').value),pvpcancel:()=>{pvpLeave();pvpScreen();},evomenu:()=>evoScreen(undefined,'menu'),evolab:v=>evoScreen(+v,'collection'),evoback:()=>evoBack(),evosel:v=>{evoSel=+v;evoPrev=false;labFighter();evoRender();},evoprev:()=>{evoPrev=!evoPrev;labFighter();evoRender();},evoask:()=>evoConfirm(),evogo:()=>evoGo(),evocancel:()=>{evoPending=null;evoRender();},evoconv:()=>evoConvert(evoSel),evoequip:()=>{S.sel=evoSel;save();evoRender();},evoaura:v=>{const a=v==='-'?'':v;if(a===''||S.evo.auras[a]){S.evo.aura=a;save();labFighter();evoRender();}},evoquests:()=>evoQuestScreen(),evoclaim:v=>evoClaim(v),evodclaim:v=>evoClaimDaily(+v),pvpstart:()=>pvpStartMatch(),pvplobby:()=>{if(!pvpHost&&!pvpConn){pvpLeave();pvpScreen();pvpSetStatus('The host left the room.');}else pvpShowLobby();},pvpkick:v=>pvpKick(+v),pvpleave:()=>{pvpLeave();mainMenu();},pvpcopy:v=>{const l=location.href.split('#')[0].split('?')[0]+'?room='+v;try{navigator.clipboard.writeText(l).then(()=>toast('Link copied!'),()=>toast(l));}catch(e){toast(l);}},freeplay:()=>freeplayScreen(),hwevent:()=>hwScreen(),hw:()=>startFight(4,'hw'),survival:()=>survivalScreen(),surv:v=>startFight(+v,'surv'),ffa:v=>startFight(+v,true),worlds:()=>worldsScreen(),collection:()=>collectionScreen(),shop:()=>shopScreen(),help:()=>helpScreen(),settings:()=>settingsScreen(),
  play:v=>startFight(+v,false),
  sel:v=>{colSel=+v;detailPanel();},
  equip:v=>{S.sel=+v;save();detailPanel();document.querySelectorAll('.cgrid .card').forEach(c=>{const old=c.querySelector('.eqd');if(old)old.remove();if(+c.dataset.v===S.sel){const d=document.createElement('div');d.className='eqd';d.textContent='EQUIPPED';c.appendChild(d);}});},
@@ -1708,7 +2206,7 @@ function loop(now){
   if(state==='menu'){menuUpdate(rdt);}
   else if(P){fightUpdate(rdt);}
   const sd=rdt*(state==='ko'?timeScale:1);
-  arenaUpd(T,rdt);updFX(sd,rdt);
+  arenaUpd(T,rdt);updFX(sd,rdt);evoPulse(T);
  }
  renderer.render(scene,camera);
 }
