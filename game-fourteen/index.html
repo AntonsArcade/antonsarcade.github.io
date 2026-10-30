@@ -494,7 +494,7 @@ const BD=[{n:'Bomb',r:11,bd:1,cd:.3,cost:200,pk:5,col:0x222222,d:'Standard blast
 function spawn(x,y,z,vx,vy,vz,ty,dl=0){const d=BD[ty],m=new T.Mesh(new T.SphereGeometry(ty==8?.9:ty==1?.6:ty==9?.25:.38,12,10),Mt(d.col,.4,.6,new T.Color(d.col).multiplyScalar(.35).getHex()));m.castShadow=true;m.visible=dl<=0;scene.add(m);bombs.push({m,x,y,z,vx,vy,vz,ty,dl})}
 const rc=new T.Raycaster(),gp=new T.Plane(new T.Vector3(0,1,0),0),mp=new T.Vector2(0,.2),hv=new T.Vector3(),aimM=new T.Mesh(new T.TorusGeometry(1.6,.15,6,24),new T.MeshBasicMaterial({color:0xff3030}));aimM.rotation.x=PI/2;scene.add(aimM);
 function aim(){rc.setFromCamera(mp,cam);let x,z;if(rc.ray.intersectPlane(gp,hv)){x=hv.x;z=hv.z}else{x=P.x+Math.sin(ch)*40;z=P.z+Math.cos(ch)*40}const d=Math.hypot(x-P.x,z-P.z);if(d>65){x=P.x+(x-P.x)*65/d;z=P.z+(z-P.z)*65/d}return[x,z]}
-function throwBomb(){const i=P.bi;if(P.am[i]<1){P.cd=.5;toast('Out of '+BD[i].n+'! Resupply at a BASE or the Black Market');return}
+function throwBomb(){if(FC.on)return;const i=P.bi;if(P.am[i]<1){P.cd=.5;toast('Out of '+BD[i].n+'! Resupply at a BASE or the Black Market');return}
  P.am[i]--;P.cd=BD[i].cd*(1-.08*(P.up.cd||0));sfx('throw');const [ax,az]=aim();
  if(i==7){const dx=ax-P.x,dz=az-P.z,l=Math.hypot(dx,dz)||1,ux=dx/l,uz=dz/l;for(let k=-4;k<=4;k++)spawn(ax+ux*k*7,70,az+uz*k*7,0,-35,0,10,.8+(k+4)*.17)}
  else if(P.fly)spawn(P.x,P.y-1,P.z,P.vx,-3,P.vz,i);
@@ -582,7 +582,7 @@ addEventListener('keydown',e=>{if(document.activeElement===$('ci')){if(e.code=='
  if(e.code=='KeyV'){V6.rd.mute=V6.rd.mute?0:1;toast(V6.rd.mute?'🔇 Engine + siren noise OFF':'🔊 Engine + siren noise ON');save();return}if(e.code=='KeyN'){rdNext();return}if(e.code=='KeyB'){rdSkip();return}if(e.code=='KeyF'){footKey();return}if(e.code=='KeyG'){cuOpen();return}if(e.code=='KeyL'){rdOpen();return}
  if(e.code=='KeyQ'){for(let k=1;k<=9;k++){const i=(P.bi+k)%9;if(P.am[i]>0){pick(i);break}}}
  if(/^Digit[1-9]$/.test(e.code)){const i=+e.code[5]-1;if(P.am[i]>0||i==0)pick(i);else toast('No '+BD[i].n+' bombs')}
- if(e.code=='KeyE'){if(P.fly){if(padLanded())openTower(1);else if(P.y<2&&P.v<8)exitJet();else toast('Land and stop (or land on the tower helipad) to exit')}else{const bs=baseAt();if(prInteract()||wcInteract());else if(near(96,-96,13)||(bs&&bs.sh))openMk();else if(!P.ug&&near(38,0,7))openCasino();else if(!P.ug&&near(0,14,9))openTower();else if(!P.ug&&near(-37,0,7))openManor();else if(!P.ug&&near(jetM.position.x,jetM.position.z,12))enterJet()}}
+ if(e.code=='KeyE'){if(P.fly){if(padLanded())openTower(1);else if(P.y<2&&P.v<8)exitJet();else toast('Land and stop (or land on the tower helipad) to exit')}else{const bs=baseAt();if(fcInteract()||reInteract()||prInteract()||wcInteract());else if(near(96,-96,13)||(bs&&bs.sh))openMk();else if(!P.ug&&near(38,0,7))openCasino();else if(!P.ug&&near(0,14,9))openTower();else if(!P.ug&&near(-37,0,7))openManor();else if(!P.ug&&near(jetM.position.x,jetM.position.z,12))enterJet()}}
  if(e.code=='KeyR'&&!P.fly){startHeist();prStartKey();wcStartKey();rcStartKey()};if(e.code=='KeyM')bigMap=!bigMap});
 addEventListener('keyup',e=>delete keys[e.code]);addEventListener('blur',()=>{for(const k in keys)delete keys[k];mouse=false});
 addEventListener('mousemove',e=>{mp.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1)});
@@ -603,7 +603,7 @@ function renderMk(){$('mi').innerHTML='<p>Cash: $'+P.cash+'</p>'+ITEMS.filter(i=
 function buy(id){const i=ITEMS.find(x=>x.id==id);if(i.t=='car'&&P.owned[id]){setCar(id)}else{if(P.cash<i.c)return;P.cash-=i.c;if(i.t=='b')P.am[i.i]+=BD[i.i].pk;if(i.t=='r')P.hp=P.mx;if(i.t=='car'){P.owned[id]=1;setCar(id);toast(i.n+' equipped')}}save();renderMk()}
 function openMk(){mk=true;if(eg)eg.gain.value=0;renderMk();$('mk').style.display='flex'}
 function openCm(){mk=true;if(eg)eg.gain.value=0;$('cr').textContent='';$('cm').style.display='flex';setTimeout(()=>$('ci').focus(),30)}
-function closeMk(){mk=false;$('mk').style.display='none';$('cm').style.display='none';$('ci').blur();$('cs').style.display='none';$('rdm').style.display='none';$('cum').style.display='none';$('tw').style.display='none';$('hw').style.display='none';CS.busy=0}
+function closeMk(){mk=false;$('mk').style.display='none';$('cm').style.display='none';$('ci').blur();$('cs').style.display='none';$('rdm').style.display='none';$('cum').style.display='none';$('tw').style.display='none';$('hw').style.display='none';CS.busy=0;if(FC.menu)fcCloseMenu()}
 function giveCar(id){P.owned[id]=1;setCar(id);P.hp=P.mx}
 const CODES={FREETANK:()=>giveCar('tank'),HYPER300:()=>giveCar('hyper'),GHOSTCAR:()=>giveCar('phantom'),NUKEIT:()=>{P.am[8]+=3},ALLBOMBS:()=>{for(let i=0;i<9;i++)P.am[i]+=10},RICHBOI:()=>{P.cash+=50000},SEWERS:()=>{},SUBWAY:()=>{},AREA51:()=>{},GODTANK:()=>{giveCar('godtank');toast('GOD TANK: 5,000 HP and 400 km/h!')},HACKERZ:()=>{toast('HACKERZ: +$10,000 passive income every second!')}};
 function applyCode(){const s=$('ci').value.trim().toUpperCase();$('ci').value='';const f=CODES[s];if(!f){$('cr').textContent='Invalid code';return}if(P.codes[s]){$('cr').textContent='Already used';return}P.codes[s]=1;f();applyUnlocks();save();$('cr').textContent='CODE ACCEPTED: '+s;toast('Code accepted: '+s)}
@@ -682,7 +682,7 @@ function hud(){const s=stars(),ri=rankI(),nx=RK[ri+1],bs=baseAt();prHud();wcHud(
  else if(P.ug)h=bs?bs.n+' – bounty banked · E: shop':'Drive to a glowing EXIT to surface';
  else if(bs)h=bs.n+' – safe zone'+(bs.sh?' · E: Black Market':'')+(bs.tw?' · E: Enter the tower':'');
  else if(near(-37,0,7))h='E – Enter the HAUNTED MANOR (trick or treat!)';else if(near(38,0,7))h='E – Enter the CASINO (gamble your cash)';else if(near(96,-96,13))h='E – Enter Black Market';else if(near(jetM.position.x,jetM.position.z,12))h='E – Enter JET (500 km/h)';else if(P.pend>0)h='Drive to a BASE to bank $'+P.pend;else if(P.cash>=200&&P.tut)h='Cash to spend – drive to the purple BLACK MARKET';
- const ho=heistHint()||prHint()||wcHint()||v6Hint()||v9Hint();if(ho)h=ho;$('hint').style.display=h?'block':'none';$('hint').textContent=h}
+ const ho=heistHint()||prHint()||wcHint()||v6Hint()||v10Hint()||v9Hint();if(ho)h=ho;$('hint').style.display=h?'block':'none';$('hint').textContent=h}
 
 // ===== ROYALE CASINO v2 (self-contained; exposes openCasino / closeCasino / CS) =====
 (function(){
@@ -1820,20 +1820,140 @@ function footBegin(){if(P.fly||P.ug||mk||P.foot)return;if(Math.hypot(P.vx,P.vz)>
 function useCar(c){const K=CT[c.ty];cars.splice(cars.indexOf(c),1);Object.assign(P,{ty:c.ty,sp:K.sp,ac:K.ac,ar:K.ar,mx:K.hp,ms:K.ms||1,rad:K.rad||2.2,g:c.g});P.hp=Math.max(10,c.hp/c.mx*K.hp);P.x=c.x;P.z=c.z;P.h=c.h;P.vx=P.vz=0;P.foot=0;FG.visible=false;ch=P.h}
 function footEnd(){P.foot=0;FG.visible=false;setCar(P.ty)}
 const JACK=[['sedan',60],['muscle',22],['sports',9],['super',4],['hyper',2],['phantom',1],['raptor',1],['limo',1]];
-function footKey(){if(P.fly||P.ug||mk)return;if(!P.foot){footBegin();return}
+function footKey(){if(P.fly||P.ug||mk||FC.on)return;if(BOATS[P.ty]&&!P.foot&&!pierSpot()){boatTP();return}if(!P.foot){footBegin();return}
  const c=carNear(5.5);if(!c){toast('No car nearby (get within a few metres)');return}
  if(c.mine){useCar(c);toast('Back in your '+(CARS.find(x=>x.id==P.ty)||{n:P.ty}).n);return}
  let r=Math.random()*100,ty='sedan';for(const j of JACK){r-=j[1];if(r<=0){ty=j[0];break}}
  const px=c.x,pz=c.z,ph=c.h;cars.splice(cars.indexOf(c),1);scene.remove(c.g);P.foot=0;FG.visible=false;setCar(ty);P.hp=P.mx;P.x=px;P.z=pz;P.h=ph;P.vx=P.vz=0;ch=P.h;P.pend+=1500;
  const rare=['super','hyper','phantom','raptor','limo'].includes(ty);if(rare){P.owned[ty]=1;toast('CARJACKED A RARE '+(CARS.find(x=>x.id==ty)||{n:ty}).n.toUpperCase()+'! Added to your garage.');save()}else toast('CARJACKED! The cops are coming (3 stars).');sfx('alarm');rdEvent('a carjacking was reported downtown')}
-function footStep(dt,th,st){P.h+=st*dt*3.1;const run=K('ShiftLeft','ShiftRight'),v=th>0?(run?10.5:6):th<0?-3:0;P.vx=Math.sin(P.h)*v;P.vz=Math.cos(P.h)*v;P.x+=P.vx*dt;P.z+=P.vz*dt;P.hp=Math.min(P.mx,P.hp+1.5*dt);
+function footStep(dt,th,st){P.h+=st*dt*3.1;const run=K('ShiftLeft','ShiftRight'),v=(th>0?(run?10.5:6):th<0?-3:0)*FCm;P.vx=Math.sin(P.h)*v;P.vz=Math.cos(P.h)*v;P.x+=P.vx*dt;P.z+=P.vz*dt;P.hp=Math.min(P.mx,P.hp+1.5*dt);
  FG.position.set(P.x,0,P.z);FG.rotation.y=P.h;const sw=Math.sin(time*(run?14:9))*(Math.abs(v)>.5?.9:0);FG.lL.rotation.x=sw;FG.lR.rotation.x=-sw;FG.aL.rotation.x=-sw;FG.aR.rotation.x=sw}
 function v9Hint(){if(P.fly||P.ug||!P.foot)return null;const c=carNear(5.5);if(c)return c.mine?'F – get back in your car':'F – CARJACK this car (gives you 3 stars)';return null}
 function v9Mini(pt){pt(-620,LK.pz,'#7fd8ff',5,1)}
 function v9Big(dot){dot(-620,LK.pz,'#7fd8ff',5,'MARINA')}
 function v9Car(ty){if(P.foot)return;cuApply(P.g,ty);if(BOATS[ty]){if(!(P.x<-560)){P.x=-632;P.z=LK.pz+14;P.h=-PI/2;P.vx=P.vz=0;ch=P.h;toast('Welcome to the marina. Boats stay on the water.')}}else if(P.x<-598&&lkIn(P.x,P.z)&&!lkPier(P.x,P.z)){P.x=-575;P.z=LK.pz;P.h=PI/2;P.vx=P.vz=0;ch=P.h}}
-function v9Die(){if(P.foot)footEnd();if(BOATS[P.ty])setCar('sedan')}
-function v9Tick(dt){lkTick(dt)}
+function v9Die(){fcAbort();if(P.foot)footEnd();if(BOATS[P.ty])setCar('sedan')}
+function v9Tick(dt){lkTick(dt);v10Tick(dt)}
+// ===== v10: boat teleport, underground fight club, real estate =====
+var FCm=1;
+P.v9.lc=P.v9.lc||'sedan';P.v9.fc=P.v9.fc||{w:0,l:0};P.v9.re=P.v9.re||{o:{},a:{}};P.v9.re.o=P.v9.re.o||{};P.v9.re.a=P.v9.re.a||{};
+const m10=n=>'$'+Math.round(n).toLocaleString('en-US');
+const pierSpot=()=>P.x<-560&&Math.hypot(P.x+640,P.z-LK.pz)<45;
+// ---- boat teleport (F while in a boat, open water)
+function boatTP(){const lc=P.v9.lc,ty=(lc&&CT[lc]&&!BOATS[lc]&&!(CT[lc].fly))?lc:'sedan';
+ setCar(ty);P.hp=P.mx;P.x=0;P.z=36;P.h=PI/2;ch=P.h;P.vx=P.vz=0;P.pend=1500;P.peak=Math.max(P.peak,3);
+ toast('TELEPORTED to the Empire Tower! Your boat is gone. Cops are on you (3 stars).');sfx('alarm');save()}
+// ---- REAL ESTATE
+const RE=[
+{id:'flat',n:'CORNER FLAT',c:200000,x:-120,z:72,col:0x66ccff},
+{id:'loft',n:'DOWNTOWN LOFT',c:500000,x:168,z:-120,col:0xffaa44},
+{id:'diner',n:'BACK-ALLEY DINER',c:900000,x:-216,z:168,col:0xff6655},
+{id:'club',n:'NEON NIGHTCLUB',c:1500000,x:264,z:120,col:0xff44cc},
+{id:'villa',n:'HILLSIDE VILLA',c:2800000,x:-360,z:-24,col:0x77ee88},
+{id:'pent',n:'SKY PENTHOUSE',c:5000000,x:-24,z:-264,col:0xffd24a}];
+RE.forEach(p=>{p.rate=Math.round(p.c*.012);p.g=zone(p.x,p.z,p.col,p.n+' '+(p.c>=1e6?(p.c/1e6)+'M':(p.c/1e3)+'K'),'#fff',9,1,50);
+ p.b={x:p.x,z:p.z,r:9,n:p.n,on:0,sh:0,g:p.g};BASES.push(p.b)});
+const reOwn=p=>!!P.v9.re.o[p.id],reAcc=p=>Math.floor(P.v9.re.a[p.id]||0);
+function reSync(){RE.forEach(p=>{const o=reOwn(p);p.b.on=o?1:0;try{p.g.children.forEach((c,i)=>{if(i<2&&c.material&&c.material.color)c.material.color.setHex(o?0x44ff88:(i?p.col:p.col))})}catch(e){}})}
+function reNear(){return (P.fly||P.ug)?null:RE.find(p=>near(p.x,p.z,9))}
+function reInteract(){const p=reNear();if(!p)return false;
+ if(!reOwn(p)){if(P.cash<p.c){toast('Not enough cash: '+p.n+' costs '+m10(p.c));return true}P.cash-=p.c;P.v9.re.o[p.id]=1;P.v9.re.a[p.id]=0;reSync();toast('BOUGHT '+p.n+'! Earns '+m10(p.rate)+'/min and works as a safe house.');sfx('coin');save();return true}
+ const a=reAcc(p);if(a<1){toast('No rent collected yet');return true}P.cash+=a;P.v9.re.a[p.id]=0;toast('Collected '+m10(a)+' rent from '+p.n);sfx('coin');save();return true}
+function reTick(dt){RE.forEach(p=>{if(reOwn(p))P.v9.re.a[p.id]=Math.min(p.rate*25,(P.v9.re.a[p.id]||0)+p.rate/60*dt)})}
+reSync();
+// ---- UNDERGROUND FIGHT CLUB
+const AC0={x:-650,z:400},FS={x:96,z:-85};
+var FC={on:0,t:null,fight:0,E:null,hp:120,mx:120,wp:null,wd:0,wm:null,combo:0,ct:0,cd:0,rl:0,rcd:0,rdir:0,hv:0,go:0,nx:0,menu:0,pk:{},fl:[],blk:0,sw:0};
+const WP={bat:{n:'BASEBALL BAT',d:22,r:2.7,cd:.62,u:9,col:0x8a5a2a,s:[.14,1.1,.14]},knife:{n:'KNIFE',d:11,r:2,cd:.3,u:14,col:0xdde2ea,s:[.06,.6,.12]},chain:{n:'CHAIN',d:15,r:3.4,cd:.5,u:10,col:0x9aa0aa,s:[.1,1.3,.1]}};
+const FE=[{n:'RUSTY',hp:80,dmg:8,sp:3.6,acd:1.4,wnd:.55,col:0x8a3a2a,sc:1,stage:'QUARTER-FINAL',prize:50000},
+{n:'TORCH',hp:140,dmg:11,sp:4.6,acd:.95,wnd:.4,col:0x2a5a8a,sc:1.08,stage:'SEMI-FINAL',prize:250000},
+{n:'IRON MARA',hp:270,dmg:16,sp:5.2,acd:.7,wnd:.3,col:0x6a2a8a,sc:1.2,stage:'GRAND FINAL',prize:2000000,combo:1}];
+{const AG=new T.Group();scene.add(AG);const wall=Mt(0x3a2222,.95),flr=Mt(0x26262c,.9);
+ B(AG,46,.3,46,flr,AC0.x,.1,AC0.z);
+ [[0,-23.5,48,5,1],[0,23.5,48,5,1],[-23.5,0,1,5,48],[23.5,0,1,5,48]].forEach(a=>B(AG,a[2],a[3],a[4],wall,AC0.x+a[0],2.5,AC0.z+a[1]));
+ const ring=new T.Mesh(new T.TorusGeometry(12.8,.18,6,48),new T.MeshBasicMaterial({color:0xff2a2a}));ring.rotation.x=PI/2;ring.position.set(AC0.x,.3,AC0.z);AG.add(ring);
+ for(let i=0;i<8;i++){const a=i/8*PI*2;B(AG,.4,2.2,.4,Mt(0x777777,.5,.6),AC0.x+Math.cos(a)*12.8,1.2,AC0.z+Math.sin(a)*12.8)}
+ const lt=new T.PointLight(0xff7744,1.1,70);lt.position.set(AC0.x,9,AC0.z);AG.add(lt);
+ B(AG,2.2,2.6,.3,Mt(0x2255aa,.6),AC0.x,1.4,AC0.z+21);label('EXIT',AC0.x,4.2,AC0.z+21,6,'#8cf',AG);
+ B(AG,5,2.6,.3,Mt(0x222222,.6),AC0.x,1.4,AC0.z-20);label('TOURNAMENT BOARD',AC0.x,4.2,AC0.z-20,9,'#ffd24a',AG);
+ label('UNDERGROUND FIGHT CLUB',AC0.x,9,AC0.z,22,'#ff4444',AG);
+ B(scene,3.4,.12,2.2,Mt(0x111114,.6),FS.x,.1,FS.z);label('FIGHT CLUB',FS.x,3,FS.z,8,'#ff4444')}
+function mkFt(col,sc){const g=new T.Group(),jk=Mt(col,.7),sk=Mt(0xd9a07a,.9);B(g,.6,.85,.36,jk,0,1.25,0);const hd=new T.Mesh(new T.SphereGeometry(.24,10,8),sk);hd.position.y=1.9;g.add(hd);
+ g.lL=B(g,.22,.8,.24,Mt(0x15161c,.9),-.15,.4,0);g.lR=B(g,.22,.8,.24,Mt(0x15161c,.9),.15,.4,0);g.aL=B(g,.18,.75,.2,sk,-.42,1.25,0);g.aR=B(g,.18,.75,.2,sk,.42,1.25,0);g.scale.setScalar(sc);scene.add(g);return g}
+const fcEl=document.createElement('div');fcEl.style.cssText='position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:30;display:none;color:#fff;font:700 13px sans-serif;text-align:center;pointer-events:none;text-shadow:0 1px 3px #000;min-width:340px';document.body.appendChild(fcEl);
+const fmEl=document.createElement('div');fmEl.id='fcm';fmEl.style.cssText='position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.72);font-family:sans-serif;color:#fff';document.body.appendChild(fmEl);
+function fcMenu(){const c=P.cash,bets=[0,10000,100000,1000000],r=P.v9.fc;
+ fmEl.innerHTML='<div style="background:#1a0f12;border:2px solid #ff4444;border-radius:14px;padding:22px 26px;max-width:520px;box-shadow:0 0 40px #f224"><h2 style="margin:0 0 6px;color:#ff5a5a;letter-spacing:2px">UNDERGROUND FIGHT CLUB</h2><div style="color:#ccc;font-size:13px;margin-bottom:10px">8-fighter bracket. Win 3 fights: <b>RUSTY</b> ($50K) → <b>TORCH</b> ($250K) → <b>IRON MARA</b> ($2,000,000). Lose once and you are out.<br>Record: '+r.w+' titles / '+r.l+' knockouts</div><div style="font-size:12px;color:#9cf;margin-bottom:12px">Move W/S + A/D turn (Shift run) · <b>J / click</b> punch · <b>K</b> kick · <b>H</b> hold to block · <b>Space</b> dodge roll · 3 hits in a row = combo finisher · walk over floor weapons to grab them</div><div style="margin-bottom:8px">Bet on yourself (win the tournament = bet paid back <b>4×</b>, lose = you lose it):</div><div id="fcb" style="display:flex;gap:8px;flex-wrap:wrap">'+bets.map((b,i)=>'<button data-b="'+b+'" '+(c<b?'disabled':'')+' style="flex:1;min-width:100px;padding:10px;border-radius:8px;border:1px solid #ff5a5a;background:'+(c<b?'#333':'#3a1418')+';color:#fff;font-weight:700;cursor:pointer">['+(i+1)+'] '+(b?m10(b):'NO BET')+'</button>').join('')+'</div><div style="margin-top:12px;color:#888;font-size:12px">Esc to cancel</div></div>';
+ fmEl.style.display='flex';FC.menu=1;mk=true;if(eg)eg.gain.value=0;fmEl.querySelectorAll('button').forEach(b=>b.onclick=()=>{if(!b.disabled)fcStart(+b.dataset.b)})}
+function fcCloseMenu(){fmEl.style.display='none';FC.menu=0;mk=false}
+addEventListener('keydown',e=>{if(FC.menu&&/^Digit[1-4]$/.test(e.code)){const b=fmEl.querySelectorAll('button')[+e.code[5]-1];if(b&&!b.disabled)fcStart(+b.dataset.b)}});
+function fcEnter(){if(stars()>0){toast('Cops are outside. Lose your wanted level first.');return true}
+ if(!P.foot){footBegin();if(!P.foot)return true}
+ FC.on=1;FC.t=null;FC.fight=0;FC.hp=FC.mx;P.x=AC0.x;P.z=AC0.z+17;P.h=PI;ch=P.h;P.vx=P.vz=0;toast('You head down the hidden stairs. Welcome to the FIGHT CLUB.');return true}
+function fcClean(){if(FC.E){scene.remove(FC.E.g);FC.E=null}FC.fl.forEach(w=>scene.remove(w.g));FC.fl=[];fcDrop();FC.fight=0;FC.blk=0;FCm=1;FG.rotation.x=0;fcEl.style.display='none'}
+function fcLeave(){fcClean();FC.on=0;FC.t=null;P.x=FS.x;P.z=FS.z+4;P.vx=P.vz=0;toast('Back on the street. Press F next to your car.')}
+function fcAbort(){if(FC.on){fcClean();FC.on=0;FC.t=null}}
+function fcDrop(){if(FC.wm){FG.remove(FC.wm);FC.wm=null}FC.wp=null;FC.wd=0}
+function fcStart(bet){fcCloseMenu();if(P.cash<bet)return;P.cash-=bet;FC.t={bet,r:0};FC.hp=FC.mx;toast('Bet placed: '+(bet?m10(bet):'none')+'. Good luck.');fcRound(0);save()}
+function fcRound(i){if(FC.E)scene.remove(FC.E.g);fcDrop();FC.fl.forEach(w=>scene.remove(w.g));FC.fl=[];
+ const d=FE[i],g=mkFt(d.col,d.sc);FC.E=Object.assign({},d,{i,g,mx:d.hp,x:AC0.x,z:AC0.z-8,h:0,cd:1.2,wind:0,stag:0,kx:0,kz:0,dead:0,dt:0,rch:2.1*d.sc,sw:0,sec:0});g.position.set(AC0.x,0,AC0.z-8);
+ FC.hp=Math.min(FC.mx,FC.hp+(i?40:120));P.x=AC0.x;P.z=AC0.z+8;P.h=PI;ch=P.h;P.vx=P.vz=0;FC.fight=1;FC.go=1.6;FC.cd=0;FC.combo=0;FC.rl=0;FC.hv=0;
+ const ks=Object.keys(WP);for(let k=0;k<3;k++){const ty=ks[Math.floor(Math.random()*3)],w=WP[ty],a=R(0,6.28),r=R(4,10),gg=new T.Group();B(gg,w.s[0],w.s[1],w.s[2],Mt(w.col,.4,.5),0,.8,0);gg.rotation.z=1.2;const x=AC0.x+Math.cos(a)*r,z=AC0.z+Math.sin(a)*r;gg.position.set(x,0,z);scene.add(gg);FC.fl.push({g:gg,x,z,ty})}
+ toast(d.stage+': vs '+d.n+'!')}
+function fcEquip(ty){const w=WP[ty];fcDrop();FC.wp=ty;FC.wd=w.u;FC.wm=B(FG,w.s[0],w.s[1],w.s[2],Mt(w.col,.4,.5),.37,1.5,.35);toast('Picked up a '+w.n+' ('+w.u+' hits)')}
+function fcLose(){const b=FC.t?FC.t.bet:0;toast('KNOCKED OUT!'+(b?' You lost your '+m10(b)+' bet.':''));P.v9.fc.l++;fcClean();FC.t=null;FC.hp=FC.mx;P.x=AC0.x;P.z=AC0.z+12;P.h=PI;ch=P.h;save()}
+function fcHitE(d,kb,heavy){const E=FC.E;E.hp-=d;if(heavy&&(E.imm||0)<=0){E.stag=.3;E.wind=0;E.imm=1.1}const a=Math.atan2(E.x-P.x,E.z-P.z);E.kx=Math.sin(a)*kb;E.kz=Math.cos(a)*kb;shk=Math.max(shk,heavy?.5:.2);sfx('throw');
+ if(E.hp<=0&&!E.dead){E.dead=1;E.dt=0;FC.fight=2;FC.nx=3.4;FC.t.r++;P.cash+=E.prize;toast('KO! '+E.n+' is down. +'+m10(E.prize));sfx('coin');
+  if(FC.t.r>=3){const b=FC.t.bet*4;if(b)P.cash+=b;P.v9.fc.w++;toast('TOURNAMENT CHAMPION!'+(b?' Bet pays '+m10(b)+'.':''))}save()}}
+function fcSwing(kind){if(FC.cd>0||FC.rl>0||FC.blk||FC.go>0||FC.fight!=1)return;const E=FC.E,W=FC.wp?WP[FC.wp]:null;
+ let d=kind=='p'?8:14,r=kind=='p'?2.3:2.6,cd=kind=='p'?.38:.7;if(W){d=W.d*(kind=='k'?1.3:1);r=W.r;cd=W.cd*(kind=='k'?1.3:1)}
+ FC.combo=FC.ct>0?FC.combo+1:1;FC.ct=.75;let fin=0;if(FC.combo>=3){d*=1.8;FC.combo=0;fin=1}
+ FC.cd=cd;FC.sw=.18;FC.swk=kind;const dx=E.x-P.x,dz=E.z-P.z,dist=Math.hypot(dx,dz);if(dist<4.5){P.h=Math.atan2(dx,dz);ch=P.h}
+ if(W&&--FC.wd<=0){toast(W.n+' broke!');fcDrop()}
+ if(dist<r+.6&&!E.dead){fcHitE(d,fin?9:1.5,fin||kind=='k'||d>=17);if(fin)toast('COMBO FINISHER!')}}
+const fcEdge=c=>{if(keys[c]){if(!FC.pk[c]){FC.pk[c]=1;return true}}else FC.pk[c]=0;return false};
+function fcAI(E,dt){const dx=P.x-E.x,dz=P.z-E.z,d=Math.hypot(dx,dz)||1,a=Math.atan2(dx,dz);
+ if(E.dead){E.dt+=dt;E.g.rotation.x=-Math.min(1.5,E.dt*4);return}
+ E.x+=E.kx*dt;E.z+=E.kz*dt;const dec=Math.pow(.03,dt);E.kx*=dec;E.kz*=dec;
+ if(E.imm>0)E.imm-=dt;if(E.stag>0)E.stag-=dt;
+ else if(FC.go<=0&&FC.fight==1){E.h=a;
+  if(E.wind>0){E.wind-=dt;if(E.wind<=0){E.sw=.2;if(d<E.rch+.9&&FC.rl<=0&&FC.hv<=0){const dm=E.dmg*(FC.blk?.2:1);FC.hp-=dm;FC.hv=.25;shk=Math.max(shk,.4);sfx('throw');P.x+=Math.sin(a)*.6;P.z+=Math.cos(a)*.6;if(FC.hp<=0){fcLose();return}}
+    if(E.combo&&!E.sec){E.sec=1;E.wind=.3}else E.sec=0}}
+  else if(d>E.rch*.9){E.x+=dx/d*E.sp*dt;E.z+=dz/d*E.sp*dt}
+  else{E.cd-=dt;if(E.cd<=0){E.wind=E.wnd;E.cd=E.acd}}}
+ if(d<1.1){E.x-=dx/d*(1.1-d);E.z-=dz/d*(1.1-d)}
+ const er=Math.hypot(E.x-AC0.x,E.z-AC0.z);if(er>12.2){E.x=AC0.x+(E.x-AC0.x)*12.2/er;E.z=AC0.z+(E.z-AC0.z)*12.2/er}
+ E.g.position.set(E.x,0,E.z);E.g.rotation.y=E.h;if(E.sw>0)E.sw-=dt;
+ E.g.aR.rotation.x=E.sw>0?-1.3:E.wind>0?-2.4:0;E.g.aL.rotation.x=E.wind>0?-2:0}
+function fcTick(dt){if(!FC.on)return;
+ FCm=1;const th=(K('KeyW','ArrowUp')?1:0)-(K('KeyS','ArrowDown')?1:0);
+ FC.cd-=dt;FC.hv-=dt;FC.ct-=dt;if(FC.ct<=0)FC.combo=0;FC.rl-=dt;FC.rcd-=dt;FC.go-=dt;FC.blk=0;
+ const fighting=FC.fight>0;
+ if(fighting){
+  if(FC.rl>0){FCm=0;P.x+=Math.sin(FC.rdir)*14*dt;P.z+=Math.cos(FC.rdir)*14*dt;FG.rotation.x=1.1}else FG.rotation.x=0;
+  if(FC.fight==1&&FC.rl<=0&&keys.KeyH){FC.blk=1;FCm=.4}
+  if(fcEdge('KeyJ')||(mouse&&!FC.pk.M&&(FC.pk.M=1)))fcSwing('p');if(!mouse)FC.pk.M=0;
+  if(fcEdge('KeyK'))fcSwing('k');
+  if(FC.fight==1&&FC.go<=0&&fcEdge('Space')&&FC.rcd<=0&&FC.rl<=0){FC.rl=.4;FC.rcd=.9;FC.rdir=th<0?P.h+PI:P.h}
+  if(FC.sw>0){FC.sw-=dt;FG.aR.rotation.x=-1.4}else FG.aR.rotation.x=FG.aR.rotation.x;
+  if(FC.wm)FC.wm.rotation.x=FC.sw>0?-1.2:0;
+  const cr=Math.hypot(P.x-AC0.x,P.z-AC0.z);if(cr>12.4){P.x=AC0.x+(P.x-AC0.x)*12.4/cr;P.z=AC0.z+(P.z-AC0.z)*12.4/cr}
+  if(FC.fight==1&&!FC.wp)for(let i=FC.fl.length-1;i>=0;i--){const w=FC.fl[i];if(Math.hypot(w.x-P.x,w.z-P.z)<1.6){scene.remove(w.g);FC.fl.splice(i,1);fcEquip(w.ty);break}}
+  if(FC.E)fcAI(FC.E,dt);
+  if(FC.fight==2){FC.nx-=dt;if(FC.nx<=0){if(FC.t&&FC.t.r>=3){fcClean();FC.t=null;P.x=AC0.x;P.z=AC0.z+12;P.h=PI;ch=P.h}else if(FC.t)fcRound(FC.t.r)}}
+ }else{P.x=cl(P.x,AC0.x-21,AC0.x+21);P.z=cl(P.z,AC0.z-21,AC0.z+21);FG.rotation.x=0}
+ if(FC.on&&FC.fight&&FC.E){const E=FC.E,bar=(v,m,c)=>'<div style="height:10px;background:#0008;border:1px solid #fff5;border-radius:5px;overflow:hidden"><div style="height:100%;width:'+Math.max(0,v/m*100)+'%;background:'+c+'"></div></div>';
+  fcEl.innerHTML='<div style="color:#ffd24a;letter-spacing:2px">'+E.stage+(FC.go>0?' · GET READY':'')+'</div><div style="margin-top:4px;text-align:left">YOU '+Math.ceil(Math.max(0,FC.hp))+bar(FC.hp,FC.mx,'#44dd66')+'</div><div style="margin-top:4px;text-align:left">'+E.n+bar(E.hp,E.mx,'#ee3344')+'</div><div style="margin-top:3px;font-size:12px;color:#9cf">'+(FC.wp?WP[FC.wp].n+' x'+FC.wd:'bare hands')+(FC.combo?' · combo '+FC.combo:'')+(FC.blk?' · BLOCKING':'')+'</div>';fcEl.style.display='block'}else fcEl.style.display='none'}
+function fcInteract(){if(!FC.on){if(!P.fly&&!P.ug&&near(FS.x,FS.z,3.5)){return fcEnter()}return false}
+ if(FC.fight)return true;if(FC.t)return true;
+ if(near(AC0.x,AC0.z+21,4)){fcLeave();return true}
+ if(near(AC0.x,AC0.z-20,6)){fcMenu();return true}return true}
+function v10Hint(){if(FC.on){if(FC.fight||FC.t)return null;if(near(AC0.x,AC0.z+21,4))return 'E – leave the fight club';if(near(AC0.x,AC0.z-20,6))return 'E – TOURNAMENT BOARD (place your bet and fight)';return 'Walk to the TOURNAMENT BOARD (north). Exit stairs are south.'}
+ if(P.fly||P.ug)return null;if(near(FS.x,FS.z,3.5))return 'E – go down into the UNDERGROUND FIGHT CLUB (no wanted level allowed)';
+ const p=reNear();if(p){if(!reOwn(p))return 'E – BUY '+p.n+' for '+m10(p.c)+' (rent '+m10(p.rate)+'/min · safe house)';return 'E – collect rent '+m10(reAcc(p))+' ('+m10(p.rate)+'/min · safe house: banks bounty and heals)'}
+ if(BOATS[P.ty]&&!P.foot)return pierSpot()?'F – get out at the pier':'F – TELEPORT to the Empire Tower (3 stars, boat is lost)';return null}
+function v10Tick(dt){if(!P.foot&&!P.fly&&!BOATS[P.ty]&&CT[P.ty])P.v9.lc=P.ty;reTick(dt);fcTick(dt)}
+
 var v9ready=1;
 
 // ===== city rebuilds: destroyed buildings return after 60 s, damaged ones are repaired =====
