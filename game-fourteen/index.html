@@ -1681,7 +1681,7 @@ async function rdAdd(k,files){let n=0;for(const f of files){if(!(/^audio\//.test
 function rdDel(k,id){RD.songs.a=RD.songs.a.filter(s=>s.id!=id);if(RD.db&&id>=0){try{RD.db.transaction('s','readwrite').objectStore('s').delete(id)}catch(e){}}rdMenu();if(RD.cur==id)rdPlay()}
 // ----- built-in dark trap beat (synthesised live with Web Audio, no files)
 const TR={on:0,next:0,step:0,bar:0,v:0,bus:null,tmr:null,nz:null};
-const TRN=['MIDNIGHT 808','DARK ALLEY','COLD STREETS','SMOKE & SIRENS'],TRB=[140,132,150,136],TRT=[0,-2,3,-5];
+const TRN=['MIDNIGHT 808','DARK ALLEY','COLD STREETS','SMOKE & SIRENS','STILL RIDING'],TRB=[140,132,150,136,142],TRT=[0,-2,3,-5,0];
 const TRC=[[[57,60,64],[53,57,60],[55,59,62],[52,56,59]]];const TRR=[55,43.65,49,41.2];
 function trNoise(){if(TR.nz)return TR.nz;const b=AC.createBuffer(1,AC.sampleRate,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;TR.nz=b;return b}
 function trStart(){if(!AC)return;trStop();TR.bus=AC.createGain();TR.bus.gain.value=V6.rd.vol*.75;TR.bus.connect(AC.destination);TR.on=1;RD.msg=TRN[TR.v];TR.next=AC.currentTime+.1;TR.step=0;TR.bar=0;TR.tmr=setInterval(trSched,50)}
@@ -1692,8 +1692,24 @@ function tr808(t,f,len){const o=AC.createOscillator();o.type='sine';o.frequency.
 function trNz(t,type,fq,peak,dur){const s=AC.createBufferSource(),f=AC.createBiquadFilter();s.buffer=trNoise();f.type=type;f.frequency.value=fq;s.connect(f);const g=AC.createGain();g.gain.setValueAtTime(peak,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);f.connect(g);g.connect(TR.bus);s.start(t);s.stop(t+dur+.02)}
 function trPluck(t,fq,dur){const o=AC.createOscillator(),f=AC.createBiquadFilter();o.type='sawtooth';o.frequency.value=fq;f.type='lowpass';f.frequency.setValueAtTime(1800,t);f.frequency.exponentialRampToValueAtTime(260,t+dur);o.connect(f);const g=AC.createGain();g.gain.setValueAtTime(.11,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);f.connect(g);g.connect(TR.bus);o.start(t);o.stop(t+dur+.02)}
 const trMid=m=>440*Math.pow(2,(m-69)/12);
+
+// ----- track 5: STILL RIDING (sad guitar-style arpeggios, sparse 808s, rolling hats; original melody)
+const SR_CH=[[57,60,64],[53,57,60],[48,52,55],[55,59,62]],SR_R=[55,43.65,65.41,49],SR_LD=[[[0,76],[6,74],[10,72]],[[0,72],[6,74],[12,72]],[[0,76],[8,79],[12,76]],[[0,74],[6,71],[10,74]]],SR_AR=[0,1,2,1,0,1,2,1];
+function srFx(){if(TR.dl&&TR.dlb===TR.bus)return TR.dl;const d=AC.createDelay(1),fb=AC.createGain(),w=AC.createGain();d.delayTime.value=60/142*.75;fb.gain.value=.4;w.gain.value=.38;d.connect(fb);fb.connect(d);d.connect(w);w.connect(TR.bus);TR.dl=d;TR.dlb=TR.bus;return d}
+function srGuitar(t,fq,dur,pk){const o=AC.createOscillator(),o2=AC.createOscillator(),f=AC.createBiquadFilter(),g=AC.createGain();o.type='triangle';o2.type='sawtooth';o.frequency.value=fq;o2.frequency.value=fq*1.004;f.type='lowpass';f.frequency.setValueAtTime(2600,t);f.frequency.exponentialRampToValueAtTime(420,t+dur);g.gain.setValueAtTime(pk,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(f);o2.connect(f);f.connect(g);g.connect(TR.bus);g.connect(srFx());o.start(t);o2.start(t);o.stop(t+dur+.02);o2.stop(t+dur+.02)}
+function srLead(t,fq,dur){const o=AC.createOscillator(),l=AC.createOscillator(),lg=AC.createGain(),f=AC.createBiquadFilter(),g=AC.createGain();o.type='sine';o.frequency.value=fq;l.frequency.value=5.5;lg.gain.value=fq*.007;l.connect(lg);lg.connect(o.frequency);f.type='lowpass';f.frequency.value=3200;g.gain.setValueAtTime(.001,t);g.gain.linearRampToValueAtTime(.13,t+.03);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(f);f.connect(g);g.connect(TR.bus);g.connect(srFx());o.start(t);l.start(t);o.stop(t+dur+.02);l.stop(t+dur+.02)}
+function srStep(t,s,bar,sd){const ch=SR_CH[bar];
+ if(s%2==0){const i=SR_AR[s/2];srGuitar(t,trMid(ch[i]+12),sd*3.2,.1)}
+ if(s==0)srGuitar(t,trMid(ch[0]),sd*14,.07);
+ SR_LD[bar].forEach(n=>{if(n[0]==s)srLead(t,trMid(n[1]),sd*(s==0?7:3.5))});
+ if(s==0||s==10){trKick(t);tr808(t,SR_R[bar],s==10?.4:.9)}
+ if(bar==3&&s==14)tr808(t,SR_R[bar]*1.5,.3);
+ if(s==8){trNz(t,'bandpass',1600,.4,.22);trNz(t+.01,'bandpass',2400,.25,.15)}
+ if(s%2==0)trNz(t,'highpass',8500,s%4==0?.1:.06,.04);
+ if(bar%2==1&&s>=12){trNz(t,'highpass',8500,.07,.03);trNz(t+sd/2,'highpass',8500,.05,.03)}}
 function trSched(){if(!TR.on||!AC||!TR.bus)return;if(paused||!started){TR.next=AC.currentTime+.12;return}
  const sd=60/TRB[TR.v]/4;while(TR.next<AC.currentTime+.25){const t=TR.next,s=TR.step%16,bar=Math.floor(TR.step/16)%4,tp=Math.pow(2,TRT[TR.v]/12);
+  if(TR.v==4){srStep(t,s,bar,sd);TR.next+=sd;TR.step++;continue}
   if([0,7,10].includes(s)||(TR.v%2&&s==13))trKick(t);if([0,7,10].includes(s))tr808(t,TRR[bar]*tp,s==10?.35:.7);
   if(s==8){trNz(t,'bandpass',1800,.5,.2);trNz(t+.012,'bandpass',2200,.35,.16)}
   trNz(t,'highpass',8000,s%2?.07:.13,.04);if(s>=12&&s%2==0)trNz(t+sd/2,'highpass',8000,.1,.03);if(s==14)trNz(t,'highpass',7000,.12,.22);
