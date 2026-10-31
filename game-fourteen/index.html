@@ -1681,7 +1681,7 @@ async function rdAdd(k,files){let n=0;for(const f of files){if(!(/^audio\//.test
 function rdDel(k,id){RD.songs.a=RD.songs.a.filter(s=>s.id!=id);if(RD.db&&id>=0){try{RD.db.transaction('s','readwrite').objectStore('s').delete(id)}catch(e){}}rdMenu();if(RD.cur==id)rdPlay()}
 // ----- built-in dark trap beat (synthesised live with Web Audio, no files)
 const TR={on:0,next:0,step:0,bar:0,v:0,bus:null,tmr:null,nz:null};
-const TRN=['MIDNIGHT 808','COLD STREETS','STILL RIDING','NO REASON WHY'],TRB=[140,150,142,128],TRT=[0,3,0,0];
+const TRN=['MIDNIGHT 808','LA VIDA ULTRA SLOW','STILL RIDING','NO REASON WHY'],TRB=[140,78,142,128],TRT=[0,0,0,0];
 const TRC=[[[57,60,64],[53,57,60],[55,59,62],[52,56,59]]];const TRR=[55,43.65,49,41.2];
 function trNoise(){if(TR.nz)return TR.nz;const b=AC.createBuffer(1,AC.sampleRate,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;TR.nz=b;return b}
 function trStart(){if(!AC)return;trStop();TR.bus=AC.createGain();TR.bus.gain.value=V6.rd.vol*.75;TR.bus.connect(AC.destination);TR.on=1;RD.msg=TRN[TR.v];TR.next=AC.currentTime+.1;TR.step=0;TR.bar=0;TR.tmr=setInterval(trSched,50)}
@@ -1709,7 +1709,7 @@ function srStep(t,s,bar,sd){const ch=SR_CH[bar];
  if(bar%2==1&&s>=12){trNz(t,'highpass',8500,.07,.03);trNz(t+sd/2,'highpass',8500,.05,.03)}}
 function trSched(){if(!TR.on||!AC||!TR.bus)return;if(paused||!started){TR.next=AC.currentTime+.12;return}
  const sd=60/TRB[TR.v]/4;while(TR.next<AC.currentTime+.25){const t=TR.next,s=TR.step%16,bar=Math.floor(TR.step/16)%4,tp=Math.pow(2,TRT[TR.v]/12);
-  if(TR.v>=2){(TR.v==2?srStep:nrStep)(t,s,bar,sd);TR.next+=sd;TR.step++;continue}
+  if(TR.v>=1){[0,hkStep,srStep,nrStep][TR.v](t,s,bar,sd);TR.next+=sd;TR.step++;continue}
   if([0,7,10].includes(s))trKick(t);if([0,7,10].includes(s))tr808(t,TRR[bar]*tp,s==10?.35:.7);
   if(s==8){trNz(t,'bandpass',1800,.5,.2);trNz(t+.012,'bandpass',2200,.35,.16)}
   trNz(t,'highpass',8000,s%2?.07:.13,.04);if(s>=12&&s%2==0)trNz(t+sd/2,'highpass',8000,.1,.03);if(s==14)trNz(t,'highpass',7000,.12,.22);
@@ -1725,6 +1725,23 @@ function nrStep(t,s,bar,sd){const ch=NR_CH[bar];
  if(s==4||s==12){trNz(t,'bandpass',1700,.42,.2);trNz(t+.01,'bandpass',2600,.28,.14)}
  trNz(t,'highpass',8500,s%2?.04:.09,.035);
  if(s==14)trNz(t,'highpass',7000,.1,.2)}
+// ----- track 2: LA VIDA ULTRA SLOW (original ultra-slowed hardtekk/phonk: distorted four-on-the-floor kick, offbeat rumble, eerie pad + lead, drenched in reverb)
+const HK_CH=[[57,60,64],[58,62,65],[55,58,62],[57,60,64]],HK_R=[27.5,29.14,24.5,27.5],HK_LD=[[[0,69],[6,72],[10,70]],[[0,70],[6,74],[12,72]],[[0,72],[8,77],[12,76]],[[0,76],[6,74],[10,72],[14,70]]];
+let HK_CURVE=null;
+function hkFx(){if(TR.hk&&TR.hkb===TR.bus)return TR.hk;const c=AC.createConvolver(),n=Math.floor(AC.sampleRate*3),b=AC.createBuffer(2,n,AC.sampleRate);for(let ch=0;ch<2;ch++){const d=b.getChannelData(ch);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2.5)}c.buffer=b;const w=AC.createGain();w.gain.value=.55;c.connect(w);w.connect(TR.bus);TR.hk=c;TR.hkb=TR.bus;return c}
+function hkKick(t){if(!HK_CURVE){HK_CURVE=new Float32Array(1024);for(let i=0;i<1024;i++)HK_CURVE[i]=Math.tanh((i/512-1)*5)}const o=AC.createOscillator(),g=AC.createGain(),ws=AC.createWaveShaper(),og=AC.createGain();o.type='sine';o.frequency.setValueAtTime(190,t);o.frequency.exponentialRampToValueAtTime(40,t+.16);g.gain.setValueAtTime(1.3,t);g.gain.exponentialRampToValueAtTime(.001,t+.6);ws.curve=HK_CURVE;og.gain.value=.55;o.connect(g);g.connect(ws);ws.connect(og);og.connect(TR.bus);o.start(t);o.stop(t+.62)}
+function hkRum(t,fq,dur){const o=AC.createOscillator(),f=AC.createBiquadFilter(),g=AC.createGain();o.type='sawtooth';o.frequency.value=fq*2;f.type='lowpass';f.frequency.value=220;g.gain.setValueAtTime(.32,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(f);f.connect(g);g.connect(TR.bus);o.start(t);o.stop(t+dur+.02)}
+function hkNz(t,type,fq,peak,dur){const s=AC.createBufferSource(),f=AC.createBiquadFilter(),g=AC.createGain();s.buffer=trNoise();f.type=type;f.frequency.value=fq;s.connect(f);g.gain.setValueAtTime(peak,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);f.connect(g);g.connect(TR.bus);g.connect(hkFx());s.start(t);s.stop(t+dur+.02)}
+function hkPad(t,fq,dur){const f=AC.createBiquadFilter(),g=AC.createGain();f.type='lowpass';f.frequency.value=900;g.gain.setValueAtTime(.001,t);g.gain.linearRampToValueAtTime(.05,t+.5);g.gain.exponentialRampToValueAtTime(.001,t+dur);f.connect(g);g.connect(TR.bus);g.connect(hkFx());[0,1].forEach(i=>{const o=AC.createOscillator();o.type='sawtooth';o.frequency.value=fq*(i?1.006:.994);o.connect(f);o.start(t);o.stop(t+dur+.02)})}
+function hkLead(t,fq,dur){const o=AC.createOscillator(),l=AC.createOscillator(),lg=AC.createGain(),f=AC.createBiquadFilter(),g=AC.createGain();o.type='sawtooth';o.frequency.value=fq;l.frequency.value=4.5;lg.gain.value=fq*.01;l.connect(lg);lg.connect(o.frequency);f.type='lowpass';f.frequency.value=1700;g.gain.setValueAtTime(.001,t);g.gain.linearRampToValueAtTime(.07,t+.05);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(f);f.connect(g);g.connect(TR.bus);g.connect(hkFx());o.start(t);l.start(t);o.stop(t+dur+.02);l.stop(t+dur+.02)}
+function hkStep(t,s,bar,sd){
+ if(s%4==0)hkKick(t);
+ if(s%4==2)hkRum(t,HK_R[bar],sd*3);
+ if(s==0)HK_CH[bar].forEach(m=>hkPad(t,trMid(m),sd*15.5));
+ HK_LD[bar].forEach(n=>{if(n[0]==s)hkLead(t,trMid(n[1]),sd*(n[0]==0?7:4))});
+ if(s==4||s==12){hkNz(t,'bandpass',1700,.38,.22);hkNz(t+.01,'bandpass',2600,.22,.16)}
+ if(s%4==2)hkNz(t,'highpass',8000,.07,.1);
+ else if(s%2==1)trNz(t,'highpass',9000,.025,.03)}
 function trSkip(){TR.v=(TR.v+1)%TRN.length;TR.step=0;RD.msg=TRN[TR.v]}
 // ----- station control
 function rdStop(){try{RD.au.pause()}catch(e){}RD.cur='';trStop();try{if(window.speechSynthesis)speechSynthesis.cancel()}catch(e){}}
