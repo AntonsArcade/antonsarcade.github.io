@@ -1681,7 +1681,7 @@ async function rdAdd(k,files){let n=0;for(const f of files){if(!(/^audio\//.test
 function rdDel(k,id){RD.songs.a=RD.songs.a.filter(s=>s.id!=id);if(RD.db&&id>=0){try{RD.db.transaction('s','readwrite').objectStore('s').delete(id)}catch(e){}}rdMenu();if(RD.cur==id)rdPlay()}
 // ----- built-in dark trap beat (synthesised live with Web Audio, no files)
 const TR={on:0,next:0,step:0,bar:0,v:0,bus:null,tmr:null,nz:null};
-const TRN=['MIDNIGHT 808','DARK ALLEY','COLD STREETS','SMOKE & SIRENS','STILL RIDING'],TRB=[140,132,150,136,142],TRT=[0,-2,3,-5,0];
+const TRN=['MIDNIGHT 808','COLD STREETS','STILL RIDING','NO REASON WHY'],TRB=[140,150,142,128],TRT=[0,3,0,0];
 const TRC=[[[57,60,64],[53,57,60],[55,59,62],[52,56,59]]];const TRR=[55,43.65,49,41.2];
 function trNoise(){if(TR.nz)return TR.nz;const b=AC.createBuffer(1,AC.sampleRate,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;TR.nz=b;return b}
 function trStart(){if(!AC)return;trStop();TR.bus=AC.createGain();TR.bus.gain.value=V6.rd.vol*.75;TR.bus.connect(AC.destination);TR.on=1;RD.msg=TRN[TR.v];TR.next=AC.currentTime+.1;TR.step=0;TR.bar=0;TR.tmr=setInterval(trSched,50)}
@@ -1695,9 +1695,9 @@ const trMid=m=>440*Math.pow(2,(m-69)/12);
 
 // ----- track 5: STILL RIDING (sad guitar-style arpeggios, sparse 808s, rolling hats; original melody)
 const SR_CH=[[57,60,64],[53,57,60],[48,52,55],[55,59,62]],SR_R=[55,43.65,65.41,49],SR_LD=[[[0,76],[6,74],[10,72]],[[0,72],[6,74],[12,72]],[[0,76],[8,79],[12,76]],[[0,74],[6,71],[10,74]]],SR_AR=[0,1,2,1,0,1,2,1];
-function srFx(){if(TR.dl&&TR.dlb===TR.bus)return TR.dl;const d=AC.createDelay(1),fb=AC.createGain(),w=AC.createGain();d.delayTime.value=60/142*.75;fb.gain.value=.4;w.gain.value=.38;d.connect(fb);fb.connect(d);d.connect(w);w.connect(TR.bus);TR.dl=d;TR.dlb=TR.bus;return d}
+function srFx(){if(TR.dl&&TR.dlb===TR.bus){TR.dl.delayTime.value=60/TRB[TR.v]*.75;return TR.dl}const d=AC.createDelay(1),fb=AC.createGain(),w=AC.createGain();d.delayTime.value=60/TRB[TR.v]*.75;fb.gain.value=.4;w.gain.value=.38;d.connect(fb);fb.connect(d);d.connect(w);w.connect(TR.bus);TR.dl=d;TR.dlb=TR.bus;return d}
 function srGuitar(t,fq,dur,pk){const o=AC.createOscillator(),o2=AC.createOscillator(),f=AC.createBiquadFilter(),g=AC.createGain();o.type='triangle';o2.type='sawtooth';o.frequency.value=fq;o2.frequency.value=fq*1.004;f.type='lowpass';f.frequency.setValueAtTime(2600,t);f.frequency.exponentialRampToValueAtTime(420,t+dur);g.gain.setValueAtTime(pk,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(f);o2.connect(f);f.connect(g);g.connect(TR.bus);g.connect(srFx());o.start(t);o2.start(t);o.stop(t+dur+.02);o2.stop(t+dur+.02)}
-function srLead(t,fq,dur){const o=AC.createOscillator(),l=AC.createOscillator(),lg=AC.createGain(),f=AC.createBiquadFilter(),g=AC.createGain();o.type='sine';o.frequency.value=fq;l.frequency.value=5.5;lg.gain.value=fq*.007;l.connect(lg);lg.connect(o.frequency);f.type='lowpass';f.frequency.value=3200;g.gain.setValueAtTime(.001,t);g.gain.linearRampToValueAtTime(.13,t+.03);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(f);f.connect(g);g.connect(TR.bus);g.connect(srFx());o.start(t);l.start(t);o.stop(t+dur+.02);l.stop(t+dur+.02)}
+function srLead(t,fq,dur,ty){const o=AC.createOscillator(),l=AC.createOscillator(),lg=AC.createGain(),f=AC.createBiquadFilter(),g=AC.createGain();o.type=ty||'sine';o.frequency.value=fq;l.frequency.value=5.5;lg.gain.value=fq*.007;l.connect(lg);lg.connect(o.frequency);f.type='lowpass';f.frequency.value=3200;g.gain.setValueAtTime(.001,t);g.gain.linearRampToValueAtTime(.13,t+.03);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(f);f.connect(g);g.connect(TR.bus);g.connect(srFx());o.start(t);l.start(t);o.stop(t+dur+.02);l.stop(t+dur+.02)}
 function srStep(t,s,bar,sd){const ch=SR_CH[bar];
  if(s%2==0){const i=SR_AR[s/2];srGuitar(t,trMid(ch[i]+12),sd*3.2,.1)}
  if(s==0)srGuitar(t,trMid(ch[0]),sd*14,.07);
@@ -1709,13 +1709,22 @@ function srStep(t,s,bar,sd){const ch=SR_CH[bar];
  if(bar%2==1&&s>=12){trNz(t,'highpass',8500,.07,.03);trNz(t+sd/2,'highpass',8500,.05,.03)}}
 function trSched(){if(!TR.on||!AC||!TR.bus)return;if(paused||!started){TR.next=AC.currentTime+.12;return}
  const sd=60/TRB[TR.v]/4;while(TR.next<AC.currentTime+.25){const t=TR.next,s=TR.step%16,bar=Math.floor(TR.step/16)%4,tp=Math.pow(2,TRT[TR.v]/12);
-  if(TR.v==4){srStep(t,s,bar,sd);TR.next+=sd;TR.step++;continue}
-  if([0,7,10].includes(s)||(TR.v%2&&s==13))trKick(t);if([0,7,10].includes(s))tr808(t,TRR[bar]*tp,s==10?.35:.7);
+  if(TR.v>=2){(TR.v==2?srStep:nrStep)(t,s,bar,sd);TR.next+=sd;TR.step++;continue}
+  if([0,7,10].includes(s))trKick(t);if([0,7,10].includes(s))tr808(t,TRR[bar]*tp,s==10?.35:.7);
   if(s==8){trNz(t,'bandpass',1800,.5,.2);trNz(t+.012,'bandpass',2200,.35,.16)}
   trNz(t,'highpass',8000,s%2?.07:.13,.04);if(s>=12&&s%2==0)trNz(t+sd/2,'highpass',8000,.1,.03);if(s==14)trNz(t,'highpass',7000,.12,.22);
   const ch=TRC[0][bar];if([0,3,6,10,12].includes(s))trPluck(t,trMid(ch[[0,1,2,1,2][[0,3,6,10,12].indexOf(s)]]+12)*tp,.5);
   if(s==0)trPluck(t,trMid(ch[0])*tp,sd*14);
   TR.next+=sd;TR.step++}}
+// ----- track 4: NO REASON WHY (bouncy emo-pop trap: strummed guitar chords, bright lead, backbeat snare; original melody)
+const NR_CH=[[52,55,59,64],[48,52,55,60],[55,59,62,67],[50,54,57,62]],NR_R=[41.2,65.41,49,73.42],NR_LD=[[[0,71],[3,74],[6,76],[10,74]],[[0,72],[3,76],[6,79],[10,76]],[[0,71],[3,74],[8,79],[12,78]],[[0,74],[4,78],[8,81],[12,78]]],NR_ST=[0,3,6,10,14];
+function nrStep(t,s,bar,sd){const ch=NR_CH[bar];
+ if(NR_ST.includes(s))ch.forEach((m,i)=>srGuitar(t+i*.011,trMid(m+12),sd*(s==0?5:2.4),.055));
+ NR_LD[bar].forEach(n=>{if(n[0]==s)srLead(t,trMid(n[1]),sd*(s==0?5:2.6),'triangle')});
+ if(s==0||s==6||s==10){trKick(t);tr808(t,NR_R[bar],s==0?.7:.32)}
+ if(s==4||s==12){trNz(t,'bandpass',1700,.42,.2);trNz(t+.01,'bandpass',2600,.28,.14)}
+ trNz(t,'highpass',8500,s%2?.04:.09,.035);
+ if(s==14)trNz(t,'highpass',7000,.1,.2)}
 function trSkip(){TR.v=(TR.v+1)%TRN.length;TR.step=0;RD.msg=TRN[TR.v]}
 // ----- station control
 function rdStop(){try{RD.au.pause()}catch(e){}RD.cur='';trStop();try{if(window.speechSynthesis)speechSynthesis.cancel()}catch(e){}}
