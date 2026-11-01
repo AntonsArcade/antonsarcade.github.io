@@ -258,7 +258,7 @@ input[type=range].czr{width:100%;accent-color:#ff7ad9;-webkit-user-select:none}
 <button class="tb big" data-k="KeyW" style="right:14px;bottom:26px">GAS</button><button class="tb sm" data-k="KeyS" style="right:27px;bottom:116px">BRK</button>
 <button class="tb big" data-k="Space" style="right:104px;bottom:26px">BOMB</button><button class="tb sm" data-k="ShiftLeft" style="right:117px;bottom:116px">NOS</button>
 <div id="fb" style="display:none"><button class="tb sm" data-k="ArrowUp" style="left:14px;bottom:172px">▲</button><button class="tb sm" data-k="ArrowDown" style="left:74px;bottom:172px">▼</button></div>
-<button class="tb xs" id="tp" style="left:calc(50% - 66px)">⏸</button><button class="tb xs" id="tk" style="left:calc(50% - 20px)">🔑</button><button class="tb xs" id="tf" style="left:calc(50% + 26px)">⛶</button><button class="tb xs" id="tm2" style="left:calc(50% + 72px)">🗺</button>
+<button class="tb xs" id="tp" style="left:calc(50% - 66px)">⏸</button><button class="tb xs" id="tk" style="left:calc(50% - 20px)">🔑</button><button class="tb xs" id="tf" style="left:calc(50% + 26px)">⛶</button><button class="tb xs" id="tm2" style="left:calc(50% + 72px)">🗺</button><button class="tb xs" id="tph" style="left:calc(50% + 118px)">📱</button>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>window.THREE||document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"><\/script>')</script>
@@ -2035,7 +2035,7 @@ const PHN={open:0,tab:'sup'};const phEl=document.createElement('div');phEl.id='p
 const phT=[['sup','📦 SUPPLIES'],['car','🚗 CARS'],['cus','🎨 CUSTOM'],['crew','🕴 CREW'],['rad','📻 RADIO'],['gfx','✨ GRAPHICS']];
 const phBtn=(t,on,fn,dis)=>'<button '+(dis?'disabled ':'')+'onclick="'+fn+'" style="padding:8px 11px;margin:3px;border-radius:10px;border:1px solid '+(on?'#ffd24a':'#4a5060')+';background:'+(on?'#ffd24a':'#242833')+';color:'+(on?'#241800':'#fff')+';font-weight:700;cursor:pointer;opacity:'+(dis?.45:1)+'">'+t+'</button>';
 function phSupP(i){return Math.round(i.c*1.25)+250}
-function phRender(){let h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:17px">📱 PHONE</b><span style="color:#8f8">$'+Math.round(P.cash).toLocaleString('en-US')+'</span></div><div>'+phT.map(t=>phBtn(t[1],PHN.tab==t[0],"phTab('"+t[0]+"')")).join('')+'</div><div style="margin-top:10px">';
+function phRender(){let h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:17px">📱 PHONE</b><span style="color:#8f8">$'+Math.round(P.cash).toLocaleString('en-US')+'</span><button onclick="closeMk()" style="width:36px;height:36px;border-radius:50%;border:1px solid #4a5060;background:#242833;color:#fff;font-size:18px;cursor:pointer">✕</button></div><div>'+phT.map(t=>phBtn(t[1],PHN.tab==t[0],"phTab('"+t[0]+"')")).join('')+'</div><div style="margin-top:10px">';
  const t=PHN.tab;
  if(t=='sup'){h+='<div style="color:#9ab;font-size:12px;margin-bottom:6px">Delivered straight to you. Price = Black Market + 25% + $250 delivery.</div>'+ITEMS.filter(i=>(i.t=='b'||i.t=='r')&&(!i.sec||P.owned[i.id])).map(i=>'<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #2a2e3a;padding:4px 0"><span><b>'+i.n+'</b><br><small style="color:#9ab">'+i.d+'</small></span>'+phBtn('$'+phSupP(i).toLocaleString('en-US'),0,"phBuy('"+i.id+"')",P.cash<phSupP(i))+'</div>').join('')}
  else if(t=='car'){const ok=!(P.foot||P.fly||P.ug||FC.on);h+=(ok?'':'<div style="color:#f99;margin-bottom:6px">Get into a vehicle first to swap.</div>')+CARS.filter(c=>P.owned[c.id]&&CT[c.id]).map(c=>'<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #2a2e3a;padding:4px 0"><span><b>'+c.n+'</b></span>'+phBtn(P.ty==c.id?'IN USE':'USE',P.ty==c.id,"phUse('"+c.id+"')",!ok||P.ty==c.id)+'</div>').join('')}
@@ -2043,7 +2043,7 @@ function phRender(){let h='<div style="display:flex;justify-content:space-betwee
  else if(t=='crew'){const c=P.v9.cw,tot=c.g+c.d;h+='<div style="color:#9ab;margin-bottom:6px">Crew follow you and shoot cops and gang members. '+tot+' / 6 hired.</div><div style="border-bottom:1px solid #2a2e3a;padding:6px 0">🕴 Bodyguards on foot: <b>'+c.g+'</b> '+phBtn('Hire $50,000',0,"phHire('g')",P.cash<5e4||tot>=6)+phBtn('Dismiss',0,"phFire('g')",!c.g)+'</div><div style="padding:6px 0">🚗 Drivers in a second car: <b>'+c.d+'</b> (max 3) '+phBtn('Hire $150,000',0,"phHire('d')",P.cash<15e4||tot>=6||c.d>=3)+phBtn('Dismiss',0,"phFire('d')",!c.d)+'</div>'}
  else if(t=='rad'){const s=V6.rd.st;h+=[[4,'🎵 Suno songs'],[1,'🔥 Dark trap'],[2,'📂 Your songs'],[3,'🎙 Outlaw talk'],[0,'⏻ Radio off']].map(a=>phBtn(a[1],s==a[0],'phRad('+a[0]+')')).join('')+'<div style="margin-top:8px">'+phBtn('⏭ Skip song (B)',0,'rdSkip()')+'</div><div style="margin-top:8px">Volume <input type=range min=0 max=100 value='+Math.round(V6.rd.vol*100)+' oninput="rdVol(this.value)"></div><div style="color:#9ab;margin-top:6px;font-size:12px">Now: '+(s?RD.ST[s-1].n+' · '+(RD.msg||''):'off')+'</div>'}
  else if(t=='gfx'){h+='<div style="color:#9ab;margin-bottom:6px">Pick what runs best on your computer (key Y also cycles).</div>'+QN.map((n,i)=>phBtn(n,QL==i,'qSet('+i+')')).join('')+'<div style="color:#9ab;margin-top:8px;font-size:12px">LOW: faster, softer picture, no extra street props, fewer particles. MEDIUM: trees, crosswalks, skid marks, shockwaves. HIGH: also detailed cars, rooftop props, sparks, sharper picture.</div>'}
- h+='</div><div style="margin-top:12px;color:#778;font-size:12px">T / Tab / Esc to close</div>';phEl.innerHTML=h}
+ h+='</div><div style="margin-top:12px;color:#778;font-size:12px">T / Tab / Esc or ✕ to close</div>';phEl.innerHTML=h}
 function phTab(t){PHN.tab=t;phRender()}
 function phBuy(id){const i=ITEMS.find(x=>x.id==id),p=phSupP(i);if(P.cash<p)return;P.cash-=p;if(i.t=='b')P.am[i.i]+=BD[i.i].pk;if(i.t=='r')P.hp=P.mx;toast('📦 Delivered: '+i.n);sfx('coin');save();phRender()}
 function phUse(id){if(P.foot||P.fly||P.ug||FC.on)return;setCar(id);P.hp=P.mx;toast('Switched to '+(CARS.find(c=>c.id==id)||{n:id}).n);save();phRender()}
@@ -2056,10 +2056,11 @@ function closePhoneUI(){PHN.open=0;phEl.style.display='none'}
 addEventListener('keydown',e=>{if(!started||paused||document.activeElement===$('ci'))return;if(e.code=='Tab')e.preventDefault();
  if(e.code=='KeyY'&&!mk){qSet((QL+1)%3);return}
  if(e.code=='KeyT'||e.code=='Tab'){if(PHN.open){closeMk();return}if(mk||FC.menu||(FC.on&&FC.fight))return;openPhone()}});
+$('tph').addEventListener('pointerdown',e=>{e.preventDefault();if(!started||paused)return;if(PHN.open){closeMk();return}if(mk||FC.menu||(FC.on&&FC.fight))return;openPhone()});
 let phHint=0;
 function v15Tick(dt){crewTick(dt);for(let i=RG.length-1;i>=0;i--){const o=RG[i];o.t+=dt;const u=o.t/.45;if(u>=1){scene.remove(o.m);RG.splice(i,1);continue}o.m.scale.setScalar(1+u*o.r*1.2);o.m.material.opacity=.7*(1-u)}
  if(QL>=1&&!P.foot&&!P.fly&&!P.ug&&!(BOATS[P.ty])){const lt=P.vx*Math.cos(P.h)-P.vz*Math.sin(P.h);SK.t-=dt;if(Math.abs(lt)>5.5&&Math.hypot(P.vx,P.vz)>6&&SK.t<=0){SK.t=.05;const fx=Math.sin(P.h),fz=Math.cos(P.h);[-1,1].forEach(s=>skMark(P.x-fx*1.4+fz*s*.8,P.z-fz*1.4-fx*s*.8,P.h))}}
- if(!phHint&&started&&time>6){phHint=1;toast('Press T or Tab for your PHONE (supplies, cars, crew, radio, graphics)')}}
+ if(!phHint&&started&&time>6){phHint=1;toast('Press T or Tab (or the 📱 button on mobile) for your PHONE (supplies, cars, crew, radio, graphics)')}}
 qApply();
 
 // ===== v10: boat teleport, underground fight club, real estate =====
