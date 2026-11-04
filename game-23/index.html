@@ -62,15 +62,15 @@ c:["####S####","#.......#","#.#####.#","#.#...#.#","#.#.#.#.#","#...#...#","####
 MZ.d=MZ.b.map(function(r){return r.split("").reverse().join("")});
 var RCAP=500,SK=47000000;
 function vG(n){return 14+2.5*(n-1)}
-function vN(n){return 40+15.7*(n-1)}
+function vN(n){return vOf(reqOf(n))}
 function jv(sp){return 21+34*(1-Math.exp(-sp/300000000))}
-function rewardOf(n){return 40*(Math.ceil(n*n/30)+Math.floor(n/3))}
+function rewardOf(n){return Math.round(25*Math.pow(1.27,n-1))}
 function vOf(sp){return 12+(RCAP-12)*(1-Math.exp(-Math.sqrt(sp/SK)))}
 function wvOf(run,L){return 12+(run-12)*(vG(L)-12)/(vN(L)-12)}
-function reqOf(n){var x=-Math.log(1-(vN(n)-12)/(RCAP-12));return Math.ceil(SK*x*x)}
+function reqOf(n){return Math.round(400*Math.pow(2.5e6,(n-1)/29))}
 function laneOf(n){var k=(n-1)%15,x=k==0?0:(k%2?1:-1)*Math.ceil(k/2)*76,sd=n<=15?-1:1;return{x:x,sd:sd,oz:sd*102,d0:sd<0?0:2}}
 function compile(def,n,ox,oz){
- var vn=vN(n),gj=Math.round(vn*(2*jv(reqOf(n))/52)*.62*10)/10,ls=1+.02*(vn-14),fs=1+(vn-40)/200,sq=Math.min(2.2,1+(vn-40)/250);
+ var vn=vN(n),gj=Math.round(vn*(2*jv(reqOf(n))/52)*.62*10)/10,ls=1+.02*(vn-14),fs=Math.max(.85,1+(vn-40)/200),sq=Math.max(.9,Math.min(2.2,1+(vn-40)/250));
  var o={plats:[],walls:[],haz:[],cps:[],lava:def.lv||0,start:{x:ox,y:0,z:oz},fin:null,gj:gj},c={x:ox,z:oz,y:0,d:0};
  function box2(cx,cz,L,Wd,d){var sx=d%2?L:Wd,sz=d%2?Wd:L;return{x0:cx-sx/2,x1:cx+sx/2,z0:cz-sz/2,z1:cz+sz/2}}
  function pt(f,lat){var F=FW[c.d],R=[-F[1],F[0]];return[c.x+F[0]*f+R[0]*lat,c.z+F[1]*f+R[1]*lat]}
@@ -139,7 +139,7 @@ var STG=[
 
 (function(){
 var $=function(i){return document.getElementById(i)};
-var wins=0,SP=0,st=1,trail="",own=[],done=[],pend=0,runLv=0,PL={step:0},msIdx=0,MW=0,RB=0,tLab,STEPG=(function(){var a=[];for(var i=0;i<=100;i++)a.push(Math.max(i+1,Math.round((i+1)*Math.pow(1.13,Math.max(0,i-3)))));return a})(),TM2=[1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6],MSL=[{sp:1e6,w:50},{sp:5e6,w:200},{sp:2e7,w:600},{sp:7.5e7,w:2000,tr:"starfire"},{sp:2.5e8,w:6000},{sp:6e8,w:15000,tr:"cosmic"},{sp:1e9,w:40000},{sp:5e9,w:150000},{sp:2.5e10,w:600000}];
+var wins=0,SP=0,st=1,trail="",own=[],done=[],pend=0,runLv=0,PL={step:0},msIdx=0,MW=0,RB=0,tLab,STEPG=(function(){var a=[];for(var i=0;i<=100;i++)a.push(Math.max(i+1,Math.round((i+1)*Math.pow(1.13,Math.max(0,i-3)))));return a})(),TM2=[1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6],MSL=[{sp:1000,w:25},{sp:5000,w:60},{sp:25000,w:150},{sp:100000,w:400},{sp:400000,w:1000},{sp:1e6,w:50},{sp:5e6,w:200},{sp:2e7,w:600},{sp:7.5e7,w:2000,tr:"starfire"},{sp:2.5e8,w:6000},{sp:6e8,w:15000,tr:"cosmic"},{sp:1e9,w:40000},{sp:5e9,w:150000},{sp:2.5e10,w:600000}];
 function LS(k,d){try{var v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}}
 wins=+LS("sse_wins",0)||0;SP=+LS("sse_speed",0)||0;st=+LS("sse_st",1)||1;trail=LS("sse_trail","");own=LS("sse_own",[]);done=LS("sse_done",[]);pend=+LS("sse_pend",0)||0;runLv=+LS("sse_run",0)||0;PL.step=Math.min(100,+(LS("sse_pl",{})||{}).step||0);msIdx=+LS("sse_ms",0)||0;MW=+LS("sse_mw",0)||0;RB=+LS("sse_rb",0)||0;
 if(typeof trail!="string")trail="";if(!Array.isArray(own))own=[];if(!Array.isArray(done))done=[];
