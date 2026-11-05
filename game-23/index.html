@@ -220,9 +220,9 @@ for(var i=0;i<6;i++){var gr=new THREE.Group();gr.position.set(0,70,100);var cn=n
 function hallAnim(n,dt){var hh=n*.0003;for(var i=0;i<760;i++){lc.setHSL((hh+((i%19)+((i/19)|0))*.035)%1,1,.5);led.setColorAt(i,lc)}led.instanceColor.needsUpdate=true;ball.rotation.y=n*.0006;BEAMS.forEach(function(g,i){g.rotation.y+=dt*(.5+i*.12);g.children[0].material.color.setHSL((hh*2+i*.17)%1,1,.5)})}
 var wl=label("+1 SPEED ESCAPE","#ff4fa3",44,7);wl.position.set(0,52,LZ-2);wl.rotation.y=Math.PI;HG.add(wl);
 var wl2=label("LED NIGHT PARTY · 30 LEVELS · WALK NORTH ↑","#4fd8ff",44,4,26);wl2.position.set(0,44,LZ-2);wl2.rotation.y=Math.PI;HG.add(wl2);
-var tm=[{x:-18,m:1,n:0,c:0xff7eb6},{x:-6,m:3,n:10,c:0x35e08a},{x:6,m:8,n:50,c:0xffd23f},{x:18,m:25,n:150,c:0xb06bff},
-{x:-18,m:80,n:500,c:0x4fd8ff,z:108},{x:-6,m:250,n:1500,c:0xff4fa3,z:108},{x:6,m:800,n:5000,c:0xff9f1c,z:108},{x:18,m:2500,n:15000,c:0x9dff35,z:108},
-{x:-18,m:8000,n:50000,c:0xff2b4f,z:86},{x:-6,m:30000,n:150000,c:0x00e5ff,z:86},{x:6,m:100000,n:500000,c:0xff00e6,z:86},{x:18,m:500000,n:2000000,c:0xffffff,z:86}];
+var tm=[{x:-18,m:3,n:0,c:0xff7eb6},{x:-6,m:10,n:10,c:0x35e08a},{x:6,m:30,n:40,c:0xffd23f},{x:18,m:100,n:120,c:0xb06bff},
+{x:-18,m:300,n:350,c:0x4fd8ff,z:108},{x:-6,m:1000,n:1000,c:0xff4fa3,z:108},{x:6,m:3000,n:3000,c:0xff9f1c,z:108},{x:18,m:10000,n:9000,c:0x9dff35,z:108},
+{x:-18,m:30000,n:27000,c:0xff2b4f,z:86},{x:-6,m:100000,n:80000,c:0x00e5ff,z:86},{x:6,m:300000,n:250000,c:0xff00e6,z:86},{x:18,m:1000000,n:750000,c:0xffffff,z:86}];
 function beltTex(c){var cv=document.createElement("canvas");cv.width=64;cv.height=64;var g=cv.getContext("2d");g.fillStyle="#2a1a3a";g.fillRect(0,0,64,64);g.fillStyle=hex(c);g.fillRect(0,0,64,12);g.fillRect(0,32,64,12);var t=new THREE.CanvasTexture(cv);t.encoding=THREE.sRGBEncoding;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(1,4);return t}
 tm.forEach(function(t){t.z=t.z||130;t.tex=beltTex(t.c);box(6,.5,12,M(0x2a1a3a),t.x,.25,t.z,HG);box(.5,1.5,12,BM(t.c),t.x-3,.75,t.z,HG,1);box(.5,1.5,12,BM(t.c),t.x+3,.75,t.z,HG,1);
  var b=new THREE.Mesh(new THREE.PlaneGeometry(5.4,11.4),new THREE.MeshBasicMaterial({map:t.tex}));b.rotation.x=-Math.PI/2;b.position.set(t.x,.52,t.z);HG.add(b);t.lb=label("","#fff",9,2.25);t.lb.position.set(t.x,5,t.z-5);HG.add(t.lb)});
@@ -336,7 +336,7 @@ function upd(dt){
  var mvd=0,ua=U()||(AUTO&&tt?1:0);
  if(ln>0){vx/=ln;vz/=ln;face=Math.atan2(vx,vz);if(tt&&ua){px+=rr*Math.cos(yaw)*v*dt;face=Math.PI}else{px+=vx*v*dt;pz+=vz*v*dt;mvd=v*dt}}
  if(tt&&!ua)pz-=9*dt;
- if(tt&&ua){run=1;face=Math.PI;if(MW>=tt.n){acc+=dt;if(acc>=.25){acc-=.25;stepGain(tt.m)}}}
+ if(tt&&ua){run=1;face=Math.PI;if(MW>=tt.n){acc+=dt;var tk=Math.floor(acc/.1);if(tk>0){acc-=tk*.1;stepGain(tt.m*tk)}}}
  else if(mvd>0){stepAcc+=mvd;if(stepAcc>=6){var c=Math.floor(stepAcc/6);stepAcc-=c*6;stepGain(c)}}
  if(onP&&py<.6){padT-=dt;PADS.forEach(function(p){if(Math.abs(px-p.x)<3.2&&Math.abs(pz-p.z)<3.2){var o=PL[p.g];if(o==p.lv-1){if(wins>=p.cost){wins-=p.cost;PL[p.g]=p.lv;save();msg("PAD UNLOCKED FOREVER! "+p.t,"#ffd23f",2500)}else if(padT<=0){padT=2.5;msg("Need "+p.cost+" wins (you have "+wins+")","#ffb347",1500)}}else if(o<p.lv-1&&padT<=0){padT=2.5;msg("Buy the previous pad first","#ffb347",1200)}}})}
  WALLS.forEach(function(w){if(Math.abs(w.n-curN)>1||px<w.x0-1||px>w.x1+1||pz<w.z0-1||pz>w.z1+1)return;if(py<w.y1-.3&&py+2.8>w.y0){var cx=cl(px,w.x0,w.x1),cz=cl(pz,w.z0,w.z1),dx=px-cx,dz=pz-cz,d=Math.hypot(dx,dz);if(d<.55){if(d>1e-4){px+=dx/d*(.55-d);pz+=dz/d*(.55-d)}else{var l=px-w.x0,r=w.x1-px,t2=pz-w.z0,b=w.z1-pz,m=Math.min(l,r,t2,b);if(m==l)px=w.x0-.55;else if(m==r)px=w.x1+.55;else if(m==t2)pz=w.z0-.55;else pz=w.z1+.55}}}});
@@ -365,7 +365,7 @@ function upd(dt){
  TROPH.forEach(function(t){t.rotation.y=T*2});
  var jp=Math.round((jumpV()/21-1)*100);
  if(curN){var rc=reqOf(curN);$("ds").innerHTML="Level "+curN+": "+STG[curN-1].n+" · speed "+abbr(SP)+" / recommended "+abbr(rc)+(SP>=rc?" ✓":" <b style='color:#ffb347'>(lower = harder)</b>")+" · jump +"+jp+"%"+(lavaOn&&lavaN==curN?" 🔥":"")}
- else $("ds").textContent=tt?(MW<tt.n?"Locked! Earn "+abbr(tt.n)+" total wins (clear levels or use MATHS)":(AUTO?"AUTO-RUN farming speed (AFK ok)":"Hold W, or turn on AUTO-RUN")):"Walk anywhere to gain speed · run "+vOf(SP).toFixed(0)+" · jump +"+jp+"%";
+ else $("ds").textContent=tt?(MW<tt.n?"🔒 Treadmill locked: needs "+abbr(tt.n)+" total wins (you have "+abbr(MW)+"). Clear levels or use MATHS.":"🏃 Treadmill: +"+abbr(STEPG[PL.step]*mult()*rbM()*tt.m*10)+" speed/sec"+(ua?(AUTO?" · AUTO-RUN on (AFK ok)":""):" · hold W to farm, or press T for AUTO-RUN")):"Walk anywhere to gain speed · run "+vOf(SP).toFixed(0)+" · jump +"+jp+"%";
  tm.forEach(function(t){t.tex.offset.y+=dt*(tt===t&&ua?3:.3)})}
 addEventListener("keydown",function(e){if(e.target.id=="ans")return;K[e.code]=1;if(e.code=="KeyR"&&!paused&&curN)respawn("Restart");if(e.code=="Escape"){["mp","tp","sm"].forEach(function(i){if($(i).classList.contains("on"))openP(i)})}if(e.code=="Space"||e.code.indexOf("Arrow")==0)e.preventDefault()});
 addEventListener("keyup",function(e){K[e.code]=0});
@@ -406,7 +406,7 @@ function setMin(m){$("ctb").style.display=m?"none":"block";$("ctm").textContent=
 $("ctm").onclick=function(){setMin($("ctb").style.display!="none");this.blur()};try{setMin(localStorage.getItem("sse_min")=="1")}catch(e){}
 addEventListener("keydown",function(e){if(e.target.id!="ans"&&e.code=="KeyM")setMin($("ctb").style.display!="none")});
 function togAuto(){AUTO=!AUTO;$("auto").textContent="AUTO-RUN (AFK): "+(AUTO?"ON":"OFF")+"  [T]";$("auto").style.background=AUTO?"#1b6b3a":"#1d0b30"}
-$("auto").onclick=function(){togAuto();this.blur()};addEventListener("keydown",function(e){if(e.target.id!="ans"&&e.code=="KeyT")togAuto()});
+$("auto").onclick=function(){togAuto();this.blur()};togAuto();addEventListener("keydown",function(e){if(e.target.id!="ans"&&e.code=="KeyT")togAuto()});
 function updRB(){var b=$("rb");if(!b)return;var ok=SP>=rbReq();b.textContent="🔁 REBIRTH "+RB+" (speed x"+rbM().toFixed(1)+") · "+(ok?"READY → x"+(1+.5*(RB+1)).toFixed(1):"need "+abbr(rbReq())+" speed");b.style.background=ok?"#6b4a00":"#1d0b30";b.style.opacity=ok?1:.7}
 $("rb").onclick=function(){this.blur();if(SP<rbReq()){msg("Rebirth needs "+abbr(rbReq())+" speed (you have "+abbr(SP)+")","#ffb347",2200);return}
  if(!confirm("REBIRTH?\n\nResets: speed, wins, pads, levels and trophies.\nKeeps: your trails.\nGives: permanent speed gains x"+(1+.5*(RB+1)).toFixed(1)+" and +"+10*(RB+1)+"% level wins."))return;
