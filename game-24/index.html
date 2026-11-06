@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Business Tycoon</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#9fd8ff;font-family:'Trebuchet MS','Segoe UI',system-ui,sans-serif;color:#fff;user-select:none;-webkit-user-select:none}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.box{background:rgba(18,26,46,.84);border:2px solid rgba(255,255,255,.18);border-radius:14px;backdrop-filter:blur(6px);box-shadow:0 6px 22px rgba(0,0,0,.35)}
+#hudL{position:fixed;top:10px;left:10px;padding:10px 14px;width:260px;z-index:5}
+#coName{font-weight:800;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#lvlTxt{font-size:13px;color:#ffd54f;font-weight:700;margin-top:2px}
+.bar{height:10px;background:rgba(255,255,255,.15);border-radius:6px;overflow:hidden;margin-top:5px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#69f0ae,#00e5ff);transition:width .25s}
+.sm{font-size:11px;opacity:.75;margin-top:3px}
+#hudC{position:fixed;top:10px;left:calc((100% - 450px)/2);transform:translateX(-50%);padding:8px 22px;text-align:center;z-index:5;min-width:330px}
+body.noside #hudC{left:50%}
+#cash{font-size:32px;font-weight:900;color:#a5ff9e;text-shadow:0 2px 0 rgba(0,0,0,.4)}
+.stats{display:flex;gap:14px;justify-content:center;font-size:13px;margin-top:2px}
+.stats b{font-weight:800}
+#side{position:fixed;top:10px;right:10px;bottom:10px;width:430px;display:flex;flex-direction:column;z-index:6;transition:transform .25s}
+body.noside #side{transform:translateX(120%)}
+#tabs{display:flex;flex-wrap:wrap;gap:4px;padding:8px 8px 4px}
+#tabs button{flex:1 1 22%;background:rgba(255,255,255,.08);border:0;color:#fff;border-radius:9px;padding:6px 2px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:700}
+#tabs button.on{background:#2979ff}
+#tabs button:hover{background:rgba(255,255,255,.2)}
+#tabs button.on:hover{background:#448aff}
+#panel{flex:1;overflow-y:auto;padding:8px 10px 14px}
+#panel::-webkit-scrollbar{width:8px}#panel::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25);border-radius:4px}
+h3{font-size:15px;margin:8px 0 6px;color:#ffd54f}
+.note{font-size:12px;opacity:.8;margin-bottom:6px;line-height:1.35}
+.card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:8px 10px;margin-bottom:7px}
+.card.locked{opacity:.65}
+.ct{display:flex;align-items:center;gap:8px;font-size:14px}.ic{font-size:20px}
+.cb{font-size:12px;opacity:.9;margin:3px 0 4px;line-height:1.4}
+.cbtn{display:flex;flex-wrap:wrap;gap:5px}
+.btn{background:linear-gradient(#43a047,#2e7d32);border:0;color:#fff;border-radius:8px;padding:5px 9px;font-family:inherit;font-weight:700;font-size:12px;cursor:pointer;display:inline-flex;flex-direction:column;align-items:center;line-height:1.15;box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.btn small{font-size:11px;opacity:.95;font-weight:600}
+.btn em{font-style:normal;opacity:.8}
+.btn:hover{filter:brightness(1.15)}.btn:active{transform:translateY(1px)}
+.btn.dis{background:linear-gradient(#78808c,#59606b)}
+.btn.alt{background:linear-gradient(#7e57c2,#5e35b1)}
+.btn.gold{background:linear-gradient(#ffb300,#ef6c00)}
+.btn.red{background:linear-gradient(#e53935,#b71c1c)}
+.lock{font-size:12px;color:#ff8a80;font-weight:700}
+.maxed{font-size:12px;color:#ffd54f;font-weight:800;padding:4px 6px}
+.g{color:#a5ff9e}.r{color:#ff8a80}.y{color:#ffd54f}
+.chips{margin:4px 0;font-size:11px;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.chip{padding:2px 7px;border-radius:10px;background:rgba(255,255,255,.12);cursor:pointer;font-weight:700}
+.chip.on{background:#2979ff}.chip.off{opacity:.4}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.ach{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:6px;font-size:11px;opacity:.5}
+.ach.got{opacity:1;background:rgba(255,193,7,.18);border-color:#ffc107}
+.ach b{display:block;font-size:12px}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:6px 0}
+.day{background:rgba(255,255,255,.08);border-radius:8px;padding:5px 2px;text-align:center;font-size:11px}
+.day.cur{background:#2979ff}.day.done{background:#2e7d32}
+.rnode{opacity:.55}.rnode.can{opacity:1}.rnode.done{opacity:1;border-color:#69f0ae;background:rgba(105,240,174,.12)}
+#bottom{position:fixed;left:10px;bottom:10px;display:flex;gap:8px;z-index:5;align-items:center}
+#cityNav{display:none;gap:6px}
+.pill{background:rgba(18,26,46,.88);border:2px solid rgba(255,255,255,.25);color:#fff;border-radius:22px;padding:8px 14px;font-family:inherit;font-weight:800;font-size:13px;cursor:pointer}
+.pill:hover{background:#2979ff}
+#sideToggle{position:fixed;top:10px;right:10px;z-index:7;display:none;padding:8px 12px}
+body.noside #sideToggle{display:block}
+#deal{position:fixed;left:calc((100% - 450px)/2);transform:translateX(-50%);bottom:18px;z-index:5;background:linear-gradient(#ffca28,#fb8c00);border:3px solid #fff;border-radius:30px;padding:12px 26px;color:#3e2723;font-weight:900;font-size:17px;font-family:inherit;cursor:pointer;box-shadow:0 6px 0 #c25e00,0 10px 20px rgba(0,0,0,.35)}
+body.noside #deal{left:50%}
+#deal:active{transform:translateX(-50%) translateY(4px);box-shadow:0 2px 0 #c25e00}
+#toasts{position:fixed;top:112px;left:calc((100% - 450px)/2);transform:translateX(-50%);z-index:20;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none}
+body.noside #toasts{left:50%}
+.toast{background:rgba(18,26,46,.94);border:2px solid #69f0ae;border-radius:12px;padding:7px 16px;font-size:13px;font-weight:700;animation:tin .25s;max-width:440px;text-align:center}
+.toast.bad{border-color:#ff5252}.toast.gold{border-color:#ffc107;background:rgba(60,40,0,.95)}
+.toast.out{opacity:0;transition:opacity .5s}
+@keyframes tin{from{transform:translateY(-12px);opacity:0}to{transform:none;opacity:1}}
+.float{position:fixed;z-index:30;pointer-events:none;font-weight:900;font-size:20px;color:#a5ff9e;text-shadow:0 2px 3px #000;animation:fl 1s forwards}
+@keyframes fl{to{transform:translateY(-60px);opacity:0}}
+#popup{position:fixed;z-index:15;padding:10px 12px;width:250px;font-size:12px}
+.ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:13px}
+.x{cursor:pointer;padding:0 5px;opacity:.8}
+#modal{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5)}
+#modal .mb{max-width:520px;padding:22px 26px;font-size:14px;line-height:1.5}
+#modal h2{color:#ffd54f;margin-bottom:8px}
+#modal li{margin-left:18px}
+textarea,input[type=text]{width:100%;background:rgba(0,0,0,.35);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:6px;font-family:inherit;font-size:12px;user-select:text;-webkit-user-select:text}
+textarea{height:70px;resize:vertical}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hudL" class="box"><div id="coName">🏢 My Company</div><div id="lvlTxt">Level 1</div><div class="bar"><i id="xpBar"></i></div><div id="xpTxt" class="sm"></div></div>
+<div id="hudC" class="box"><div id="cash">$0</div><div class="stats"><span>📈 <b id="sInc">0</b>/s</span><span>📉 <b id="sExp">0</b>/s</span><span>💰 <b id="sNet">0</b>/s</span><span>🔬 <b id="sRp">0</b></span></div></div>
+<div id="side" class="box"><div id="tabs"></div><div id="panel"></div></div>
+<button id="sideToggle" class="pill" data-a="toggleSide">📋 Menu</button>
+<div id="bottom">
+  <button class="pill" data-a="view" data-k="office">🏢 Office</button>
+  <button class="pill" data-a="view" data-k="city">🌆 City</button>
+  <span id="cityNav"><button class="pill" data-a="focus" data-k="0">Starter</button><button class="pill" data-a="focus" data-k="1">Downtown</button><button class="pill" data-a="focus" data-k="2">Financial</button><button class="pill" data-a="focus" data-k="3">Intl</button></span>
+  <button class="pill" id="speedBtn" data-a="speed">⏩ x1</button>
+  <button class="pill" data-a="toggleSide">📋</button>
+</div>
+<button id="deal" data-a="deal">💼 Close a Deal</button>
+<div id="toasts"></div>
+<div id="popup" class="box" style="display:none"></div>
+<div id="modal"><div class="box mb" id="modalBox"></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+const $=s=>document.querySelector(s);
+if(typeof THREE==='undefined'){document.body.innerHTML='<div style="padding:40px;color:#222;font:20px sans-serif">⚠️ Could not load Three.js from the CDN. Check your internet connection and reload.</div>';return;}
+
+/* ============================ FORMAT ============================ */
+const SUF=['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc'];
+function fmt(n){if(!isFinite(n))return '∞';const neg=n<0;n=Math.abs(n);if(n<1000)return (neg?'-':'')+(n<10?n.toFixed(2):n<100?n.toFixed(1):n.toFixed(0));const i=Math.min(SUF.length-1,Math.floor(Math.log10(n)/3));const v=n/Math.pow(1000,i);return (neg?'-':'')+(v<10?v.toFixed(2):v<100?v.toFixed(1):v.toFixed(0))+SUF[i];}
+const money=n=>'$'+fmt(n);
+
+/* ============================ DATA ============================ */
+const MAXLVL=60;
+const need=l=>Math.floor(60*Math.pow(1.3,l-1));
+const EMP_ORDER=['worker','accountant','marketer','engineer','manager','executive'];
+const EMP={
+ worker:{name:'Worker',icon:'👷',color:0x4da3ff,cost:400,growth:1.14,wage:1,lvl:1,desc:'Earns $4/s each. Boosted by computers and managers.'},
+ accountant:{name:'Accountant',icon:'🧮',color:0x43a047,cost:1500,growth:1.16,wage:3,lvl:2,desc:'Cuts all expenses by 1.5% each (max 40%).'},
+ marketer:{name:'Marketer',icon:'📣',color:0xf06292,cost:2500,growth:1.16,wage:5,lvl:3,desc:'+2.5% to ALL income each.'},
+ engineer:{name:'Engineer',icon:'🛠️',color:0xff9800,cost:4000,growth:1.17,wage:8,lvl:4,desc:'+0.08 research pts/s (needs a lab) and +1% income.'},
+ manager:{name:'Manager',icon:'📋',color:0x8e24aa,cost:12000,growth:1.18,wage:20,lvl:6,desc:'+4% worker output each.'},
+ executive:{name:'Executive',icon:'🎩',color:0xffc107,cost:60000,growth:1.22,wage:100,lvl:10,desc:'+6% ALL income each and +3% XP. Limited seats.'}
+};
+const SIZES=[
+ {name:'Tiny Office',cols:2,rows:2,cost:0,rent:1,lvl:1},
+ {name:'Small Office',cols:3,rows:3,cost:8000,rent:6,lvl:3},
+ {name:'Medium Office',cols:5,rows:3,cost:90000,rent:30,lvl:6},
+ {name:'Large Office',cols:6,rows:4,cost:1.2e6,rent:150,lvl:10},
+ {name:'Corporate Floor',cols:8,rows:5,cost:20e6,rent:700,lvl:15}];
+SIZES.forEach(s=>{s.cap=s.cols*s.rows;s.W=s.cols*4.4+6;s.D=s.rows*3.8+11;});
+const COMP=[{name:'Basic PC',cost:0,mult:1},{name:'Fast Laptop',cost:1500,mult:1.4},{name:'Workstation',cost:12000,mult:2},{name:'Dual-Monitor Pro Rig',cost:120000,mult:3},{name:'Server Cluster',cost:1.5e6,mult:4.5},{name:'Quantum Rig',cost:25e6,mult:7}];
+const EQUIP=[{name:'Bare Essentials',cost:0,mult:1},{name:'Printer Station',cost:3000,mult:1.15},{name:'Server Rack',cost:40000,mult:1.35},{name:'Smart Lighting',cost:600000,mult:1.6},{name:'Holo Command Center',cost:10e6,mult:2}];
+const SCR=[0x66ccff,0x66ff99,0xffee66,0xff99ff,0x99ffee,0xffffff];
+const ROOMS={
+ lab:{name:'Research Lab',icon:'🔬',costs:[20000,200000,3e6,40e6],minSize:1,lvl:3,desc:'Generates research points (RP). Higher levels = more RP/s.'},
+ meeting:{name:'Meeting Room',icon:'🗣️',costs:[12000,150000,2e6],minSize:2,lvl:6,bonus:0.06,desc:'+6% all income per level.'},
+ marketing:{name:'Marketing Department',icon:'📺',costs:[25000,300000,4e6],minSize:2,lvl:8,bonus:0.08,desc:'+8% all income per level.'}};
+const LAB_RP=[0,0.3,1,3.5,12];
+const DECOR=[
+ {id:'plant',name:'Potted Plant',icon:'🪴',cost:800,bonus:0.01},
+ {id:'rug',name:'Cozy Rug',icon:'🟥',cost:2500,bonus:0.01},
+ {id:'painting',name:'Modern Painting',icon:'🖼️',cost:6000,bonus:0.015},
+ {id:'coffee',name:'Coffee Machine',icon:'☕',cost:15000,bonus:0.02},
+ {id:'books',name:'Bookshelf',icon:'📚',cost:40000,bonus:0.02},
+ {id:'aquarium',name:'Aquarium',icon:'🐠',cost:120000,bonus:0.03},
+ {id:'trophy',name:'Trophy Case',icon:'🏆',cost:400000,bonus:0.03},
+ {id:'fountain',name:'Indoor Fountain',icon:'⛲',cost:1.5e6,bonus:0.04},
+ {id:'sculpture',name:'Abstract Sculpture',icon:'🗿',cost:6e6,bonus:0.05},
+ {id:'chandelier',name:'Crystal Chandelier',icon:'💎',cost:25e6,bonus:0.06}];
+const BIZ=[
+ {id:'restaurant',name:'Restaurants',icon:'🍔',lvl:2,unlock:8000,loc:8000,g:1.17,base:30,opex:8,staff:{name:'Chefs',cost:1200},ups:['Better Kitchen','Delivery App','Bulk Ingredients']},
+ {id:'tech',name:'Tech Companies',icon:'💻',lvl:4,unlock:40000,loc:35000,g:1.18,base:130,opex:35,staff:{name:'Developers',cost:5000},ups:['Faster Servers','App Store Launch','Cloud Optimization']},
+ {id:'supermarket',name:'Supermarkets',icon:'🛒',lvl:7,unlock:300000,loc:180000,g:1.18,base:600,opex:200,staff:{name:'Cashiers',cost:25000},ups:['Self-Checkout','Loyalty Program','Supply Chain']},
+ {id:'hotel',name:'Hotels',icon:'🏨',lvl:11,unlock:2.5e6,loc:1.2e6,g:1.19,base:3200,opex:1100,staff:{name:'Concierges',cost:150000},ups:['Luxury Suites','Spa & Pool','Smart Rooms']},
+ {id:'mall',name:'Shopping Malls',icon:'🛍️',lvl:16,unlock:30e6,loc:10e6,g:1.19,base:20000,opex:7000,staff:{name:'Mall Managers',cost:1e6},ups:['Anchor Stores','Food Court','Energy Savings']},
+ {id:'realestate',name:'Real Estate',icon:'🏘️',lvl:22,unlock:400e6,loc:120e6,g:1.2,base:140000,opex:50000,staff:{name:'Brokers',cost:8e6},ups:['Premium Listings','Property Mgmt','Tax Strategy']}];
+const BIZMAP={};BIZ.forEach(b=>BIZMAP[b.id]=b);
+const UPDESC=['+25% income per level','+20% income per level','-12% operating cost per level'];
+const DIST=[
+ {id:0,name:'Starter District',short:'Starter',cols:4,rows:3,cx:0,cz:0,lvl:1,cost:0,income:1,costMul:1,road:0x5b6270,pad:0xa5d6a7},
+ {id:1,name:'Downtown',short:'Downtown',cols:5,rows:4,cx:0,cz:-130,lvl:6,cost:120000,income:1.25,costMul:1.2,road:0x4f5566,pad:0xcfd8dc},
+ {id:2,name:'Financial District',short:'Financial',cols:6,rows:4,cx:170,cz:-130,lvl:14,cost:12e6,income:1.6,costMul:1.5,road:0x3d4455,pad:0xb0bec5},
+ {id:3,name:'International City',short:'Intl',cols:6,rows:5,cx:170,cz:20,lvl:24,cost:1.2e9,income:2.2,costMul:2,road:0x2f3347,pad:0xd1c4e9}];
+const LAND=[
+ {id:'fountainPark',d:0,slot:0,name:'Fountain Park',icon:'⛲',cost:60000,bonus:0.03},
+ {id:'clockTower',d:0,slot:1,name:'Clock Tower',icon:'🕰️',cost:250000,bonus:0.04},
+ {id:'stadium',d:1,slot:0,name:'Grand Stadium',icon:'🏟️',cost:4e6,bonus:0.06},
+ {id:'skyBridge',d:1,slot:1,name:'Sky Bridge',icon:'🌉',cost:12e6,bonus:0.07},
+ {id:'exchange',d:2,slot:0,name:'Stock Exchange',icon:'🏛️',cost:150e6,bonus:0.09},
+ {id:'bull',d:2,slot:1,name:'Golden Bull',icon:'🐂',cost:500e6,bonus:0.10},
+ {id:'needle',d:3,slot:0,name:'Sky Needle',icon:'🗼',cost:10e9,bonus:0.12},
+ {id:'pyramid',d:3,slot:1,name:'Crystal Pyramid',icon:'🔷',cost:40e9,bonus:0.15}];
+const RES=[
+ {id:'e1',br:'Efficiency',name:'Lean Workflows',desc:'+10% all income',cost:15,req:[],fx:{inc:1.10}},
+ {id:'e2',br:'Efficiency',name:'Automation I',desc:'+15% all income',cost:60,req:['e1'],fx:{inc:1.15}},
+ {id:'e3',br:'Efficiency',name:'Automation II',desc:'+20% all income',cost:250,req:['e2'],fx:{inc:1.20}},
+ {id:'e4',br:'Efficiency',name:'AI Assistants',desc:'+30% all income',cost:1200,req:['e3'],fx:{inc:1.30}},
+ {id:'e5',br:'Efficiency',name:'Quantum Computing',desc:'+50% all income',cost:8000,req:['e4'],fx:{inc:1.5}},
+ {id:'f1',br:'Finance',name:'Tax Optimization',desc:'-5% expenses',cost:25,req:[],fx:{exp:0.05}},
+ {id:'f2',br:'Finance',name:'Bulk Purchasing',desc:'-5% location costs',cost:100,req:['f1'],fx:{loc:0.05}},
+ {id:'f3',br:'Finance',name:'Offshore Accounts',desc:'-10% expenses',cost:500,req:['f2'],fx:{exp:0.10}},
+ {id:'f4',br:'Finance',name:'Venture Capital',desc:'-10% location costs',cost:3000,req:['f3'],fx:{loc:0.10}},
+ {id:'g1',br:'Growth',name:'Employee Training',desc:'-8% hiring cost',cost:40,req:[],fx:{hire:0.08}},
+ {id:'g2',br:'Growth',name:'Corporate Culture',desc:'+20% XP',cost:150,req:['g1'],fx:{xp:1.2}},
+ {id:'g3',br:'Growth',name:'Global Branding',desc:'+15% business income',cost:800,req:['g2'],fx:{biz:1.15}},
+ {id:'g4',br:'Growth',name:'Franchise Network',desc:'+30% business income',cost:4000,req:['g3'],fx:{biz:1.3}},
+ {id:'t1',br:'Technology',name:'Research Grants',desc:'+25% research speed',cost:30,req:[],fx:{rp:1.25}},
+ {id:'t2',br:'Technology',name:'Better Labs',desc:'+50% research speed',cost:200,req:['t1'],fx:{rp:1.5}},
+ {id:'t3',br:'Technology',name:'Deal Closer',desc:'x2 Close-a-Deal value',cost:80,req:['t1'],fx:{click:2}},
+ {id:'t4',br:'Technology',name:'Night Shift',desc:'+4h offline earnings cap',cost:300,req:['g1'],fx:{offline:4}},
+ {id:'t5',br:'Technology',name:'Megacorp',desc:'x2 all income',cost:15000,req:['e5','f4','g4'],fx:{inc:2}}];
+const ADD_FX=new Set(['exp','hire','offline','loc']);
+const SHOP=[
+ {id:'seed',name:'Seed Capital',icon:'💵',max:20,cost:l=>1+l,desc:l=>'Start each run with '+money(10000*(1+3*l))+' (next '+money(10000*(1+3*(l+1)))+')'},
+ {id:'golden',name:'Golden Handshake',icon:'🤝',max:20,cost:l=>2+l*2,desc:()=>'+15% all income per level (multiplicative)'},
+ {id:'hr',name:'Efficient HR',icon:'🧑‍💼',max:10,cost:l=>2+l,desc:()=>'-5% hiring cost per level'},
+ {id:'xp',name:'Fast Learner',icon:'🎓',max:10,cost:l=>2+l,desc:()=>'+10% XP per level'},
+ {id:'brain',name:'Brain Trust',icon:'🧠',max:10,cost:l=>3+l,desc:()=>'+25% research points per level'},
+ {id:'time',name:'Time Dilation',icon:'⏳',max:5,cost:l=>4+l*2,desc:()=>'+2h max offline earnings per level'},
+ {id:'head',name:'Head Start',icon:'🚀',max:5,cost:l=>5+l*3,desc:()=>'Start each run +3 levels per level'}];
+const EXCL=[
+ {id:'goldDesk',name:'Golden Desks',icon:'🪙',desc:'Solid-gold desks in your office. +5% income.',req:'Rebirth 1 time',ok:()=>S.prestige.count>=1,bonus:0.05},
+ {id:'tower',name:'Tycoon Tower',icon:'🏙️',desc:'A golden twisting skyscraper west of the city. +8% income.',req:'Rebirth 2 times',ok:()=>S.prestige.count>=2,bonus:0.08},
+ {id:'diamond',name:'Diamond Statue',icon:'💠',desc:'A giant diamond statue in your office. +10% income.',req:'Rebirth 4 times',ok:()=>S.prestige.count>=4,bonus:0.10},
+ {id:'rocket',name:'Rocket Monument',icon:'🚀',desc:'A launch-ready rocket west of the city. +15% income.',req:'Rebirth 6 times',ok:()=>S.prestige.count>=6,bonus:0.15},
+ {id:'cat',name:'Lucky Cat',icon:'🐱',desc:'A golden cat on your office rug. +3% income.',req:'Complete a 7-day daily reward cycle',ok:()=>S.daily.cycles>=1,bonus:0.03},
+ {id:'wall',name:'Hall of Fame Wall',icon:'🥇',desc:'Gold plaques in your office. +5% income.',req:'Earn 15 achievements',ok:()=>achCount()>=15,bonus:0.05}];
+const ACH=[
+ ['first','First Dollars','Earn $1,000 total',()=>S.totalEarned>=1e3],
+ ['k100','Small Fortune','Earn $100K total',()=>S.totalEarned>=1e5],
+ ['m1','Millionaire','Earn $1M total',()=>S.totalEarned>=1e6],
+ ['m100','Centimillionaire','Earn $100M total',()=>S.totalEarned>=1e8],
+ ['b1','Billionaire','Earn $1B total',()=>S.totalEarned>=1e9],
+ ['b100','Hectobillionaire','Earn $100B total',()=>S.totalEarned>=1e11],
+ ['t1','Trillionaire','Earn $1T total',()=>S.totalEarned>=1e12],
+ ['emp10','Team Builder','Employ 10 people',()=>empCount()>=10],
+ ['emp30','Corporate Crowd','Employ 30 people',()=>empCount()>=30],
+ ['emp6','Full Roster','Hire every employee type',()=>EMP_ORDER.every(k=>S.emp[k]>0)],
+ ['lv5','Rising Star','Reach level 5',()=>S.level>=5],
+ ['lv10','Manager Material','Reach level 10',()=>S.level>=10],
+ ['lv25','Industry Leader','Reach level 25',()=>S.level>=25],
+ ['lv50','Legend','Reach level 50',()=>S.level>=50],
+ ['biz1','Entrepreneur','Unlock your first business',()=>BIZ.some(b=>S.biz[b.id].unlocked)],
+ ['biz3','Diversified','Unlock 3 business types',()=>BIZ.filter(b=>S.biz[b.id].unlocked).length>=3],
+ ['biz6','Mogul','Unlock all 6 business types',()=>BIZ.every(b=>S.biz[b.id].unlocked)],
+ ['loc10','Chain Owner','Own 10 locations',()=>S.placed.length>=10],
+ ['loc40','Franchise King','Own 40 locations',()=>S.placed.length>=40],
+ ['dt','Downtown Dweller','Unlock Downtown',()=>S.districts[1]],
+ ['fin','Wall Street Wolf','Unlock the Financial District',()=>S.districts[2]],
+ ['intl','Globetrotter','Unlock International City',()=>S.districts[3]],
+ ['res1','Eureka!','Finish a research project',()=>Object.keys(S.research).length>=1],
+ ['res10','Mad Scientist','Finish 10 research projects',()=>Object.keys(S.research).length>=10],
+ ['reb1','Reborn','Rebirth once',()=>S.prestige.count>=1],
+ ['reb5','Phoenix','Rebirth 5 times',()=>S.prestige.count>=5],
+ ['click','Hustler','Close 500 deals',()=>S.stats.clicks>=500],
+ ['decor','Interior Designer','Own every decoration',()=>DECOR.every(d=>S.decor[d.id])],
+ ['office','Corner Office','Max out office size',()=>S.officeSize>=SIZES.length-1],
+ ['streak','Loyal Boss','Complete a 7-day daily cycle',()=>S.daily.cycles>=1],
+ ['land4','Landmark Collector','Own 4 landmarks',()=>Object.keys(S.landmarks).length>=4],
+ ['net1m','Cash Machine','Reach $1M profit per second',()=>C.net>=1e6]];
+
+/* ============================ STATE ============================ */
+const KEY='businessTycoon_save_v1';
+function newState(){const b={};BIZ.forEach(x=>b[x.id]={unlocked:false,staff:0,ups:[0,0,0],district:0});
+ return {v:1,name:'My Company',cash:10000,runEarned:0,totalEarned:0,xp:0,level:1,rp:0,
+ emp:{worker:2,accountant:0,marketer:0,engineer:0,manager:0,executive:0},
+ train:{worker:0,accountant:0,marketer:0,engineer:0,manager:0,executive:0},
+ desks:2,officeSize:0,compTier:0,equipTier:0,meeting:0,marketing:0,lab:0,decor:{},
+ biz:b,districts:[true,false,false,false],placed:[],landmarks:{},research:{},ach:{},
+ daily:{last:'',streak:0,cycles:0},prestige:{count:0,lp:0,spent:0,shop:{}},
+ stats:{clicks:0},speed:1,muted:false,lastSave:Date.now(),seenWelcome:false};}
+function merge(d,s){if(s===undefined||s===null)return d;if(Array.isArray(d))return Array.isArray(s)?s:d;
+ if(typeof d==='object'&&d){if(typeof s!=='object')return d;const keys=Object.keys(d);if(!keys.length)return s;const o={};keys.forEach(k=>o[k]=merge(d[k],s[k]));Object.keys(s).forEach(k=>{if(!(k in o))o[k]=s[k];});return o;}
+ return (typeof s===typeof d)?s:d;}
+let S=newState();
+let C={gross:0,exp:0,net:0,rp:0,gm:1,biz:{}};
+
+/* ============================ HELPERS ============================ */
+const empCount=()=>EMP_ORDER.reduce((a,k)=>a+S.emp[k],0);
+const achCount=()=>Object.keys(S.ach).length;
+const locs=id=>S.placed.filter(p=>p.t===id).length;
+const execCap=()=>2+S.officeSize*2;
+const freeCount=d=>DIST[d].cols*DIST[d].rows-S.placed.filter(p=>p.d===d).length;
+function freeIdx(d){const t=DIST[d].cols*DIST[d].rows;for(let i=0;i<t;i++){if(!S.placed.some(p=>p.d===d&&p.i===i))return i;}return -1;}
+function resFx(){const r={inc:1,exp:0,hire:0,xp:1,rp:1,click:1,offline:0,biz:1,loc:0};RES.forEach(n=>{if(!S.research[n.id])return;for(const k in n.fx){if(ADD_FX.has(k))r[k]+=n.fx[k];else r[k]*=n.fx[k];}});return r;}
+const hireDisc=()=>Math.min(0.7,resFx().hire+0.05*(S.prestige.shop.hr||0));
+const hireCost=k=>EMP[k].cost*Math.pow(EMP[k].growth,S.emp[k])*(1-hireDisc());
+const trainCost=k=>EMP[k].cost*8*Math.pow(3,S.train[k]);
+const deskCost=()=>250*Math.pow(1.2,S.desks);
+const staffCap=(b,n)=>8+4*n;
+const staffCost=b=>b.staff.cost*Math.pow(1.13,S.biz[b.id].staff);
+const upCost=(b,l)=>b.loc*3*Math.pow(3.2,l);
+const locCostFor=(b,d)=>b.loc*Math.pow(b.g,locs(b.id))*DIST[d].costMul*(1-Math.min(0.5,resFx().loc));
+const xpMult=()=>resFx().xp*(1+0.1*(S.prestige.shop.xp||0))*(1+0.03*S.emp.executive);
+const lpGain=()=>Math.floor(Math.sqrt(S.runEarned/250000));
+const lpAvail=()=>S.prestige.lp-S.prestige.spent;
+const dealValue=()=>(5+C.gross*0.02)*resFx().click;
+function ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+
+/* ============================ ECONOMY ============================ */
+function calc(){
+ const r=resFx(),tr=t=>1+0.25*S.train[t],sz=SIZES[S.officeSize];
+ const mgr=S.emp.manager*0.04*tr('manager');
+ const work=S.emp.worker*4*tr('worker')*COMP[S.compTier].mult*(1+mgr);
+ const officeBase=(2*(S.officeSize+1)+work)*EQUIP[S.equipTier].mult;
+ let add=1+S.emp.marketer*0.025*tr('marketer')+S.emp.executive*0.06*tr('executive')+S.emp.engineer*0.01*tr('engineer')+S.meeting*ROOMS.meeting.bonus+S.marketing*ROOMS.marketing.bonus;
+ DECOR.forEach(d=>{if(S.decor[d.id])add+=d.bonus;});
+ LAND.forEach(l=>{if(S.landmarks[l.id])add+=l.bonus;});
+ EXCL.forEach(e=>{if(e.ok())add+=e.bonus;});
+ const gm=add*r.inc*(1+0.01*achCount())*(1+0.1*S.prestige.lp)*Math.pow(1.15,S.prestige.shop.golden||0)*(1+0.01*(S.level-1));
+ const out={gm,add,biz:{},officeInc:officeBase*gm};
+ let gross=out.officeInc,exp=sz.rent;
+ EMP_ORDER.forEach(k=>{exp+=S.emp[k]*EMP[k].wage;});
+ const cnt={},sum={};
+ S.placed.forEach(p=>{cnt[p.t]=(cnt[p.t]||0)+1;sum[p.t]=(sum[p.t]||0)+BIZMAP[p.t].base*DIST[p.d].income;});
+ BIZ.forEach(b=>{const st=S.biz[b.id];if(!st.unlocked)return;const n=cnt[b.id]||0;
+  const upM=Math.pow(1.25,st.ups[0])*Math.pow(1.2,st.ups[1]),stM=1+0.03*st.staff;
+  const inc=(sum[b.id]||0)*upM*stM*gm*r.biz;
+  const ox=n*b.opex*Math.pow(0.88,st.ups[2])+st.staff*b.staff.cost*0.0006;
+  out.biz[b.id]={inc,exp:ox,n};gross+=inc;exp+=ox;});
+ const cut=Math.min(0.75,Math.min(0.4,S.emp.accountant*0.015*tr('accountant'))+r.exp);
+ out.cut=cut;out.gross=gross;out.exp=exp*(1-cut);out.net=out.gross-out.exp;
+ out.rp=S.lab>=1?(LAB_RP[S.lab]+S.emp.engineer*0.08*tr('engineer'))*r.rp*(1+0.25*(S.prestige.shop.brain||0)):0;
+ return out;}
+
+/* ============================ SOUND / TOAST ============================ */
+let actx=null;
+function sfx(t){if(S.muted)return;try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain();o.connect(g);g.connect(actx.destination);o.frequency.value={buy:520,click:700,level:880,ach:660,err:180}[t]||440;o.type='triangle';g.gain.setValueAtTime(.05,actx.currentTime);g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+.18);o.start();o.stop(actx.currentTime+.2);}catch(e){}}
+function toast(msg,cls){const box=$('#toasts'),el=document.createElement('div');el.className='toast '+(cls||'');el.innerHTML=msg;box.appendChild(el);setTimeout(()=>el.classList.add('out'),3200);setTimeout(()=>el.remove(),3800);while(box.children.length>5)box.firstChild.remove();}
+function err(m){toast(m,'bad');sfx('err');return false;}
+function floatText(txt,x,y){const e=document.createElement('div');e.className='float';e.textContent=txt;e.style.left=x+'px';e.style.top=y+'px';document.body.appendChild(e);setTimeout(()=>e.remove(),1000);}
+function showModal(h){$('#modalBox').innerHTML=h;$('#modal').style.display='flex';}
+function closeModal(){$('#modal').style.display='none';}
+
+/* ============================ PROGRESSION ============================ */
+function addXP(a){a*=xpMult();if(S.level>=MAXLVL)return;S.xp+=a;while(S.level<MAXLVL&&S.xp>=need(S.level)){S.xp-=need(S.level);S.level++;levelUp();}}
+function levelUp(){const rew=Math.max(500,C.net*90);S.cash+=rew;sfx('level');
+ const unl=[];BIZ.forEach(b=>{if(b.lvl===S.level)unl.push(b.icon+' '+b.name);});DIST.forEach(D=>{if(D.lvl===S.level&&D.id>0)unl.push('🌆 '+D.name);});
+ Object.keys(EMP).forEach(k=>{if(EMP[k].lvl===S.level&&S.level>1)unl.push(EMP[k].icon+' '+EMP[k].name);});
+ toast('⭐ Level '+S.level+'! +'+money(rew)+(unl.length?'<br>Unlocked: '+unl.join(', '):''),'gold');dirty.ui=true;}
+function spend(c){if(S.cash<c-1e-9)return false;S.cash-=c;addXP(Math.sqrt(c)/2);sfx('buy');return true;}
+function checkAch(){let n=0;ACH.forEach(a=>{if(!S.ach[a[0]]&&a[3]()){S.ach[a[0]]=true;n++;toast('🏆 Achievement: <b>'+a[1]+'</b> (+1% income)','gold');sfx('ach');}});if(n){C=calc();dirty.ui=true;}}
+
+/* ============================ ACTIONS ============================ */
+const dirty={office:true,city:true,ui:true};
+function after(f){if(f==='office'||f==='both')dirty.office=true;if(f==='city'||f==='both')dirty.city=true;C=calc();dirty.ui=true;hud();}
+function buyLoc(b,d,i){const st=S.biz[b.id];if(!st.unlocked)return err('Unlock '+b.name+' first');if(!S.districts[d])return err('That district is locked');
+ if(i==null)i=freeIdx(d);if(i<0)return err('No free plots in '+DIST[d].name);if(S.placed.some(p=>p.d===d&&p.i===i))return err('That plot is taken');
+ const c=locCostFor(b,d);if(!spend(c))return err('Not enough cash');S.placed.push({d:d,i:i,t:b.id});toast(b.icon+' New '+b.name.replace(/s$/,'')+' opened in '+DIST[d].short+'!');after('city');return true;}
+const ACT={
+ tab(ds){curTab=ds.k;dirty.ui=true;renderTabs();},
+ toggleSide(){document.body.classList.toggle('noside');},
+ view(ds){setView(ds.k);},
+ focus(ds){setView('city');const D=DIST[+ds.k];goal.tx=D.cx;goal.tz=D.cz;goal.r=210;goal.ph=0.9;},
+ speed(){S.speed=S.speed===1?2:S.speed===2?5:1;$('#speedBtn').textContent='⏩ x'+S.speed;},
+ deal(ds,e){if(performance.now()-lastDeal<200)return;lastDeal=performance.now();const v=dealValue();S.cash+=v;S.totalEarned+=v;S.runEarned+=v;S.stats.clicks++;addXP(1);sfx('click');
+  const r=$('#deal').getBoundingClientRect();floatText('+'+money(v),r.left+r.width/2-30+Math.random()*60,r.top-10);hud();},
+ hire(ds){const k=ds.k,e=EMP[k];if(S.level<e.lvl)return err('Requires level '+e.lvl);if(empCount()>=S.desks)return err('No free desks! Buy more desks first.');
+  if(k==='executive'&&S.emp.executive>=execCap())return err('Executive seats full. Expand your office.');if(!spend(hireCost(k)))return err('Not enough cash');S.emp[k]++;after('office');},
+ train(ds){const k=ds.k;if(S.train[k]>=5)return;if(!spend(trainCost(k)))return err('Not enough cash');S.train[k]++;toast(EMP[k].icon+' '+EMP[k].name+' training level '+S.train[k]);after('office');},
+ desk(){const sz=SIZES[S.officeSize];if(S.desks>=sz.cap)return err('Office is full. Expand it!');if(!spend(deskCost()))return err('Not enough cash');S.desks++;after('office');},
+ size(){const n=SIZES[S.officeSize+1];if(!n)return;if(S.level<n.lvl)return err('Requires level '+n.lvl);if(!spend(n.cost))return err('Not enough cash');S.officeSize++;toast('🏢 Upgraded to '+n.name+'!','gold');if(mode==='office')goal.r=officeR();after('office');},
+ comp(){const n=COMP[S.compTier+1];if(!n)return;if(!spend(n.cost))return err('Not enough cash');S.compTier++;toast('💻 '+n.name+' installed!');after('office');},
+ equip(){const n=EQUIP[S.equipTier+1];if(!n)return;if(!spend(n.cost))return err('Not enough cash');S.equipTier++;toast('🛠️ '+n.name+' installed!');after('office');},
+ room(ds){const k=ds.k,R=ROOMS[k];if(S[k]>=R.costs.length)return;if(S.level<R.lvl)return err('Requires level '+R.lvl);if(S.officeSize<R.minSize)return err('Needs a bigger office');if(!spend(R.costs[S[k]]))return err('Not enough cash');S[k]++;toast(R.icon+' '+R.name+' level '+S[k]+'!');after('office');},
+ decor(ds){const d=DECOR.find(x=>x.id===ds.k);if(S.decor[d.id])return;if(!spend(d.cost))return err('Not enough cash');S.decor[d.id]=true;toast(d.icon+' '+d.name+' placed (+'+(d.bonus*100).toFixed(1)+'% income)');after('office');},
+ bizUnlock(ds){const b=BIZMAP[ds.k];if(S.level<b.lvl)return err('Requires level '+b.lvl);if(!spend(b.unlock))return err('Not enough cash');S.biz[b.id].unlocked=true;toast(b.icon+' '+b.name+' unlocked!','gold');after('city');},
+ bizLoc(ds){const b=BIZMAP[ds.k],st=S.biz[b.id];let d=st.district;if(!S.districts[d]||freeCount(d)===0){d=-1;for(let x=3;x>=0;x--){if(S.districts[x]&&freeCount(x)>0){d=x;break;}}if(d<0)return err('No free plots anywhere. Unlock more districts!');}buyLoc(b,d,null);},
+ bizDist(ds){const D=+ds.d;if(!S.districts[D])return err('District locked');S.biz[ds.k].district=D;dirty.ui=true;},
+ bizStaff(ds){const b=BIZMAP[ds.k],st=S.biz[b.id],n=locs(b.id);if(n===0)return err('Open a location first');if(st.staff>=staffCap(b,n))return err('Staff cap reached. Open more locations.');if(!spend(staffCost(b)))return err('Not enough cash');st.staff++;after();},
+ bizUp(ds){const b=BIZMAP[ds.k],st=S.biz[b.id],i=+ds.d;if(st.ups[i]>=5)return;if(!spend(upCost(b,st.ups[i])))return err('Not enough cash');st.ups[i]++;toast('⬆️ '+b.ups[i]+' level '+st.ups[i]);after('city');},
+ plotBuild(ds){const b=BIZMAP[ds.k];if(buyLoc(b,+ds.d,+ds.i))renderPopup();},
+ closePopup(){closePopup();},
+ distUnlock(ds){const D=DIST[+ds.k];if(S.districts[D.id])return;if(!S.districts[D.id-1])return err('Unlock the previous district first');if(S.level<D.lvl)return err('Requires level '+D.lvl);if(!spend(D.cost))return err('Not enough cash');S.districts[D.id]=true;toast('🌆 '+D.name+' unlocked!','gold');after('city');ACT.focus({k:D.id});},
+ landmark(ds){const l=LAND.find(x=>x.id===ds.k);if(S.landmarks[l.id])return;if(!S.districts[l.d])return err('Unlock the district first');if(!spend(l.cost))return err('Not enough cash');S.landmarks[l.id]=true;toast(l.icon+' '+l.name+' built! +'+(l.bonus*100).toFixed(0)+'% income','gold');after('city');},
+ research(ds){const n=RES.find(x=>x.id===ds.k);if(S.research[n.id])return;if(!n.req.every(r=>S.research[r]))return err('Requires earlier research');if(S.rp<n.cost)return err('Not enough research points');S.rp-=n.cost;S.research[n.id]=true;addXP(n.cost);sfx('buy');toast('🔬 Researched: '+n.name);after();},
+ daily(){const today=ymd(new Date());if(S.daily.last===today)return err('Already claimed today');const yest=ymd(new Date(Date.now()-864e5));S.daily.streak=(S.daily.last===yest)?S.daily.streak+1:1;S.daily.last=today;
+  const day=((S.daily.streak-1)%7)+1,rw=dailyReward(day);S.cash+=rw.cash;S.rp+=rw.rp;addXP(rw.xp);if(day===7)S.daily.cycles++;toast('🎁 Day '+day+' reward: '+money(rw.cash)+(rw.rp?' + '+rw.rp+' RP':''),'gold');sfx('level');after();},
+ shop(ds){const it=SHOP.find(x=>x.id===ds.k),l=S.prestige.shop[it.id]||0;if(l>=it.max)return;const c=it.cost(l);if(lpAvail()<c)return err('Not enough Legacy Points');S.prestige.spent+=c;S.prestige.shop[it.id]=l+1;sfx('buy');toast(it.icon+' '+it.name+' level '+(l+1));after();},
+ prestige(){const g=lpGain();if(g<1)return err('Earn more this run first');
+  showModal('<h2>♻️ Rebirth?</h2><p>You will gain <b class="y">'+g+' Legacy Points</b> (+'+(g*10)+'% permanent income).</p><p style="margin-top:6px">Your cash, office, staff, businesses, city, research and level reset. You keep achievements, daily streak, Legacy Points, shop upgrades and exclusive rewards.</p><div class="cbtn" style="margin-top:14px"><button class="btn red" data-a="prestigeGo">♻️ Rebirth now</button><button class="btn alt" data-a="closeModal">Cancel</button></div>');},
+ prestigeGo(){closeModal();doPrestige();},
+ closeModal(){closeModal();},
+ closeWelcome(){S.seenWelcome=true;closeModal();},
+ save(){save();toast('💾 Game saved');},
+ export(){const t=btoa(unescape(encodeURIComponent(JSON.stringify(S))));const ta=$('#expBox');if(ta){ta.value=t;ta.select();}},
+ import(){const ta=$('#expBox');if(!ta||!ta.value.trim())return err('Paste a save code first');try{const o=JSON.parse(decodeURIComponent(escape(atob(ta.value.trim()))));S=merge(newState(),o);rebuildAll();toast('✅ Save imported');}catch(e){err('Invalid save code');}},
+ mute(){S.muted=!S.muted;lastHtml='';renderPanel(true);},
+ reset(){showModal('<h2>⚠️ Hard reset</h2><p>This deletes ALL progress, including Legacy Points and achievements.</p><div class="cbtn" style="margin-top:14px"><button class="btn red" data-a="resetGo">Delete everything</button><button class="btn alt" data-a="closeModal">Cancel</button></div>');},
+ resetGo(){closeModal();try{localStorage.removeItem(KEY);}catch(e){}S=newState();S.seenWelcome=true;rebuildAll();toast('Fresh start!');},
+ rename(){const v=$('#nameBox').value.trim().slice(0,24);if(v){S.name=v;dirty.city=true;hud();toast('Company renamed');}}
+};
+let lastDeal=0;
+function dailyReward(day){const net=Math.max(1,C.net);return {cash:Math.max(2000*day,net*500*day),rp:day>=3?10*day:0,xp:day*60};}
+function doPrestige(){const g=lpGain();if(g<1)return;const ns=newState();ns.name=S.name;ns.ach=S.ach;ns.daily=S.daily;ns.stats=S.stats;ns.totalEarned=S.totalEarned;ns.muted=S.muted;ns.speed=S.speed;ns.prestige=S.prestige;ns.prestige.count++;ns.prestige.lp+=g;ns.seenWelcome=true;
+ const sh=ns.prestige.shop;ns.cash=10000*(1+3*(sh.seed||0));ns.level=Math.min(MAXLVL,1+3*(sh.head||0));S=ns;rebuildAll();setView('office');toast('♻️ Rebirth #'+S.prestige.count+'! +'+g+' Legacy Points','gold');sfx('level');}
+function rebuildAll(){C=calc();dirty.office=dirty.city=dirty.ui=true;lastExcl='';$('#speedBtn').textContent='⏩ x'+S.speed;goal.r=mode==='office'?officeR():goal.r;hud();}
+
+/* ============================ SAVE ============================ */
+function save(){S.lastSave=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return null;return merge(newState(),JSON.parse(raw));}catch(e){return null;}}
+
+/* ============================ THREE SETUP ============================ */
+const canvas=$('#c');
+const renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x9fd8ff);scene.fog=new THREE.Fog(0x9fd8ff,420,1700);
+const camera=new THREE.PerspectiveCamera(50,1,0.5,4000);
+scene.add(new THREE.HemisphereLight(0xffffff,0x88aa88,0.9));
+const sun=new THREE.DirectionalLight(0xfff2d6,0.75);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.bias=-0.0006;sun.shadow.camera.near=1;sun.shadow.camera.far=500;scene.add(sun);scene.add(sun.target);
+function updateShadowCam(){const s=mode==='office'?45:170,c=sun.shadow.camera;c.left=-s;c.right=s;c.top=s;c.bottom=-s;c.updateProjectionMatrix();}
+
+const GB=new THREE.BoxGeometry(1,1,1),GS=new THREE.SphereGeometry(1,16,12),GC=new THREE.CylinderGeometry(1,1,1,20),GK=new THREE.ConeGeometry(1,1,20),GP4=new THREE.ConeGeometry(1,1,4),GT=new THREE.TorusGeometry(1,0.12,8,28);
+const matC=new Map();
+function M(c,o){o=o||{};const k=c+'_'+(o.e||0)+'_'+(o.t||0);let m=matC.get(k);if(!m){m=new THREE.MeshLambertMaterial({color:c,emissive:o.e||0,transparent:!!o.t,opacity:o.t||1});matC.set(k,m);}return m;}
+function mesh(g,c,sx,sy,sz,x,y,z,par,o){const m=new THREE.Mesh(g,M(c,o));m.scale.set(sx,sy,sz);m.position.set(x,y,z);m.castShadow=!(o&&o.t);m.receiveShadow=true;if(par)par.add(m);return m;}
+const box=(w,h,d,c,x,y,z,p,o)=>mesh(GB,c,w,h,d,x,y,z,p,o);
+const sph=(r,c,x,y,z,p,o)=>mesh(GS,c,r,r,r,x,y,z,p,o);
+const cyl=(r,h,c,x,y,z,p,o)=>mesh(GC,c,r,h,r,x,y,z,p,o);
+const cone=(r,h,c,x,y,z,p,o)=>mesh(GK,c,r,h,r,x,y,z,p,o);
+const pyr=(r,h,c,x,y,z,p,o)=>{const m=mesh(GP4,c,r,h,r,x,y,z,p,o);m.rotation.y=Math.PI/4;return m;};
+const tor=(r,c,x,y,z,p,o)=>{const m=mesh(GT,c,r,r,r,x,y,z,p,o);m.rotation.x=Math.PI/2;m.castShadow=false;return m;};
+function clearGroup(g){while(g.children.length)g.remove(g.children[0]);}
+function rr(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();}
+const spriteCache=new Map();
+function label(text,w,bg){const key='L'+text+'|'+bg;let tex=spriteCache.get(key);if(!tex){const cv=document.createElement('canvas');cv.width=512;cv.height=128;const g=cv.getContext('2d');g.fillStyle=bg||'rgba(15,22,40,0.8)';rr(g,6,6,500,116,26);g.fill();g.font='bold 54px "Trebuchet MS","Segoe UI Emoji",Arial';g.fillStyle='#fff';g.textAlign='center';g.textBaseline='middle';g.fillText(text,256,68,480);tex=new THREE.CanvasTexture(cv);spriteCache.set(key,tex);}
+ const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,fog:false}));sp.scale.set(w||12,(w||12)/4,1);return sp;}
+function iconSprite(e,s){const key='I'+e;let tex=spriteCache.get(key);if(!tex){const cv=document.createElement('canvas');cv.width=cv.height=128;const g=cv.getContext('2d');g.font='96px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(e,64,72);tex=new THREE.CanvasTexture(cv);spriteCache.set(key,tex);}
+ const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,fog:false}));sp.scale.set(s||7,s||7,1);return sp;}
+const winCache=new Map();
+function winMat(wall,win,rx,ry){const key=wall+'_'+win+'_'+rx+'_'+ry;let m=winCache.get(key);if(m)return m;
+ const cv=document.createElement('canvas');cv.width=cv.height=32;const g=cv.getContext('2d');g.fillStyle='#'+wall.toString(16).padStart(6,'0');g.fillRect(0,0,32,32);g.fillStyle='#'+win.toString(16).padStart(6,'0');g.fillRect(6,7,20,17);g.fillStyle='rgba(255,255,255,.4)';g.fillRect(6,7,20,4);
+ const t=new THREE.CanvasTexture(cv);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);m=new THREE.MeshLambertMaterial({map:t});winCache.set(key,m);return m;}
+function tower(w,h,d,wall,win,roof,par,x,z){const rx=Math.max(1,Math.round(w/3)),rz=Math.max(1,Math.round(d/3)),ry=Math.max(1,Math.round(h/3));
+ const mx=winMat(wall,win,rz,ry),mz=winMat(wall,win,rx,ry),rm=M(roof);const m=new THREE.Mesh(GB,[mx,mx,rm,rm,mz,mz]);m.scale.set(w,h,d);m.position.set(x,h/2,z);m.castShadow=true;m.receiveShadow=true;par.add(m);return m;}
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+/* ============================ CAMERA ============================ */
+const OX=800,OZ=0;
+let mode='office';
+const officeR=()=>16+SIZES[S.officeSize].W*0.95;
+const goal={tx:OX,ty:1.5,tz:OZ,r:30,th:0.75,ph:1.0};
+const cur=Object.assign({},goal);
+const saved={office:null,city:{tx:85,ty:0,tz:-50,r:340,th:0.5,ph:0.95}};
+function setView(m){if(m===mode)return;saved[mode]=Object.assign({},goal);mode=m;if(m==='office'&&saved.office)saved.office.r=Math.max(saved.office.r,12);Object.assign(goal,saved[m]);if(m==='office')goal.r=saved.office?saved.office.r:officeR();
+ $('#cityNav').style.display=m==='city'?'flex':'none';updateShadowCam();closePopup();}
+function resize(){const w=window.innerWidth,h=window.innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+window.addEventListener('resize',resize);
+
+/* ============================ OFFICE BUILD ============================ */
+const office=new THREE.Group();office.position.set(OX,0,OZ);scene.add(office);
+const anim=[];
+const SKIN=[0xffcc99,0xe0ac69,0x8d5524,0xf1c27d];
+function slotXZ(k,sz){const col=k%sz.cols,row=Math.floor(k/sz.cols);return {x:-sz.W/2+(sz.W-(sz.cols-1)*4.4)/2+col*4.4,z:-sz.D/2+8.6+row*3.8};}
+function addPerson(g,type,k){const e=EMP[type];const pg=new THREE.Group();pg.position.set(0,0,1.3);g.add(pg);
+ cyl(0.45,0.12,0x455a64,0,0.62,0,pg);cyl(0.08,0.55,0x37474f,0,0.35,0,pg);
+ box(0.25,0.25,1.0,0x37474f,-0.2,0.85,-0.45,pg);box(0.25,0.25,1.0,0x37474f,0.2,0.85,-0.45,pg);
+ const up=new THREE.Group();pg.add(up);
+ cyl(0.38,0.85,e.color,0,1.35,0,up);sph(0.3,SKIN[k%4],0,1.98,0,up);
+ box(0.18,0.18,0.85,e.color,-0.45,1.4,-0.4,up);box(0.18,0.18,0.85,e.color,0.45,1.4,-0.4,up);
+ switch(type){
+  case 'worker':cyl(0.32,0.14,0x1e88e5,0,2.25,0,up);box(0.5,0.04,0.3,0x1565c0,0,2.18,-0.3,up);break;
+  case 'accountant':box(0.7,0.06,0.6,0x2e7d32,0,2.2,-0.05,up);sph(0.31,0x3e2723,0,2.05,0.05,up);break;
+  case 'marketer':box(0.7,0.06,0.08,0xf06292,0,2.3,0,up);[-0.34,0.34].forEach(x=>{const m=cyl(0.13,0.12,0xf06292,x,2.0,0,up);m.rotation.z=Math.PI/2;});break;
+  case 'engineer':cyl(0.34,0.14,0xffa726,0,2.25,0,up);cyl(0.42,0.04,0xffa726,0,2.18,0,up);break;
+  case 'manager':sph(0.31,0x3e2723,0,2.04,0.04,up);box(0.4,0.5,0.04,0x8d6e63,-0.5,1.5,-0.85,up);break;
+  case 'executive':cyl(0.26,0.5,0x212121,0,2.5,0,up);cyl(0.4,0.04,0x212121,0,2.25,0,up);cyl(0.27,0.08,0xffc107,0,2.33,0,up);break;}
+ anim.push({t:'bob',o:up,b:0,p:k*1.7});}
+function addDesk(x,z,type,k){const g=new THREE.Group();g.position.set(x,0.2,z);office.add(g);
+ const gold=EXCL[0].ok(),top=gold?0xffd54f:0xc69c6d,leg=gold?0xffb300:0x8d6e63,o=gold?{e:0x402a00}:null;
+ box(3,0.15,1.6,top,0,1.0,0,g,o);box(0.15,1,1.4,leg,-1.35,0.5,0,g);box(0.15,1,1.4,leg,1.35,0.5,0,g);
+ const ct=S.compTier,col=SCR[ct];
+ if(ct>=3){[-0.62,0.62].forEach(mx=>{box(0.15,0.3,0.15,0x455a64,mx,1.25,-0.45,g);box(1.0,0.62,0.08,0x263238,mx,1.7,-0.5,g);box(0.9,0.52,0.05,col,mx,1.7,-0.45,g,{e:col});});}
+ else{const s=0.8+0.12*ct;box(0.15,0.3,0.15,0x455a64,0,1.25,-0.45,g);box(s,s*0.65,0.08,0x263238,0,1.45+s*0.35,-0.5,g);box(s*0.9,s*0.55,0.05,col,0,1.45+s*0.35,-0.45,g,{e:col});}
+ box(1.1,0.06,0.4,0x37474f,0,1.1,0.25,g);cyl(0.12,0.25,0xffffff,1.1,1.2,0.2,g);
+ if(ct>=4){box(0.5,1.3,0.7,0x212121,1.9,0.65,0,g);box(0.35,0.05,0.05,0x00e676,1.9,1.0,0.36,g,{e:0x00e676});}
+ if(type)addPerson(g,type,k);}
+function roomBase(i,sz,color,title){const x=-sz.W/2+3.5+i*7,z=-sz.D/2+3.6;
+ box(6.6,0.06,5.6,color,x,0.23,z,office);box(6.6,1.6,0.08,0x80deea,x,1.0,z+2.8,office,{t:0.25});box(0.08,1.6,5.6,0x80deea,x+3.3,1.0,z,office,{t:0.25});
+ const s=label(title,6);s.position.set(x,3.6,z+2.6);office.add(s);return {x:x,z:z};}
+function buildRooms(sz){
+ if(S.lab>0){const p=roomBase(0,sz,0xc8e6c9,'🔬 Research Lab L'+S.lab),L=S.lab;
+  box(4.2,0.9,1.4,0xeceff1,p.x,0.7,p.z-0.6,office);box(4.3,0.08,1.5,0x607d8b,p.x,1.18,p.z-0.6,office);
+  for(let i=0;i<2+L;i++){const fx=p.x-1.75+i*0.7,c=[0xef5350,0x42a5f5,0xffee58,0x66bb6a,0xab47bc,0xff7043][i%6];sph(0.25,c,fx,1.5,p.z-0.6,office,{t:0.85});cyl(0.08,0.35,0xe0e0e0,fx,1.8,p.z-0.6,office);}
+  if(L>=2){box(1,1.6,0.9,0x90a4ae,p.x+2.3,1.0,p.z-1.8,office);box(0.3,0.1,0.05,0xff1744,p.x+2.3,1.5,p.z-1.33,office,{e:0xff1744});}
+  if(L>=3){cyl(0.6,2,0x66bb6a,p.x-2.4,1.2,p.z-1.9,office,{t:0.55});cyl(0.4,1.3,0x00e676,p.x-2.4,1.0,p.z-1.9,office,{e:0x00a152});}
+  if(L>=4){const h=sph(0.7,0x00e5ff,p.x,2.5,p.z+0.4,office,{t:0.45,e:0x00bcd4});anim.push({t:'spin',o:h,s:1.2});const t=tor(1.1,0x00e5ff,p.x,2.5,p.z+0.4,office,{e:0x00bcd4});anim.push({t:'spin',o:t,s:-2,axis:'z'});}}
+ if(S.meeting>0){const p=roomBase(1,sz,0xd1c4e9,'🗣️ Meeting Room L'+S.meeting),L=S.meeting;
+  cyl(1.4,0.15,0x8d6e63,p.x,1.0,p.z-0.2,office);cyl(0.2,0.8,0x5d4037,p.x,0.6,p.z-0.2,office);
+  const n=2+2*L;for(let i=0;i<n;i++){const a=i/n*Math.PI*2;cyl(0.3,0.1,0x5c6bc0,p.x+Math.cos(a)*1.9,0.75,p.z-0.2+Math.sin(a)*1.9,office);box(0.4,0.5,0.08,0x3949ab,p.x+Math.cos(a)*2.15,1.0,p.z-0.2+Math.sin(a)*2.15,office);}
+  box(3,1.6,0.08,0xffffff,p.x,2.7,-sz.D/2+0.15,office,{e:0x222222});box(2.6,0.1,0.02,0x42a5f5,p.x,3.1,-sz.D/2+0.2,office,{e:0x42a5f5});
+  if(L>=2)box(1.6,1.2,0.6,0x6d4c41,p.x+2.5,0.8,p.z-2.1,office);
+  if(L>=3){cyl(0.03,1.5,0x9e9e9e,p.x,5.2,p.z-0.2,office);sph(0.4,0xfff59d,p.x,4.4,p.z-0.2,office,{e:0xffeb3b});}}
+ if(S.marketing>0){const p=roomBase(2,sz,0xf8bbd0,'📺 Marketing Dept L'+S.marketing),L=S.marketing;
+  box(3.2,1.8,0.08,0xffffff,p.x-1.0,2.7,-sz.D/2+0.15,office);
+  [0xffeb3b,0xff7043,0x66bb6a,0x42a5f5,0xec407a].forEach((c,i)=>box(0.45,0.45,0.04,c,p.x-2.1+i*0.55,2.9+(i%2)*0.5,-sz.D/2+0.22,office));
+  box(3,0.15,1.2,0xf5f5f5,p.x,1.0,p.z,office);cyl(0.1,0.9,0x9e9e9e,p.x-1.3,0.5,p.z,office);cyl(0.1,0.9,0x9e9e9e,p.x+1.3,0.5,p.z,office);
+  for(let i=0;i<3;i++){box(0.7,0.05,0.5,0x263238,p.x-0.9+i*0.9,1.1,p.z,office);box(0.7,0.45,0.05,SCR[i+1],p.x-0.9+i*0.9,1.3,p.z-0.25,office,{e:SCR[i+1]});}
+  if(L>=2){box(1.0,1.4,0.05,0xff5252,p.x+1.7,2.6,-sz.D/2+0.2,office);box(1.0,1.4,0.05,0x40c4ff,p.x+2.9,2.6,-sz.D/2+0.2,office);cone(0.35,0.7,0xffd54f,p.x+2.5,1.6,p.z+0.9,office).rotation.z=-Math.PI/2;cyl(0.25,0.9,0x8d6e63,p.x+2.7,0.7,p.z+0.9,office);}
+  if(L>=3){box(2.6,1.5,0.1,0x111111,p.x+1.4,4.0,-sz.D/2+0.2,office);box(2.4,1.3,0.05,0x7c4dff,p.x+1.4,4.0,-sz.D/2+0.27,office,{e:0x7c4dff});[0.3,0.55,0.8,1.05].forEach((h,i)=>box(0.3,h,0.05,0xffee58,p.x+0.7+i*0.45,3.5+h/2,-sz.D/2+0.32,office,{e:0x998800}));}}
+}
+function buildExtras(sz){const W=sz.W,D=sz.D,lx=-W/2+1.2,rx=W/2-1.4,sl=k=>-D/2+8+k*3.2;
+ if(S.equipTier>=1){box(1.0,0.9,1.0,0x78909c,lx,0.65,sl(3),office);box(0.8,0.25,0.7,0xeceff1,lx,1.2,sl(3),office);}
+ if(S.equipTier>=2){box(1.0,2.6,1.6,0x212121,-W/2+1.0,1.5,sl(2),office);for(let i=0;i<5;i++)box(0.05,0.08,1.2,i%2?0x00e676:0x2979ff,-W/2+1.52,0.7+i*0.45,sl(2),office,{e:i%2?0x00a152:0x1040a0});}
+ if(S.equipTier>=3){const rows=Math.ceil(S.desks/sz.cols);for(let r=0;r<rows;r++){const z=-D/2+8.6+r*3.8;for(let c=0;c<sz.cols;c++){const x=slotXZ(c,sz).x;cyl(0.02,2,0x9e9e9e,x,5.8,z,office);sph(0.3,0xfff9c4,x,4.7,z,office,{e:0xffeb3b});}}}
+ if(S.equipTier>=4){cyl(1.1,0.2,0x263238,0,0.3,D/2-1.6,office);const h=cone(0.9,2.2,0x00e5ff,0,1.6,D/2-1.6,office,{t:0.45,e:0x00bcd4});h.rotation.x=Math.PI;anim.push({t:'spin',o:h,s:1.5});}
+ const D_=S.decor;
+ if(D_.plant){cyl(0.4,0.5,0xbf6a3a,-W/2+2.6,0.5,D/2-1.2,office);sph(0.6,0x43a047,-W/2+2.6,1.4,D/2-1.2,office);sph(0.4,0x66bb6a,-W/2+2.9,1.9,D/2-1.0,office);}
+ if(D_.rug){box(8,0.03,2.6,0xc62828,0,0.23,D/2-3,office);box(7,0.04,1.8,0xef9a9a,0,0.24,D/2-3,office);}
+ if(D_.painting){box(0.12,2,3.2,0x5d4037,-W/2+0.1,3.4,sl(2),office);box(0.1,1.7,2.9,0x4fc3f7,-W/2+0.18,3.4,sl(2),office);box(0.1,0.9,1.2,0xffca28,-W/2+0.25,3.2,sl(2)-0.5,office);sph(0.4,0xef5350,-W/2+0.28,3.8,sl(2)+0.6,office);}
+ if(D_.coffee){box(1.2,1.1,2,0x795548,-W/2+1.0,0.75,sl(1),office);box(0.8,0.7,0.8,0xb71c1c,-W/2+1.0,1.65,sl(1),office);cyl(0.1,0.2,0xffffff,-W/2+1.5,1.4,sl(1)+0.6,office);}
+ if(D_.books){box(0.8,3,3,0x6d4c41,-W/2+0.7,1.7,sl(0),office);for(let r=0;r<3;r++)for(let i=0;i<5;i++)box(0.5,0.6,0.35,[0xe53935,0x1e88e5,0xfdd835,0x43a047,0x8e24aa][(i+r)%5],-W/2+0.95,0.8+r*0.95,sl(0)-1.2+i*0.6,office);}
+ if(D_.trophy){box(1,2.4,2.4,0x8d6e63,rx,1.4,sl(0),office);box(0.9,2.0,2.2,0x80deea,rx,1.5,sl(0),office,{t:0.3});for(let i=0;i<3;i++){cone(0.22,0.4,0xffd700,rx,1.0+i*0.55,sl(0)-0.6+i*0.6,office).rotation.x=Math.PI;sph(0.18,0xffd700,rx,1.35+i*0.55,sl(0)-0.6+i*0.6,office,{e:0x443300});}}
+ if(D_.fountain){cyl(1.3,0.4,0x90a4ae,rx,0.4,sl(1),office);cyl(1.1,0.45,0x4fc3f7,rx,0.45,sl(1),office,{t:0.8});cyl(0.2,1.6,0xcfd8dc,rx,1.1,sl(1),office);sph(0.4,0x4fc3f7,rx,2.0,sl(1),office,{t:0.8});}
+ if(D_.aquarium){box(1,0.9,3,0x37474f,rx,0.65,sl(2),office);box(1.1,1.2,3.1,0x80deea,rx,1.7,sl(2),office,{t:0.4});for(let i=0;i<4;i++){const f=sph(0.18,[0xff9800,0xffeb3b,0xff5252,0x40c4ff][i],rx,1.5+(i%2)*0.4,sl(2)-0.8+i*0.5,office,{e:0x331100});f.scale.set(0.15,0.15,0.3);anim.push({t:'swim',o:f,b:sl(2)-0.8+i*0.5,p:i*1.3});}}
+ if(D_.sculpture){cyl(0.7,0.8,0x607d8b,rx,0.6,sl(3),office);sph(0.6,0xab47bc,rx,1.5,sl(3),office,{e:0x2a0a30});const t=tor(0.9,0xffca28,rx,2.3,sl(3),office);anim.push({t:'spin',o:t,s:1.0,axis:'z'});}
+ if(D_.chandelier){cyl(0.03,2,0x9e9e9e,0,6.0,0,office);cone(0.9,0.8,0xffd54f,0,4.9,0,office,{e:0x332200});for(let i=0;i<6;i++){const a=i/6*Math.PI*2;sph(0.18,0xe1f5fe,Math.cos(a)*0.9,4.6,Math.sin(a)*0.9,office,{e:0x88ccff});}}
+ if(EXCL[2].ok()){const d=cone(0.9,2.6,0x80deea,-4.2,1.9,D/2-1.8,office,{t:0.75,e:0x0097a7});d.rotation.x=Math.PI;const u=cone(0.9,1.2,0xb2ebf2,-4.2,3.7,D/2-1.8,office,{t:0.75,e:0x0097a7});anim.push({t:'spin',o:d,s:0.8});anim.push({t:'spin',o:u,s:0.8});box(1.4,0.3,1.4,0x37474f,-4.2,0.35,D/2-1.8,office);}
+ if(EXCL[4].ok()){sph(0.35,0xffd700,3.2,0.85,D/2-3,office,{e:0x443300});sph(0.28,0xffd700,3.2,1.3,D/2-3,office,{e:0x443300});box(0.1,0.3,0.1,0xffd700,3.0,1.6,D/2-3,office);box(0.1,0.3,0.1,0xffd700,3.4,1.6,D/2-3,office);}
+ if(EXCL[5].ok()){for(let i=0;i<5;i++)box(0.9,0.6,0.08,0xffd700,W/2-4-i*1.2,4.5,-D/2+0.15,office,{e:0x443300});}}
+function buildOffice(){clearGroup(office);anim.length=0;const sz=SIZES[S.officeSize],W=sz.W,D=sz.D;
+ box(W+3,0.5,D+3,0xb0bec5,0,-0.25,0,office);box(W,0.3,D,0xe6d3b3,0,0.05,0,office);
+ for(let x=-W/2+2;x<W/2;x+=4)box(0.08,0.02,D,0xd8c3a0,x,0.21,0,office);
+ box(W,5,0.4,0xfdf6e8,0,2.5,-D/2-0.2,office);box(0.4,5,D,0xf3ead5,-W/2-0.2,2.5,0,office);box(W,0.4,0.5,0x8d6e63,0,0.4,-D/2+0.05,office);
+ for(let x=-W/2+3;x<W/2-1;x+=5.5){box(3.5,2.5,0.1,0xffffff,x,3.3,-D/2+0.02,office);box(3.2,2.2,0.12,0x9fe3ff,x,3.3,-D/2+0.05,office,{e:0x0b3b54});}
+ const staff=[];EMP_ORDER.forEach(k=>{for(let i=0;i<S.emp[k];i++)staff.push(k);});
+ for(let k=0;k<S.desks&&k<sz.cap;k++){const p=slotXZ(k,sz);addDesk(p.x,p.z,staff[k],k);}
+ buildRooms(sz);buildExtras(sz);
+ const lab=label('🏢 '+S.name,10);lab.position.set(0,5.8,-D/2+0.5);office.add(lab);}
+
+/* ============================ CITY BUILD ============================ */
+const grass=new THREE.Mesh(new THREE.PlaneGeometry(5000,5000),M(0x8bd36a));grass.rotation.x=-Math.PI/2;grass.receiveShadow=true;scene.add(grass);
+const world=new THREE.Group();scene.add(world);
+const dyn=new THREE.Group();world.add(dyn);
+box(410,0.2,340,0x6b7280,75,0.1,-50,world);
+const distObjs=[],canim=[],cars=[];
+const cellCenter=(d,i,j)=>{const D=DIST[d],ox=D.cx-(D.cols+2)*10,oz=D.cz-(D.rows+2)*10;return {x:ox+(i+0.5)*20,z:oz+(j+0.5)*20};};
+const plotPos=(d,idx)=>{const D=DIST[d];return cellCenter(d,idx%D.cols+1,Math.floor(idx/D.cols)+1);};
+function genFiller(d){const D=DIST[d],g=new THREE.Group(),rnd=mulberry(900+d*31);g.visible=false;g.position.y=0.3;const pick=a=>a[Math.floor(rnd()*a.length)];
+ for(let i=0;i<D.cols+2;i++)for(let j=0;j<D.rows+2;j++){
+  if(!(i===0||j===0||i===D.cols+1||j===D.rows+1))continue;if(j===0&&(i===0||i===D.cols+1))continue;if(d===0&&i===0&&j===D.rows+1)continue;
+  const c=cellCenter(d,i,j);
+  if(d===0){const w=7+rnd()*4,h=4+rnd()*3,dd=7+rnd()*4;tower(w,h,dd,pick([0xffcc80,0xa5d6a7,0x90caf9,0xf48fb1,0xfff59d]),0xffffff,0xd7ccc8,g,c.x,c.z);pyr(Math.max(w,dd)*0.78,3.2,pick([0xd84315,0x6d4c41,0x37474f]),c.x,h+1.6,c.z,g);}
+  else if(d===1){const w=9+rnd()*4,h=12+rnd()*18,dd=9+rnd()*4;tower(w,h,dd,pick([0xb39ddb,0x81d4fa,0xffab91,0xc5e1a5,0xf8bbd0]),0x4fc3f7,0x607d8b,g,c.x,c.z);if(rnd()<0.5)cyl(1.3,2,0x8d6e63,c.x+2,h+1,c.z,g);}
+  else if(d===2){const w=8+rnd()*5,h=28+rnd()*32,dd=8+rnd()*5;tower(w,h,dd,pick([0x37474f,0x1e3a5f,0x455a64]),0x80deea,0x263238,g,c.x,c.z);cyl(0.2,5,0xb0bec5,c.x,h+2.5,c.z,g);sph(0.4,0xff1744,c.x,h+5,c.z,g,{e:0xff1744});}
+  else{const t=rnd(),neon=pick([0xff4081,0x00e5ff,0x76ff03,0xb388ff]);
+   if(t<0.34){const r=4+rnd()*2,h=28+rnd()*27;cyl(r,h,pick([0x26a69a,0x5c6bc0,0x7e57c2]),c.x,h/2,c.z,g);tor(r+0.3,neon,c.x,h*0.5,c.z,g,{e:neon});tor(r+0.3,neon,c.x,h-0.5,c.z,g,{e:neon});sph(r*0.7,neon,c.x,h+r*0.4,c.z,g,{e:neon,t:0.8});}
+   else if(t<0.67){cyl(2.5,8,0x90a4ae,c.x,4,c.z,g);sph(7,pick([0x80deea,0xce93d8,0xa5d6a7]),c.x,13,c.z,g,{t:0.85});tor(7.5,neon,c.x,13,c.z,g,{e:neon});}
+   else{for(let s=0;s<4;s++){const w=11-s*2;const b=box(w,9,w,pick([0xeceff1,0xb0bec5,0xd1c4e9]),c.x,4.5+s*9,c.z,g);b.rotation.y=s*0.45;tor(w*0.75,neon,c.x,9+s*9,c.z,g,{e:neon});}}}}
+ const w=(D.cols+2)*20,dp=(D.rows+2)*20,ox=D.cx-w/2,oz=D.cz-dp/2,n=3+d*2;
+ for(let k=0;k<n;k++){const horiz=k%2===0,car=new THREE.Group(),col=pick([0xff5252,0xffd740,0x40c4ff,0x69f0ae,0xe040fb,0xffffff]);
+  box(2.4,0.8,1.2,col,0,0.6,0,car);box(1.2,0.6,1.0,0xcfd8dc,-0.1,1.2,0,car);box(0.1,0.3,0.3,0xfff59d,1.2,0.6,0.35,car,{e:0xffee00});box(0.1,0.3,0.3,0xfff59d,1.2,0.6,-0.35,car,{e:0xffee00});
+  const sp=6+rnd()*6,dir=rnd()<0.5?1:-1;
+  if(horiz){const z=oz+(1+Math.floor(rnd()*(D.rows+1)))*20+(dir>0?1.3:-1.3);car.position.set(ox+rnd()*w,0,z);car.rotation.y=dir>0?0:Math.PI;cars.push({g:car,ax:'x',dir:dir,sp:sp,min:ox,max:ox+w});}
+  else{const x=ox+(1+Math.floor(rnd()*(D.cols+1)))*20+(dir>0?1.3:-1.3);car.position.set(x,0,oz+rnd()*dp);car.rotation.y=dir>0?-Math.PI/2:Math.PI/2;cars.push({g:car,ax:'z',dir:dir,sp:sp,min:oz,max:oz+dp});}
+  g.add(car);}
+ world.add(g);return g;}
+for(let d=0;d<4;d++){const D=DIST[d],w=(D.cols+2)*20,dp=(D.rows+2)*20;
+ const slab=box(w,0.3,dp,D.road,D.cx,0.15,D.cz,world);const filler=genFiller(d);
+ const lock=label('🔒 '+D.name+' • Lv '+D.lvl+' • '+money(D.cost),44);lock.position.set(D.cx,22,D.cz);world.add(lock);distObjs.push({slab:slab,filler:filler,lock:lock});}
+(function trees(){const rnd=mulberry(77);for(let i=0;i<220;i++){const x=-420+rnd()*900,z=-480+rnd()*700;if(x>-150&&x<300&&z>-240&&z<140)continue;if(x>OX-60&&x<OX+60&&z>-60&&z<60)continue;const s=1+rnd()*1.4;cyl(0.5*s,3*s,0x795548,x,1.5*s,z,scene);sph(2.2*s,rnd()<0.5?0x43a047:0x66bb6a,x,4.5*s,z,scene);}})();
+function bizBuilding(t,d){const g=new THREE.Group();let h=8;const bo=[1,1.15,1.35,1.6][d];
+ switch(t){
+ case 'restaurant':tower(11,4.6,9,0xffcc80,0xfff9c4,0xd84315,g,0,0);box(11.4,0.4,2.4,0xe53935,0,3.6,5.3,g);for(let i=0;i<5;i++)box(0.8,0.42,2.4,0xffffff,-4.4+i*2.2,3.6,5.3,g);
+  cyl(1.8,0.5,0xf9a825,0,5.0,0,g);cyl(1.9,0.25,0x6d4c41,0,5.4,0,g);cyl(1.9,0.15,0x7cb342,0,5.65,0,g);cyl(1.8,0.5,0xf9a825,0,6.1,0,g);h=7.5;break;
+ case 'tech':{const H=14*bo;tower(7,H,7,0x2979ff,0xb3e5fc,0x1565c0,g,0,0);cyl(0.15,3,0x90a4ae,0,H+1.5,0,g);sph(0.5,0xff1744,0,H+3.2,0,g,{e:0xff1744});cone(1.1,1.2,0xcfd8dc,2,H+0.6,2,g).rotation.z=0.6;h=H+4;break;}
+ case 'supermarket':tower(13,5.2,10,0x81c784,0xffffff,0x2e7d32,g,0,0);box(8,1.6,0.5,0xd32f2f,0,6.2,5,g,{e:0x330000});box(5,0.4,0.6,0xffffff,0,6.2,5.05,g);box(3,1.4,2.2,0xff7043,0,5.9,-1,g);h=8;break;
+ case 'hotel':{const H=20*bo;tower(9,H,9,0xffe0b2,0x64b5f6,0xbf360c,g,0,0);box(5,0.4,3,0xb71c1c,0,2.6,5.6,g);cyl(0.2,2.6,0xeeeeee,-2.2,1.3,6.8,g);cyl(0.2,2.6,0xeeeeee,2.2,1.3,6.8,g);cyl(0.1,4,0xeeeeee,3,H+2,3,g);box(2,1.2,0.1,0xff5252,4,H+3.2,3,g);h=H+4;break;}
+ case 'mall':tower(15,7,12,0xf48fb1,0xffffff,0xad1457,g,0,0);mesh(GS,0x80deea,5,3.2,5,0,7,0,g,{t:0.6});box(4,4.5,0.5,0xfff176,0,2.25,6.1,g,{e:0x554400});[-5,5].forEach(x=>box(2.2,3,0.3,0x7e57c2,x,3.5,6.1,g));h=11;break;
+ case 'realestate':tower(5,14,5,0xce93d8,0xe1f5fe,0x6a1b9a,g,-4,-3);tower(5,9,5,0xb39ddb,0xe1f5fe,0x4527a0,g,4,-2);tower(5,18,5,0x9575cd,0xe1f5fe,0x4527a0,g,0,4);cyl(0.2,22,0xffa000,6,11,5,g);box(6,0.3,0.3,0xffa000,3.4,21,5,g);box(2.2,1.2,0.2,0xe53935,-6,1.5,6,g);h=23;break;}
+ if(d===2)box(w_(t),0.4,w_(t),0xffd54f,0,h-1,0,g,{e:0x443300});
+ if(d===3)tor(6,0x00e5ff,0,h-1,0,g,{e:0x00e5ff});
+ g.userData.h=h;return g;}
+function w_(t){return t==='mall'?15.4:t==='supermarket'?13.4:t==='restaurant'?11.4:9;}
+function makeLandmark(id){const g=new THREE.Group();
+ switch(id){
+ case 'fountainPark':cyl(7.5,0.3,0x8bc34a,0,0.15,0,g);cyl(3.2,0.8,0xb0bec5,0,0.5,0,g);cyl(2.8,0.9,0x4fc3f7,0,0.5,0,g,{t:0.8});cyl(0.4,3,0xcfd8dc,0,2.3,0,g);sph(1,0x4fc3f7,0,4,0,g,{t:0.8});[[-5.5,5.5],[5.5,5.5],[-5.5,-5.5],[5.5,-5.5]].forEach(p=>{cyl(0.4,2,0x795548,p[0],1,p[1],g);sph(1.6,0x43a047,p[0],3,p[1],g);});break;
+ case 'clockTower':box(5,18,5,0xd7ccc8,0,9,0,g);pyr(4.2,5,0xb71c1c,0,20.5,0,g);[2.6,-2.6].forEach(z=>{const c=cyl(1.6,0.3,0xffffff,0,15,z,g);c.rotation.x=Math.PI/2;box(0.15,1.2,0.1,0x212121,0,15.4,z*1.02,g);box(0.9,0.15,0.1,0x212121,0.4,15,z*1.02,g);});break;
+ case 'stadium':box(16,6,3,0xef5350,0,3,-6.5,g);box(16,6,3,0xef5350,0,3,6.5,g);box(3,6,10,0xe53935,-6.5,3,0,g);box(3,6,10,0xe53935,6.5,3,0,g);box(10,0.3,10,0x66bb6a,0,0.15,0,g);[[-7.5,-7.5],[7.5,-7.5],[-7.5,7.5],[7.5,7.5]].forEach(p=>{cyl(0.3,12,0xcfd8dc,p[0],6,p[1],g);box(1.8,1,1,0xfff59d,p[0],12.5,p[1],g,{e:0xffee58});});break;
+ case 'skyBridge':box(3,22,3,0x90a4ae,-5.5,11,0,g);box(3,22,3,0x90a4ae,5.5,11,0,g);box(8,2,2.4,0x80deea,0,17,0,g,{t:0.7});box(9,0.4,2.8,0x37474f,0,16,0,g);pyr(2.5,4,0x607d8b,-5.5,24,0,g);pyr(2.5,4,0x607d8b,5.5,24,0,g);break;
+ case 'exchange':box(15,1,11,0xeceff1,0,0.5,0,g);for(let i=0;i<6;i++){cyl(0.7,7,0xffffff,-5.5+i*2.2,4.5,4.2,g);}box(15,1,11,0xcfd8dc,0,8.5,0,g);const pe=pyr(8.5,2.8,0xb0bec5,0,10.3,4.5,g);pe.scale.z=0.6;box(7,1,0.3,0xffd54f,0,6.5,5.1,g);box(9,5,5,0xeceff1,0,3.5,-2,g);break;
+ case 'bull':box(7,1.5,5,0x37474f,0,0.75,0,g);mesh(GS,0xffd700,2.8,1.7,1.5,0,3.4,0,g,{e:0x553300});sph(1.1,0xffd700,2.9,4.2,0,g,{e:0x553300});cone(0.25,1.2,0xfffde7,3.2,5.2,0.9,g).rotation.z=0.5;cone(0.25,1.2,0xfffde7,3.2,5.2,-0.9,g).rotation.z=0.5;[[-1.8,0.8],[-1.8,-0.8],[1.8,0.8],[1.8,-0.8]].forEach(p=>cyl(0.3,1.6,0xffd700,p[0],2.3,p[1],g));break;
+ case 'needle':cyl(3,1.5,0xeceff1,0,0.75,0,g);cyl(0.6,26,0xeceff1,0,13.5,0,g);cyl(4.5,1,0x26c6da,0,26,0,g,{e:0x006064});cyl(2.5,1.4,0xb2ebf2,0,27.2,0,g,{t:0.7});cone(0.5,8,0xeceff1,0,32,0,g);sph(0.4,0xff1744,0,36.2,0,g,{e:0xff1744});break;
+ case 'pyramid':{const p=pyr(9.5,15,0x4dd0e1,0,8,0,g,{t:0.75,e:0x006064});canim.push({o:p,s:0.4});const q=pyr(5,8,0xffd54f,0,4.5,0,g,{e:0x664400});canim.push({o:q,s:-0.8});tor(11,0x00e5ff,0,1,0,g,{e:0x00bcd4});break;}
+ case 'tower':for(let i=0;i<9;i++){const w=8-i*0.55;const b=box(w,2,w,0xffd54f,0,1.5+i*2,0,g,{e:0x332200});b.rotation.y=i*0.2;}cyl(5.5,0.6,0x37474f,0,0.3,0,g);cone(0.4,5,0xffd54f,0,21,0,g,{e:0x332200});break;
+ case 'rocket':cyl(6,0.6,0x37474f,0,0.3,0,g);cyl(2,10,0xffffff,0,6,0,g);cone(2,4,0xe53935,0,13,0,g);for(let i=0;i<3;i++){const a=i/3*Math.PI*2;box(0.4,3,2,0xe53935,Math.cos(a)*2.2,2.5,Math.sin(a)*2.2,g).rotation.y=-a;}sph(0.7,0x4fc3f7,0,8,1.9,g,{t:0.7});cone(1.4,3,0xffa000,0,-0.0+1.2,0,g,{e:0xff6d00,t:0.8}).rotation.x=Math.PI;break;}
+ return g;}
+function forSale(pg,c){cyl(0.12,2.4,0x795548,c.x-5,1.8,c.z+5,pg);box(3.6,1.5,0.2,0xffffff,c.x-5,3.1,c.z+5,pg);box(3.2,1.1,0.22,0xe53935,c.x-5,3.1,c.z+5,pg);const s=iconSprite('🏷️',3.2);s.position.set(c.x-5,3.3,c.z+5.3);pg.add(s);}
+function syncCity(){clearGroup(dyn);canim.length=0;const pm=new Map();S.placed.forEach(p=>pm.set(p.d+'_'+p.i,p));
+ for(let d=0;d<4;d++){const D=DIST[d],un=S.districts[d];const o=distObjs[d];o.filler.visible=un;o.lock.visible=!un;o.slab.material=un?M(D.road):M(0x3a404d);if(!un)continue;
+  for(let idx=0;idx<D.cols*D.rows;idx++){const c=plotPos(d,idx),p=pm.get(d+'_'+idx),pg=new THREE.Group();pg.userData.plot={d:d,idx:idx};dyn.add(pg);
+   box(16,0.3,16,D.pad,c.x,0.45,c.z,pg);
+   if(p){const b=bizBuilding(p.t,d),st=S.biz[p.t],ups=st?st.ups[0]+st.ups[1]+st.ups[2]:0;b.position.set(c.x,0.6,c.z);b.scale.y=1+Math.min(0.4,ups*0.03);pg.add(b);const sp=iconSprite(BIZMAP[p.t].icon,7);sp.position.set(c.x,0.6+b.userData.h*b.scale.y+4,c.z);pg.add(sp);}
+   else forSale(pg,c);}
+  LAND.filter(l=>l.d===d).forEach(l=>{const c=cellCenter(d,l.slot===0?0:D.cols+1,0);if(S.landmarks[l.id]){const g=makeLandmark(l.id);g.position.set(c.x,0.3,c.z);dyn.add(g);const sp=label(l.icon+' '+l.name,16);sp.position.set(c.x,0.3+11,c.z);if(l.id==='needle')sp.position.y=42;dyn.add(sp);}
+   else{box(16,0.2,16,0x9e9e9e,c.x,0.4,c.z,dyn,{t:0.5});const s=label('🏗️ '+l.name,14);s.position.set(c.x,5,c.z);dyn.add(s);}});}
+ const hq=new THREE.Group(),hc=cellCenter(0,0,DIST[0].rows+1),hh=[10,14,20,28,38][S.officeSize];
+ tower(10,hh,10,0x2962ff,0xbbdefb,0x1a237e,hq,0,0);box(10.4,0.6,10.4,0xffd54f,0,hh,0,hq,{e:0x332200});cyl(0.1,5,0xeeeeee,0,hh+2.5,0,hq);box(2.4,1.4,0.1,0xff5252,1.3,hh+4,0,hq);hq.position.set(hc.x,0.3,hc.z);dyn.add(hq);
+ const hl=label('🏢 '+S.name,18);hl.position.set(hc.x,hh+9,hc.z);dyn.add(hl);
+ if(EXCL[1].ok()){const g=makeLandmark('tower');g.position.set(-95,0.2,-20);dyn.add(g);const s=label('🏙️ Tycoon Tower',16);s.position.set(-95,28,-20);dyn.add(s);}
+ if(EXCL[3].ok()){const g=makeLandmark('rocket');g.position.set(-95,0.2,30);dyn.add(g);const s=label('🚀 Rocket Monument',18);s.position.set(-95,22,30);dyn.add(s);}}
+
+/* ============================ INPUT ============================ */
+const ray=new THREE.Raycaster();let popupPlot=null;
+const keys={};
+window.addEventListener('keydown',e=>{if(e.target&&(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'))return;keys[e.key.toLowerCase()]=true;if(e.key==='1')setView('office');if(e.key==='2')setView('city');if(e.code==='Space'){e.preventDefault();ACT.deal({});}});
+window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
+let drag=null;
+canvas.addEventListener('contextmenu',e=>e.preventDefault());
+canvas.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY,pan:e.button===2||e.shiftKey||e.button===1,moved:false,btn:e.button};canvas.setPointerCapture(e.pointerId);});
+canvas.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.x=e.clientX;drag.y=e.clientY;if(Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>5)drag.moved=true;if(!drag.moved)return;
+ if(drag.pan){const k=goal.r*0.0016,s=Math.sin(goal.th),c=Math.cos(goal.th);goal.tx+=(-dx*c-dy*s)*k;goal.tz+=(dx*s-dy*c)*k;}
+ else{goal.th-=dx*0.006;goal.ph=Math.min(1.45,Math.max(0.25,goal.ph-dy*0.005));}});
+canvas.addEventListener('pointerup',e=>{if(drag&&!drag.moved&&drag.btn===0)handleClick(e.clientX,e.clientY);drag=null;});
+canvas.addEventListener('wheel',e=>{e.preventDefault();const mn=mode==='office'?8:40,mx=mode==='office'?90:700;goal.r=Math.min(mx,Math.max(mn,goal.r*(1+e.deltaY*0.0012)));},{passive:false});
+function handleClick(x,y){if(mode!=='city'){closePopup();return;}ray.setFromCamera({x:x/innerWidth*2-1,y:-(y/innerHeight)*2+1},camera);const hits=ray.intersectObject(dyn,true);
+ for(const h of hits){let o=h.object;while(o&&!(o.userData&&o.userData.plot))o=o.parent;if(o){popupPlot=o.userData.plot;renderPopup();const p=$('#popup');p.style.display='block';p.style.left=Math.min(innerWidth-270,Math.max(10,x+14))+'px';p.style.top=Math.min(innerHeight-300,Math.max(10,y-20))+'px';return;}}closePopup();}
+function closePopup(){popupPlot=null;$('#popup').style.display='none';}
+function renderPopup(){if(!popupPlot)return;const d=popupPlot.d,idx=popupPlot.idx,p=S.placed.find(q=>q.d===d&&q.i===idx);let h='<div class="ph"><b>'+DIST[d].short+' • Plot '+(idx+1)+'</b><span class="x" data-a="closePopup">✕</span></div>';
+ if(p){const b=BIZMAP[p.t],bi=C.biz[p.t]||{inc:0,exp:0,n:1},n=Math.max(1,bi.n);h+='<div style="font-size:13px"><b>'+b.icon+' '+b.name.replace(/s$/,'')+'</b></div><div class="cb">District bonus ×'+DIST[d].income+'<br>Chain income: <b class="g">'+money(bi.inc)+'/s</b> ('+bi.n+' locations)<br>Avg per location: <b class="g">'+money(bi.inc/n)+'/s</b></div>';}
+ else{h+='<div class="cb">Empty plot. Build a business here:</div>';let any=false;BIZ.forEach(b=>{if(!S.biz[b.id].unlocked)return;any=true;h+='<div style="margin-bottom:4px">'+cb('plotBuild',b.id,locCostFor(b,d),b.icon+' '+b.name.replace(/s$/,''),'data-d="'+d+'" data-i="'+idx+'"')+'</div>';});if(!any)h+='<div class="lock">Unlock a business in the Business tab first.</div>';}
+ $('#popup').innerHTML=h;}
+
+/* ============================ UI ============================ */
+let curTab='office',lastHtml='',lastTabsKey='';
+const TABS=[['office','🏢','Office'],['staff','👥','Staff'],['biz','🏭','Business'],['city','🌆','City'],['res','🔬','Research'],['goals','🏆','Goals'],['reb','♻️','Rebirth'],['set','⚙️','More']];
+function renderTabs(){$('#tabs').innerHTML=TABS.map(t=>'<button data-a="tab" data-k="'+t[0]+'" class="'+(curTab===t[0]?'on':'')+'">'+t[1]+' '+t[2]+'</button>').join('');lastHtml='';}
+const card=(icon,title,body,btns,cls)=>'<div class="card '+(cls||'')+'"><div class="ct"><span class="ic">'+icon+'</span><b>'+title+'</b></div><div class="cb">'+body+'</div><div class="cbtn">'+(btns||'')+'</div></div>';
+const cb=(a,k,cost,label,extra)=>'<button class="btn '+(S.cash>=cost?'':'dis')+'" data-a="'+a+'" data-k="'+k+'" '+(extra||'')+'>'+label+'<small>'+(cost===0?'FREE':money(cost))+'</small></button>';
+const lockTxt=t=>'<div class="lock">🔒 '+t+'</div>';
+function rOffice(){const sz=SIZES[S.officeSize],nx=SIZES[S.officeSize+1];let h='<h3>🏢 Office Space</h3>';
+ h+=card('🏠',sz.name,'Capacity '+sz.cap+' desks • Rent <b class="r">'+money(sz.rent)+'/s</b>',nx?(S.level>=nx.lvl?cb('size','',nx.cost,'Expand to '+nx.name):lockTxt('Level '+nx.lvl+' for '+nx.name)):'<span class="maxed">MAX SIZE</span>');
+ h+=card('🪑','Desks','Owned '+S.desks+'/'+sz.cap+' • Employees '+empCount()+'/'+S.desks,S.desks<sz.cap?cb('desk','',deskCost(),'Buy Desk'):'<span class="note">Expand the office for more desks.</span>');
+ const nc=COMP[S.compTier+1];h+=card('💻',COMP[S.compTier].name,'Worker output ×'+COMP[S.compTier].mult,nc?cb('comp','',nc.cost,'Upgrade: '+nc.name+' (×'+nc.mult+')'):'<span class="maxed">MAX</span>');
+ const ne=EQUIP[S.equipTier+1];h+=card('🛠️',EQUIP[S.equipTier].name,'Office income ×'+EQUIP[S.equipTier].mult,ne?cb('equip','',ne.cost,'Upgrade: '+ne.name+' (×'+ne.mult+')'):'<span class="maxed">MAX</span>');
+ h+='<h3>🚪 Rooms</h3>';
+ Object.keys(ROOMS).forEach(k=>{const R=ROOMS[k],L=S[k],maxed=L>=R.costs.length;let b;if(maxed)b='<span class="maxed">MAX LEVEL</span>';else if(S.level<R.lvl)b=lockTxt('Level '+R.lvl);else if(S.officeSize<R.minSize)b=lockTxt('Needs '+SIZES[R.minSize].name);else b=cb('room',k,R.costs[L],L?'Upgrade to L'+(L+1):'Build');
+  h+=card(R.icon,R.name+' <span class="y">L'+L+'/'+R.costs.length+'</span>',R.desc,b);});
+ h+='<h3>🎨 Decorations</h3><div class="note">Each decoration adds permanent income and appears in your office.</div>';
+ DECOR.forEach(d=>{h+=card(d.icon,d.name,'+'+(d.bonus*100).toFixed(1)+'% all income',S.decor[d.id]?'<span class="maxed">OWNED ✓</span>':cb('decor',d.id,d.cost,'Buy'));});return h;}
+function rStaff(){let h='<h3>👥 Staff</h3><div class="note">Employees: <b>'+empCount()+'/'+S.desks+'</b> desks • Wages are paid every second. Train each type up to level 5.</div>';
+ EMP_ORDER.forEach(k=>{const e=EMP[k],t=S.train[k];let b;if(S.level<e.lvl)b=lockTxt('Level '+e.lvl);else{b=cb('hire',k,hireCost(k),'Hire');b+=t>=5?'<span class="maxed">TRAINED MAX</span>':cb('train',k,trainCost(k),'Train <em>L'+t+'→'+(t+1)+'</em>');}
+  h+=card(e.icon,e.name+' <span class="y">×'+S.emp[k]+'</span>',e.desc+'<br>Wage '+money(e.wage)+'/s each • Training L'+t+' (effect ×'+(1+0.25*t).toFixed(2)+')'+(k==='executive'?'<br>Seats: '+S.emp.executive+'/'+execCap():''),b,S.level<e.lvl?'locked':'');});return h;}
+function rBiz(){let h='<h3>🏭 Businesses</h3><div class="note">Each location is built on a plot in your city. Higher districts pay more but cost more.</div>';
+ BIZ.forEach(b=>{const st=S.biz[b.id];
+  if(!st.unlocked){h+=card(b.icon,b.name,'Base income '+money(b.base)+'/s per location • Operating cost '+money(b.opex)+'/s',S.level>=b.lvl?cb('bizUnlock',b.id,b.unlock,'Unlock'):lockTxt('Level '+b.lvl+' • '+money(b.unlock)),'locked');return;}
+  const n=locs(b.id),bi=C.biz[b.id]||{inc:0,exp:0};
+  let body='Locations <b>'+n+'</b> • '+b.staff.name+' <b>'+st.staff+'/'+staffCap(b,n)+'</b> (+3% each)<br>Income <b class="g">'+money(bi.inc)+'/s</b> • Costs <b class="r">'+money(bi.exp)+'/s</b> • Net <b class="'+(bi.inc-bi.exp>=0?'g':'r')+'">'+money(bi.inc-bi.exp)+'/s</b>';
+  body+='<div class="chips">Build in: ';DIST.forEach(D=>{const f=freeCount(D.id),off=!S.districts[D.id]||f===0;body+='<span class="chip '+(st.district===D.id?'on':'')+' '+(off?'off':'')+'" data-a="bizDist" data-k="'+b.id+'" data-d="'+D.id+'">'+D.short+' ('+f+')</span>';});body+='</div>';
+  let btns=cb('bizLoc',b.id,locCostFor(b,S.districts[st.district]?st.district:0),'Open Location')+cb('bizStaff',b.id,staffCost(b),'Hire '+b.staff.name.replace(/s$/,''));
+  b.ups.forEach((u,i)=>{const lv=st.ups[i];btns+=lv>=5?'<span class="maxed">'+u+' MAX</span>':cb('bizUp',b.id,upCost(b,lv),u+' <em>L'+lv+'</em>','data-d="'+i+'" title="'+UPDESC[i]+'"');});
+  h+=card(b.icon,b.name,body,btns);});return h;}
+function rCity(){let h='<h3>🌆 The City</h3><div class="note">Click any plot in City view to build. Drag to rotate, right-drag or WASD to pan, wheel to zoom.</div>';
+ DIST.forEach(D=>{const un=S.districts[D.id],used=D.cols*D.rows-freeCount(D.id);
+  if(un)h+=card('🌆',D.name,'Income bonus <b class="g">×'+D.income+'</b> • Build cost ×'+D.costMul+' • Plots '+used+'/'+D.cols*D.rows,'<button class="btn alt" data-a="focus" data-k="'+D.id+'">View</button>');
+  else{const ok=S.level>=D.lvl&&S.districts[D.id-1];h+=card('🔒',D.name,'Income bonus ×'+D.income+' • '+(D.cols*D.rows)+' plots',ok?cb('distUnlock',D.id,D.cost,'Unlock'):lockTxt('Level '+D.lvl+(S.districts[D.id-1]?'':' & previous district')+' • '+money(D.cost)),'locked');}
+  if(un)LAND.filter(l=>l.d===D.id).forEach(l=>{h+=card(l.icon,l.name,'Landmark • +'+(l.bonus*100).toFixed(0)+'% all income',S.landmarks[l.id]?'<span class="maxed">BUILT ✓</span>':cb('landmark',l.id,l.cost,'Build'));});});
+ h+='<h3>✨ Exclusive city rewards</h3>';EXCL.filter(e=>e.id==='tower'||e.id==='rocket').forEach(e=>{h+=card(e.icon,e.name,e.desc+'<br><span class="y">'+(e.ok()?'UNLOCKED':'Requires: '+e.req)+'</span>','',e.ok()?'':'locked');});return h;}
+function rRes(){const rp=S.rp;let h='<h3>🔬 Research</h3><div class="note">Points: <b class="y">'+fmt(rp)+' RP</b> (+'+C.rp.toFixed(2)+'/s). '+(S.lab<1?'<span class="r">Build a Research Lab in the Office tab to start earning RP.</span>':'Engineers and lab levels increase RP/s.')+'</div>';
+ ['Efficiency','Finance','Growth','Technology'].forEach(br=>{h+='<h3>'+br+'</h3>';RES.filter(n=>n.br===br).forEach(n=>{const done=S.research[n.id],can=!done&&n.req.every(r=>S.research[r]);
+  h+='<div class="card rnode '+(done?'done':can?'can':'')+'"><div class="ct"><b>'+n.name+'</b></div><div class="cb">'+n.desc+(n.req.length&&!can&&!done?'<br><span class="r">Needs: '+n.req.map(r=>RES.find(x=>x.id===r).name).join(', ')+'</span>':'')+'</div><div class="cbtn">'+(done?'<span class="maxed">DONE ✓</span>':'<button class="btn '+(can&&S.rp>=n.cost?'alt':'dis')+'" data-a="research" data-k="'+n.id+'">Research<small>'+fmt(n.cost)+' RP</small></button>')+'</div></div>';});});return h;}
+function rGoals(){const today=ymd(new Date()),claimed=S.daily.last===today,yest=ymd(new Date(Date.now()-864e5));
+ let nextStreak=claimed?S.daily.streak:(S.daily.last===yest?S.daily.streak+1:1);const day=((nextStreak-1)%7)+1,shownDay=claimed?((S.daily.streak-1)%7)+1:day;
+ let h='<h3>🎁 Daily Reward</h3><div class="card"><div class="cb">Streak: <b class="y">'+S.daily.streak+'</b> days • Completed cycles: '+S.daily.cycles+'</div><div class="days">';
+ for(let i=1;i<=7;i++){const rw=dailyReward(i);h+='<div class="day '+(claimed&&i<=shownDay?'done':(!claimed&&i===day?'cur':''))+'">Day '+i+'<br>'+money(rw.cash)+(rw.rp?'<br>'+rw.rp+'RP':'')+'</div>';}
+ h+='</div><div class="cbtn">'+(claimed?'<span class="maxed">Come back tomorrow!</span>':'<button class="btn gold" data-a="daily">Claim Day '+day+'<small>'+money(dailyReward(day).cash)+'</small></button>')+'</div><div class="cb">Day 7 completes a cycle and unlocks the Lucky Cat exclusive.</div></div>';
+ h+='<h3>⭐ Level '+S.level+'</h3><div class="note">'+(S.level>=MAXLVL?'Max level!':'XP: '+fmt(S.xp)+' / '+fmt(need(S.level))+'. Spending, closing deals and profit earn XP. Level-ups pay cash.')+'</div>';
+ const nxt=[];BIZ.forEach(b=>{if(b.lvl>S.level)nxt.push(b.icon+' '+b.name+' (Lv '+b.lvl+')');});DIST.forEach(D=>{if(D.id&&D.lvl>S.level)nxt.push('🌆 '+D.name+' (Lv '+D.lvl+')');});if(nxt.length)h+='<div class="note">Coming up: '+nxt.slice(0,4).join(' • ')+'</div>';
+ h+='<h3>🏆 Achievements '+achCount()+'/'+ACH.length+'</h3><div class="note">Each achievement gives +1% permanent income.</div><div class="grid">';
+ ACH.forEach(a=>{h+='<div class="ach '+(S.ach[a[0]]?'got':'')+'"><b>'+(S.ach[a[0]]?'🏆 ':'🔒 ')+a[1]+'</b>'+a[2]+'</div>';});h+='</div>';return h;}
+function rReb(){const g=lpGain();let h='<h3>♻️ Rebirth</h3><div class="card"><div class="cb">Rebirths: <b class="y">'+S.prestige.count+'</b> • Legacy Points: <b class="y">'+lpAvail()+'</b> available ('+S.prestige.lp+' total = <b class="g">+'+(S.prestige.lp*10)+'% income</b>)<br>Earned this run: '+money(S.runEarned)+'<br>Rebirth now for <b class="y">+'+g+' LP</b>. LP formula grows with the square root of this run\'s earnings, so waiting longer pays more.</div><div class="cbtn"><button class="btn '+(g>=1?'red':'dis')+'" data-a="prestige">♻️ Rebirth<small>+'+g+' LP</small></button></div></div>';
+ h+='<h3>🛍️ Permanent Upgrades</h3>';SHOP.forEach(it=>{const l=S.prestige.shop[it.id]||0,c=it.cost(l);h+=card(it.icon,it.name+' <span class="y">L'+l+'/'+it.max+'</span>',typeof it.desc==='function'?it.desc(l):it.desc,l>=it.max?'<span class="maxed">MAX</span>':'<button class="btn '+(lpAvail()>=c?'alt':'dis')+'" data-a="shop" data-k="'+it.id+'">Buy<small>'+c+' LP</small></button>');});
+ h+='<h3>✨ Exclusive Rewards</h3>';EXCL.forEach(e=>{h+=card(e.icon,e.name,e.desc+'<br><span class="'+(e.ok()?'g':'y')+'">'+(e.ok()?'UNLOCKED ✓':'Requires: '+e.req)+'</span>','',e.ok()?'':'locked');});return h;}
+function rSet(){return '<h3>⚙️ Settings</h3>'+card('🏢','Company name','<input type="text" id="nameBox" maxlength="24" value="'+S.name.replace(/"/g,'&quot;')+'">','<button class="btn" data-a="rename">Rename</button>')
+ +card('💾','Save','Autosaves every 10 seconds in this browser.','<button class="btn" data-a="save">Save now</button><button class="btn alt" data-a="mute">'+(S.muted?'🔇 Sound off':'🔊 Sound on')+'</button>')
+ +card('📦','Export / Import','Copy the code to back up your game, or paste one and press Import.<textarea id="expBox" spellcheck="false"></textarea>','<button class="btn alt" data-a="export">Export</button><button class="btn" data-a="import">Import</button>')
+ +card('🎮','Controls','Left-drag: rotate • Right-drag / Shift-drag / WASD: pan • Wheel: zoom • Space: Close a Deal • 1/2: Office/City view • Click a plot in City view to build.')
+ +card('🗑️','Hard reset','Deletes everything.','<button class="btn red" data-a="reset">Reset game</button>');}
+function renderPanel(force){if(curTab==='set'&&!force&&lastHtml)return;const fn={office:rOffice,staff:rStaff,biz:rBiz,city:rCity,res:rRes,goals:rGoals,reb:rReb,set:rSet}[curTab];const h=fn();if(h===lastHtml)return;const p=$('#panel'),st=p.scrollTop;p.innerHTML=h;p.scrollTop=st;lastHtml=h;}
+function hud(){$('#cash').textContent=money(S.cash);$('#sInc').textContent=money(C.gross);$('#sExp').textContent=money(C.exp);const n=$('#sNet');n.textContent=money(C.net);n.style.color=C.net>=0?'#a5ff9e':'#ff8a80';$('#sRp').textContent=fmt(S.rp);
+ $('#lvlTxt').textContent='Level '+S.level+(S.prestige.count?' • ♻️'+S.prestige.count:'');$('#coName').textContent='🏢 '+S.name;
+ if(S.level>=MAXLVL){$('#xpBar').style.width='100%';$('#xpTxt').textContent='MAX LEVEL';}else{$('#xpBar').style.width=Math.min(100,S.xp/need(S.level)*100)+'%';$('#xpTxt').textContent='XP '+fmt(S.xp)+' / '+fmt(need(S.level));}
+ $('#deal').textContent='💼 Close a Deal +'+money(dealValue());}
+document.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('[data-a]');if(!b||e.button!==0)return;const fn=ACT[b.dataset.a];if(!fn)return;e.preventDefault();fn(b.dataset,e);});
+
+/* ============================ MAIN LOOP ============================ */
+let last=performance.now(),acc=0,uiT=0,saveT=0,secT=0,time=0,lastExcl='',rpWarn=0;
+function offlineCredit(secs,silent){const cap=(2+resFx().offline+2*(S.prestige.shop.time||0))*3600,t=Math.min(secs,cap);C=calc();const g=C.net*t;if(g>0){S.cash+=g;S.totalEarned+=g;S.runEarned+=g;S.rp+=C.rp*t;if(!silent&&secs>60)toast('😴 Welcome back! You earned <b>'+money(g)+'</b> while away ('+Math.round(t/60)+' min)','gold');}}
+function tick(dt){C=calc();const earn=C.net*dt;S.cash=Math.max(0,S.cash+earn);if(earn>0){S.totalEarned+=earn;S.runEarned+=earn;}S.rp+=C.rp*dt;addXP(Math.sqrt(Math.max(0,C.net))*0.1*dt);}
+function frame(now){requestAnimationFrame(frame);let dt=(now-last)/1000;last=now;
+ if(dt>3){offlineCredit(dt);dt=0.016;}dt=Math.min(dt,0.25);time+=dt;
+ acc+=dt*S.speed;let guard=0;while(acc>=0.1&&guard++<20){tick(0.1);acc-=0.1;}
+ secT+=dt;if(secT>=1){secT=0;checkAch();const ek=EXCL.map(e=>e.ok()?1:0).join('');if(ek!==lastExcl){if(lastExcl!==''){EXCL.forEach((e,i)=>{if(ek[i]==='1'&&lastExcl[i]!=='1')toast('✨ Exclusive unlocked: '+e.icon+' '+e.name,'gold');});}lastExcl=ek;dirty.office=dirty.city=true;}
+  if(C.net<0&&S.cash<=0&&time-rpWarn>30){rpWarn=time;toast('⚠️ Expenses exceed income and you are out of cash!','bad');}}
+ saveT+=dt;if(saveT>=10){saveT=0;save();}
+ if(dirty.office){buildOffice();dirty.office=false;}if(dirty.city){syncCity();dirty.city=false;if(popupPlot)renderPopup();}
+ uiT+=dt;if(uiT>0.35||dirty.ui){uiT=0;dirty.ui=false;hud();renderPanel(false);if(popupPlot)renderPopup();}else hud();
+ // camera
+ const kk=1-Math.exp(-dt*6),pk=dt*goal.r*0.9;let mx=0,mz=0;const s=Math.sin(goal.th),c=Math.cos(goal.th);
+ if(keys['w']||keys['arrowup']){mx-=s;mz-=c;}if(keys['s']||keys['arrowdown']){mx+=s;mz+=c;}if(keys['a']||keys['arrowleft']){mx-=c;mz+=s;}if(keys['d']||keys['arrowright']){mx+=c;mz-=s;}
+ goal.tx+=mx*pk;goal.tz+=mz*pk;
+ if(mode==='city'){goal.tx=Math.min(300,Math.max(-150,goal.tx));goal.tz=Math.min(140,Math.max(-240,goal.tz));}else{const W=SIZES[S.officeSize].W/2;goal.tx=Math.min(OX+W,Math.max(OX-W,goal.tx));goal.tz=Math.min(OZ+12,Math.max(OZ-12,goal.tz));}
+ for(const k of ['tx','ty','tz','r','th','ph'])cur[k]+=(goal[k]-cur[k])*kk;
+ const sp=Math.sin(cur.ph),cp=Math.cos(cur.ph);camera.position.set(cur.tx+cur.r*sp*Math.sin(cur.th),Math.max(1.2,cur.ty+cur.r*cp),cur.tz+cur.r*sp*Math.cos(cur.th));camera.lookAt(cur.tx,cur.ty,cur.tz);
+ sun.position.set(cur.tx+60,95,cur.tz+40);sun.target.position.set(cur.tx,0,cur.tz);
+ // animations
+ for(const a of anim){if(a.t==='bob')a.o.position.y=Math.sin(time*2+a.p)*0.04;else if(a.t==='spin'){if(a.axis==='z')a.o.rotation.z+=dt*a.s;else a.o.rotation.y+=dt*a.s;}else if(a.t==='swim')a.o.position.z=a.b+Math.sin(time*1.3+a.p)*0.6;}
+ for(const a of canim)a.o.rotation.y+=dt*a.s;
+ for(const c of cars){if(!c.g.parent||!c.g.parent.visible)continue;c.g.position[c.ax]+=c.sp*c.dir*dt;if(c.g.position[c.ax]>c.max)c.g.position[c.ax]=c.min;else if(c.g.position[c.ax]<c.min)c.g.position[c.ax]=c.max;}
+ renderer.render(scene,camera);}
+
+/* ============================ INIT ============================ */
+function init(){const l=load();if(l)S=l;resize();C=calc();updateShadowCam();renderTabs();$('#speedBtn').textContent='⏩ x'+S.speed;goal.r=officeR();Object.assign(cur,goal);
+ if(l){const secs=(Date.now()-S.lastSave)/1000;if(secs>60)offlineCredit(secs);}
+ lastExcl=EXCL.map(e=>e.ok()?1:0).join('');buildOffice();syncCity();dirty.office=dirty.city=false;hud();renderPanel(true);
+ if(!S.seenWelcome)showModal('<h2>💼 Welcome to Business Tycoon!</h2><p>You run a tiny office with <b>$10,000</b> and two employees. Build a worldwide empire!</p><ul style="margin:8px 0"><li>Hire staff and buy <b>desks, computers and upgrades</b> to grow income.</li><li>Unlock <b>businesses</b> and place them in your 3D <b>city</b> (click plots in City view).</li><li>Unlock new <b>districts</b>, research upgrades, earn achievements and <b>Rebirth</b> for permanent bonuses.</li><li>Press <b>Space</b> or the gold button to close deals for quick cash.</li></ul><div class="cbtn"><button class="btn gold" data-a="closeWelcome">Start building! 🚀</button></div>');
+ window.addEventListener('beforeunload',save);document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});
+ requestAnimationFrame(t=>{last=t;frame(t);});}
+init();
+})();
+</script>
+</body>
+</html>
