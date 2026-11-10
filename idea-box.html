@@ -64,6 +64,7 @@
 .idea-meta {
   color: #aaa;
   font-size: 13px;
+  margin-bottom: 12px;
 }
 
 .vote-button {
@@ -79,13 +80,17 @@
   background: #6d28d9;
 }
 
+.vote-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .idea-empty {
   text-align: center;
   color: #aaa;
   padding: 30px;
 }
 
-/* Popup */
 .idea-modal {
   display: none;
   position: fixed;
@@ -163,10 +168,13 @@
   color: #ccc;
   font-size: 14px;
   margin-top: 12px;
+  overflow-wrap: anywhere;
 }
 
 @media(max-width:600px) {
-  .idea-intro h1 { font-size: 28px; }
+  .idea-intro h1 {
+    font-size: 28px;
+  }
 }
 </style>
 </head>
@@ -192,25 +200,31 @@
     <p>Got an idea for a game? Tell us about it!</p>
     <p>Anton reads these when he has time to look — no live chat, no replies guaranteed.</p>
     <br>
-    <button class="open-idea" id="openIdea">+ Submit a Game Idea</button>
+    <button class="open-idea" id="openIdea">
+      + Submit a Game Idea
+    </button>
   </div>
 
   <h2>Community Ideas</h2>
+
   <div class="idea-feed" id="ideaFeed">
     <div class="idea-empty">Loading ideas...</div>
   </div>
 
 </main>
 
-<!-- Popup -->
 <div class="idea-modal" id="ideaModal">
   <div class="idea-modal-content">
-    <button class="idea-close" id="closeIdea" aria-label="Close">&times;</button>
+
+    <button class="idea-close" id="closeIdea" aria-label="Close">
+      &times;
+    </button>
 
     <h2>💡 Suggest a Game</h2>
     <p>What's your next big game idea?</p>
 
     <form id="ideaForm">
+
       <input
         type="text"
         id="ideaName"
@@ -230,18 +244,22 @@
       </button>
 
       <div class="idea-status" id="ideaStatus"></div>
+
     </form>
   </div>
 </div>
 
-<footer>Anton's Arcade &mdash; built by a kid, made for everyone.</footer>
+<footer>
+  Anton's Arcade &mdash; built by a kid, made for everyone.
+</footer>
 
-<!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-  const SUPABASE_URL = "https://jxirgdjsarzijdozhocz.supabase.co";
-const SUPABASE_KEY = "sb_publishable_j1CcIe4Eq_1V_bFURZGwOw_qxnXdWcq";
+const SUPABASE_URL = "https://jxirgdjsarzijdozhocz.supabase.co";
+
+// Paste your Supabase Publishable key between these quotation marks.
+const SUPABASE_KEY = "PASTE_YOUR_PUBLISHABLE_KEY_HERE";
 
 const db = window.supabase.createClient(
   SUPABASE_URL,
@@ -261,7 +279,7 @@ if (!voterId) {
   localStorage.setItem("arcade_voter_id", voterId);
 }
 
-// Open and close popup
+// Popup controls
 document.getElementById("openIdea").onclick = () => {
   modal.classList.add("open");
 };
@@ -280,143 +298,145 @@ function closeModal() {
   modal.classList.remove("open");
 }
 
-// Load public ideas
+// Load ideas
 async function loadIdeas() {
-  feed.innerHTML = '<div class="idea-empty">Loading ideas...</div>';
+  feed.textContent = "Loading ideas...";
 
-  const { data: ideas, error } = await db
-    .from("ideas")
-    .select("*")
-    .order("created_at", { ascending: false });
+  try {
+    const { data: ideas, error } = await db
+      .from("ideas")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-  if (error) {
-    feed.textContent = "Couldn't load ideas. Please try again later.";
-    console.error(error);
-    return;
-  }
+    if (error) throw error;
 
-  const { data: votes, error: voteError } = await db
-    .from("idea_votes")
-    .select("idea_id,voter_id");
+    const { data: votes, error: voteError } = await db
+      .from("idea_votes")
+      .select("idea_id,voter_id");
 
-  if (voteError) {
-    feed.textContent = "Couldn't load votes. Please try again later.";
-    console.error(voteError);
-    return;
-  }
+    if (voteError) throw voteError;
 
-  feed.replaceChildren();
+    feed.replaceChildren();
 
-  if (!ideas.length) {
-    feed.innerHTML =
-      '<div class="idea-empty">No ideas yet. Be the first to suggest a game! 🎮</div>';
-    return;
-  }
+    if (!ideas || ideas.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "idea-empty";
+      empty.textContent = "No ideas yet. Be the first to suggest a game! 🎮";
+      feed.appendChild(empty);
+      return;
+    }
 
-  ideas.forEach((idea) => {
-    const ideaVotes = votes.filter(v => v.idea_id === idea.id);
-    const hasVoted = ideaVotes.some(v => v.voter_id === voterId);
+    ideas.forEach((idea) => {
+      const ideaVotes = votes.filter(
+        v => v.idea_id === idea.id
+      );
 
-    const card = document.createElement("div");
-    card.className = "idea-card";
+      const hasVoted = ideaVotes.some(
+        v => v.voter_id === voterId
+      );
 
-    const title = document.createElement("h3");
-    title.textContent = "🎮 " + idea.name;
+      const card = document.createElement("div");
+      card.className = "idea-card";
 
-    const description = document.createElement("p");
-    description.textContent = idea.idea;
+      const title = document.createElement("h3");
+      title.textContent = "🎮 " + idea.name;
 
-    const meta = document.createElement("div");
-    meta.className = "idea-meta";
-    meta.textContent = new Date(idea.created_at).toLocaleString();
+      const description = document.createElement("p");
+      description.textContent = idea.idea;
 
-    const voteButton = document.createElement("button");
-    voteButton.className = "vote-button" + (hasVoted ? " voted" : "");
-    voteButton.textContent =
-      (hasVoted ? "👍 " : "👍 ") + ideaVotes.length;
+      const meta = document.createElement("div");
+      meta.className = "idea-meta";
+      meta.textContent = new Date(idea.created_at).toLocaleString();
 
-    voteButton.setAttribute(
-      "aria-label",
-      `${ideaVotes.length} votes. ${hasVoted ? "Remove vote" : "Upvote"}`
-    );
+      const voteButton = document.createElement("button");
+      voteButton.className =
+        "vote-button" + (hasVoted ? " voted" : "");
 
-    voteButton.onclick = async () => {
-      voteButton.disabled = true;
+      voteButton.textContent = "👍 " + ideaVotes.length +
+        (hasVoted ? " · Voted" : "");
 
-      try {
-        if (hasVoted) {
-          const { error } = await db
-            .from("idea_votes")
-            .delete()
-            .eq("idea_id", idea.id)
-            .eq("voter_id", voterId);
+      voteButton.disabled = hasVoted;
 
-          if (error) throw error;
-        } else {
-          const { error } = await db
-            .from("idea_votes")
-            .insert({
-              idea_id: idea.id,
-              voter_id: voterId
-            });
+      voteButton.onclick = async () => {
+        voteButton.disabled = true;
 
-          if (error) throw error;
+        const { error } = await db
+          .from("idea_votes")
+          .insert({
+            idea_id: idea.id,
+            voter_id: voterId
+          });
+
+        if (error) {
+          console.error("VOTE ERROR:", error);
+          alert("Couldn't vote: " + error.message);
+          voteButton.disabled = false;
+          return;
         }
 
         await loadIdeas();
-      } catch (error) {
-        alert("Couldn't update your vote. Please try again.");
-        console.error(error);
-        voteButton.disabled = false;
-      }
-    };
+      };
 
-    card.append(title, description, meta, voteButton);
-    feed.appendChild(card);
-  });
+      card.append(title, description, meta, voteButton);
+      feed.appendChild(card);
+    });
+
+  } catch (error) {
+    console.error("LOAD ERROR:", error);
+    feed.textContent = "Couldn't load ideas: " + error.message;
+  }
 }
 
-// Submit new idea
+// Submit an idea
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const name =
     document.getElementById("ideaName").value.trim() || "Anonymous";
 
-  const idea = document.getElementById("ideaText").value.trim();
+  const idea =
+    document.getElementById("ideaText").value.trim();
 
   if (idea.length < 3) {
-    status.textContent = "Please write a little more about your idea.";
+    status.textContent = "Please write a little more.";
     return;
   }
 
   submitButton.disabled = true;
   status.textContent = "Posting your idea...";
 
-  const { error } = await db
-    .from("ideas")
-    .insert({ name, idea });
+  try {
+    const { error } = await db
+      .from("ideas")
+      .insert({
+        name: name,
+        idea: idea
+      });
 
-  if (error) {
-    status.textContent = "Couldn't post your idea. Please try again.";
-    console.error(error);
+    if (error) throw error;
+
+    form.reset();
+    status.textContent = "Your idea has been posted! 🎉";
+
+    await loadIdeas();
+
+    setTimeout(() => {
+      closeModal();
+      status.textContent = "";
+      submitButton.disabled = false;
+    }, 1200);
+
+  } catch (error) {
+    console.error("SUBMISSION ERROR:", error);
+
+    status.textContent =
+      "Couldn't post your idea: " + error.message;
+
     submitButton.disabled = false;
-    return;
   }
-
-  form.reset();
-  status.textContent = "Your idea has been posted! 🎉";
-
-  await loadIdeas();
-
-  setTimeout(() => {
-    closeModal();
-    status.textContent = "";
-    submitButton.disabled = false;
-  }, 1200);
 });
 
-// Initial load
+// Start
 loadIdeas();
 </script>
 
