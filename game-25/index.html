@@ -498,7 +498,7 @@ function areaOpen(i){return i===0||B.every(z=>z.a>=i||S.def[z.id])}
 let _bl=0;function bossLock(e){if(Date.now()-_bl>4000){_bl=Date.now();const n=B.find(z=>z!==e.b&&(z.a<e.b.a||(z.a===e.b.a&&z.i<e.b.i))&&!S.def[z.id]);toast("SEALED!\nDefeat "+(n?n.name:"the earlier bosses")+" first.",1)}}
 function bossReq(b){return b.i<=3?4:12*Math.pow(1.075,b.i)}
 let _wl=0;function wReq(e){const w=WP[S.eq];let d=(w&&w.k!=="mobility"?w.d:0);if(!d)for(const id of S.slots)if(id&&WP[id]&&WP[id].k!=="mobility")d=Math.max(d,WP[id].d);d*=(S.evo[S.eq]?2:1);const r=bossReq(e.b),q=Math.min(1,Math.pow(d/r,1.4));if(q<.7&&Date.now()-_wl>6000){_wl=Date.now();toast("Your weapon is too weak for this boss!\nBuy a stronger weapon (need ~"+Math.ceil(r*.7)+" damage).",1)}return Math.max(.05,q)}
-function bossHP(b,i,core){let m=core===1?16:core?5:2.4;if(b.nm==="King Blob Revenge")m*=3;if(b.nm==="Shadow Lord")m*=2.5;if(/^TF /.test(b.nm))m*=1.3;return 120*Math.pow(1.065,i)*m*1.3*(i<=3?.3:1)}
+function bossHP(b,i,core){if(b.nm==='King Blob')return 36000;let m=core===1?16:core?5:2.4;if(b.nm==="King Blob Revenge")m*=3;if(b.nm==="Shadow Lord")m*=2.5;if(/^TF /.test(b.nm))m*=1.3;return 120*Math.pow(1.065,i)*m*1.3*(i<=3?.3:1)}
 // King Blob: pink jelly dome with a gold crown (design from the artwork). lvl 0 = King Blob, 1 = Revenge (purple, darker), 2 = True Form
 function kingBlobModel(m,lvl){const g=new THREE.Group();m.roughness=.3;m.metalness=0;
 const geo=new THREE.SphereGeometry(1,28,20),pa=geo.attributes.position;for(let i=0;i<pa.count;i++){let y=pa.getY(i);if(y<0)y*=.36;pa.setY(i,y*.92)}geo.computeVertexNormals();
@@ -816,6 +816,7 @@ if(t.lift>0){t.lift-=dt;const u=Math.min(1,1-t.lift/t.ride),e=u*u*(3-2*u);P.y=t.
 else if(P.y<1&&Math.hypot(P.x-t.pad[0],P.z-t.pad[1])<2.3){t.lift=t.ride;toast("HIDDEN ELEVATOR!\nIt carries you to the top...",1)}
 for(const e of ents)if(e.twb){const p=e.m.position;if(!TWf.top(p.x,p.z)){p.x=t.cx;p.z=t.cz}p.y=t.topH}}
 {const o=gameTick;gameTick=function(dt,T){o(dt,T);twTick(dt)}}
+{const o=kill;kill=function(e){if(e.mn&&boss&&boss.b&&boss.b.nm==='King Blob'&&!PV.on){P.hp=Math.min(maxhp(),P.hp+maxhp()*.07);burst(e.m.position.x,1.4,e.m.position.z,0x55ff88,24,6);num(Math.round(maxhp()*.07),e.m.position,'#55ff88')}o(e)}}
 
 {const o=build;build=function(a){TW=null;o(a)}}
 /* ===== PVP (peer to peer, host is the referee) ===== */
