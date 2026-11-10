@@ -51,7 +51,7 @@ canvas{display:block;position:fixed;inset:0;width:100%;height:100%;touch-action:
 <div class="pn" id="tp"><b>Trails</b><small>Buy once with wins. Yours forever, even after you leave.</small><div id="tl"></div></div>
 <div class="pn" id="sm"><b style="font-size:20px">Choose a stage</b><small id="smi">Jump to any level you have reached. Speeds shown are recommended, not required</small><div id="sg"></div><button class="big alt" id="smc">Close</button></div>
 <div class="pn" id="cp"><div style="font-size:44px">🏆</div><b style="font-size:22px" id="cpt"></b><small id="cpd"></small><button class="big" id="cpn">Next stage</button><button class="big alt" id="cpl">Back to lobby</button></div>
-<div id="tc"><div><button id="bvl">⟲</button><button id="bvr">⟳</button></div><div><button id="bl">◀</button><button id="bu">▲</button><button id="bd">▼</button><button id="br">▶</button></div><button id="bj">⤒</button></div>
+<div id="tc"><div><button id="bvl">⟲</button><button id="bvr">⟳</button><button id="bcam">👁</button></div><div><button id="bl">◀</button><button id="bu">▲</button><button id="bd">▼</button><button id="br">▶</button></div><button id="bj">⤒</button></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 //#PURE
@@ -166,7 +166,7 @@ function cvTex(w,h,fn,rep){var cv=document.createElement("canvas");cv.width=w;cv
 var TXs=cvTex(64,64,function(g){g.fillStyle="#fff";g.fillRect(0,0,64,64);g.fillStyle="#ff3b5c";for(var i=-64;i<128;i+=32){g.beginPath();g.moveTo(i,0);g.lineTo(i+16,0);g.lineTo(i-48,64);g.lineTo(i-64,64);g.fill()}},[1,3]);
 var TXw=cvTex(128,128,function(g){for(var i=0;i<12;i++){g.fillStyle=i%2?"#ff5fa2":"#fff";g.beginPath();g.moveTo(64,64);g.arc(64,64,92,i*Math.PI/6,(i+1)*Math.PI/6);g.fill()}});
 var TXc=cvTex(64,64,function(g){g.fillStyle="#fff";g.fillRect(0,0,64,64);g.fillStyle="#ffb3d9";g.fillRect(0,0,32,32);g.fillRect(32,32,32,32)},[10,10]);
-var MS=new THREE.MeshStandardMaterial({map:TXs,roughness:.4}),MW=new THREE.MeshStandardMaterial({map:TXw,roughness:.4});
+var MS=new THREE.MeshStandardMaterial({map:TXs,roughness:.4}),MWM=new THREE.MeshStandardMaterial({map:TXw,roughness:.4});
 function label(t,c,w,h,fs){var cv=document.createElement("canvas");cv.width=512;cv.height=128;var tx=new THREE.CanvasTexture(cv);tx.encoding=THREE.sRGBEncoding;var m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:tx,transparent:true,fog:false}));
  m.set=function(t,c){var g=cv.getContext("2d");g.clearRect(0,0,512,128);g.fillStyle="#3b1760dd";g.fillRect(0,0,512,128);g.strokeStyle=c;g.lineWidth=6;g.strokeRect(4,4,504,120);g.fillStyle=c;g.font="900 "+(fs||46)+"px Trebuchet MS,Verdana,sans-serif";g.textAlign="center";g.textBaseline="middle";g.fillText(t,256,66);tx.needsUpdate=true};m.set(t,c);return m}
 var hex=function(c){return"#"+("000000"+c.toString(16)).slice(-6)};
@@ -174,7 +174,7 @@ function sky(a,b){var cv=document.createElement("canvas");cv.width=4;cv.height=2
 // DECOR
 var rnd=Math.random;
 function deco(k,s){var g=new THREE.Group();
- if(k=="lolli"){cy(.25*s,6*s,M(0xffffff),0,3*s,0,g);var h=new THREE.Mesh(new THREE.CylinderGeometry(2*s,2*s,.5*s,24),[M(0xff5fa2),MW,MW]);h.rotation.x=Math.PI/2;h.position.y=7*s;g.add(h)}
+ if(k=="lolli"){cy(.25*s,6*s,M(0xffffff),0,3*s,0,g);var h=new THREE.Mesh(new THREE.CylinderGeometry(2*s,2*s,.5*s,24),[M(0xff5fa2),MWM,MWM]);h.rotation.x=Math.PI/2;h.position.y=7*s;g.add(h)}
  else if(k=="cane"){cy(.5*s,5*s,MS,0,2.5*s,0,g,12);var t=new THREE.Mesh(new THREE.TorusGeometry(1.3*s,.5*s,10,18,Math.PI),MS);t.position.set(-1.3*s,5*s,0);g.add(t)}
  else if(k=="donut"){var d=new THREE.Mesh(new THREE.TorusGeometry(2*s,.9*s,12,24),M(0xffa0d0));d.rotation.x=Math.PI/2.4;g.add(d);var ic=new THREE.Mesh(new THREE.TorusGeometry(2*s,.95*s,12,24,Math.PI*1.6),M(0x6b3a22));ic.rotation.x=Math.PI/2.4;ic.position.y=.15*s;g.add(ic)}
  else if(k=="cookie"){cy(2.4*s,.8*s,M(0xd9a05b),0,0,0,g,24);for(var i=0;i<5;i++)cy(.4*s,.3*s,M(0x4a2a18),(rnd()-.5)*3*s,.45*s,(rnd()-.5)*3*s,g,8)}
@@ -302,7 +302,7 @@ function trUI(){var h="<div class='tr "+(!trail?"sel":"")+"'><span class='sw' st
  $("tl").innerHTML=h;[].forEach.call($("tl").querySelectorAll("button"),function(b){b.onclick=function(){var id=b.getAttribute("data-id"),d=TRL.filter(function(t){return t.id==id})[0];
   if(!id){trail=""}else if(own.indexOf(id)>=0){trail=id}else if(d&&!d.ms&&wins>=d.cost){wins-=d.cost;own.push(id);trail=id;msg("Trail unlocked forever: "+d.n+"!","#ffd23f",2200)}save();trUI()}})}
 // STATE
-var K={},px=0,py=0,pz=170,vy=0,T=0,acc=0,stepAcc=0,popAcc=0,popT=-9,padT=0,paused=false,last=performance.now(),run=0,yaw=0,face=Math.PI,stand=PLAT[0],coy=0,startN=1,lavaOn=false,lavaN=0,ly=0,inv=0,curN=0,cLock=false,fxO=0;
+var POV=0,K={},px=0,py=0,pz=170,vy=0,T=0,acc=0,stepAcc=0,popAcc=0,popT=-9,padT=0,paused=false,last=performance.now(),run=0,yaw=0,face=Math.PI,stand=PLAT[0],coy=0,startN=1,lavaOn=false,lavaN=0,ly=0,inv=0,curN=0,cLock=false,fxO=0;
 function jumpV(){return jv(SP)}
 function msg(t,c,ms){var m=$("msg");m.textContent=t;m.style.color=c||"#fff";m.style.opacity=1;clearTimeout(m._t);m._t=setTimeout(function(){m.style.opacity=0},ms||1400)}
 function pop(t){var p=$("pop");p.textContent=t;p.classList.remove("on");void p.offsetWidth;p.classList.add("on")}
@@ -312,7 +312,7 @@ function resetLevel(n){var o=SINFO[n]&&SINFO[n].o;if(o)o.plats.forEach(function(
 function goStage(n,quiet){n=Math.max(1,Math.min(30,n));if(n==1){px=0;pz=12;stand=PLAT[0]}else{var p=SINFO[n-1].o.fpl;p.y=0;p.desc=false;p.g.position.y=0;px=(p.x0+p.x1)/2;pz=p.z0+4;stand=p}py=0;vy=0;yaw=0;cLock=true;startN=n;resetLevel(n);if(!quiet)msg("LEVEL "+n+": "+STG[n-1].n.toUpperCase(),"#fff",1600)}
 function respawn(why){goStage(startN,true);msg((why||"Restart")+" · restarting level "+startN+" from the beginning","#ff9a9a",1800)}
 function inside(p,x,z){return x>p.x0-.3&&x<p.x1+.3&&z>p.z0-.3&&z<p.z1+.3}
-function U(){return(K.KeyW||K.ArrowUp)?1:0}function D(){return(K.KeyS||K.ArrowDown)?1:0}
+function U(){return K.KeyW?1:0}function D(){return K.KeyS?1:0}
 function checkMS(){while(msIdx<MSL.length&&SP>=MSL[msIdx].sp){var m=MSL[msIdx++];wins+=m.w;if(m.tr&&own.indexOf(m.tr)<0)own.push(m.tr);save();msg("★ SPEED MILESTONE "+m.sp.toLocaleString()+"! +"+m.w+" wins"+(m.tr?" + EXCLUSIVE TRAIL!":""),"#ffd23f",4500);emitTrail(CEL,px,py,pz,0,face,70)}}
 function stepGain(c){var g=STEPG[PL.step]*mult()*rbM()*c;SP+=g;popAcc+=g;if(T-popT>.6){pop("+"+(+popAcc.toFixed(1))+" Speed");popAcc=0;popT=T}save();checkMS()}
 function complete(n){var first=!done[n],r=rewardOf(n)*(1+.1*RB);if(!first)r=Math.max(1,r/2);r=Math.round(r);done[n]=1;pend+=r;runLv++;if(n<30)st=Math.max(st,n+1);save();K={};paused=true;cLock=true;
@@ -335,7 +335,7 @@ function upd(dt){
  var tt=null,onP=stand&&stand.k=="p";if(onP)tm.forEach(function(t){if(Math.abs(px-t.x)<3&&Math.abs(pz-t.z)<6&&py<.6)tt=t});
  var mvd=0,ua=U()||(AUTO&&tt?1:0);
  if(ln>0){vx/=ln;vz/=ln;face=Math.atan2(vx,vz);if(tt&&ua){px+=rr*Math.cos(yaw)*v*dt;face=Math.PI}else{px+=vx*v*dt;pz+=vz*v*dt;mvd=v*dt}}
- if(tt&&!ua)pz-=9*dt;
+ if(tt&&!ua)pz+=9*dt;
  if(tt&&ua){run=1;face=Math.PI;if(MW>=tt.n){acc+=dt;var tk=Math.floor(acc/.1);if(tk>0){acc-=tk*.1;stepGain(tt.m*tk)}}}
  else if(mvd>0){stepAcc+=mvd;if(stepAcc>=6){var c=Math.floor(stepAcc/6);stepAcc-=c*6;stepGain(c)}}
  if(onP&&py<.6){padT-=dt;PADS.forEach(function(p){if(Math.abs(px-p.x)<3.2&&Math.abs(pz-p.z)<3.2){var o=PL[p.g];if(o==p.lv-1){if(wins>=p.cost){wins-=p.cost;PL[p.g]=p.lv;save();msg("PAD UNLOCKED FOREVER! "+p.t,"#ffd23f",2500)}else if(padT<=0){padT=2.5;msg("Need "+p.cost+" wins (you have "+wins+")","#ffb347",1500)}}else if(o<p.lv-1&&padT<=0){padT=2.5;msg("Buy the previous pad first","#ffb347",1200)}}})}
@@ -366,11 +366,12 @@ function upd(dt){
  var jp=Math.round((jumpV()/21-1)*100);
  if(curN){var rc=reqOf(curN);$("ds").innerHTML="Level "+curN+": "+STG[curN-1].n+" · speed "+abbr(SP)+" / recommended "+abbr(rc)+(SP>=rc?" ✓":" <b style='color:#ffb347'>(lower = harder)</b>")+" · jump +"+jp+"%"+(lavaOn&&lavaN==curN?" 🔥":"")}
  else $("ds").textContent=tt?(MW<tt.n?"🔒 Treadmill locked: needs "+abbr(tt.n)+" total wins (you have "+abbr(MW)+"). Clear levels or use MATHS.":"🏃 Treadmill: +"+abbr(STEPG[PL.step]*mult()*rbM()*tt.m*10)+" speed/sec"+(ua?(AUTO?" · AUTO-RUN on (AFK ok)":""):" · hold W to farm, or press T for AUTO-RUN")):"Walk anywhere to gain speed · run "+vOf(SP).toFixed(0)+" · jump +"+jp+"%";
- tm.forEach(function(t){t.tex.offset.y+=dt*(tt===t&&ua?3:.3)})}
-addEventListener("keydown",function(e){if(e.target.id=="ans")return;K[e.code]=1;if(e.code=="KeyR"&&!paused&&curN)respawn("Restart");if(e.code=="Escape"){["mp","tp","sm"].forEach(function(i){if($(i).classList.contains("on"))openP(i)})}if(e.code=="Space"||e.code.indexOf("Arrow")==0)e.preventDefault()});
+ tm.forEach(function(t){t.tex.offset.y-=dt*(tt===t&&ua?3:.3)})}
+function setPOV(n){POV=(n+3)%3;var nm=["Third person (far)","Third person (close)","First person"][POV];msg("View: "+nm,"#4fd8ff",900)}
+addEventListener("keydown",function(e){if(e.target.id=="ans")return;if(!paused&&!e.repeat){if(e.code=="ArrowUp")setPOV(POV+1);else if(e.code=="ArrowDown")setPOV(POV-1)}K[e.code]=1;if(e.code=="KeyR"&&!paused&&curN)respawn("Restart");if(e.code=="Escape"){["mp","tp","sm"].forEach(function(i){if($(i).classList.contains("on"))openP(i)})}if(e.code=="Space"||e.code.indexOf("Arrow")==0)e.preventDefault()});
 addEventListener("keyup",function(e){K[e.code]=0});
 function hold(id,code){var b=$(id);b.addEventListener("pointerdown",function(e){e.preventDefault();K[code]=1});["pointerup","pointerleave","pointercancel"].forEach(function(ev){b.addEventListener(ev,function(){K[code]=0})})}
-hold("bl","KeyA");hold("br","KeyD");hold("bu","KeyW");hold("bd","KeyS");hold("bj","Space");hold("bvl","ArrowLeft");hold("bvr","ArrowRight");
+$("bcam").addEventListener("pointerdown",function(e){e.preventDefault();if(!paused)setPOV(POV+1)});hold("bl","KeyA");hold("br","KeyD");hold("bu","KeyW");hold("bd","KeyS");hold("bj","Space");hold("bvl","ArrowLeft");hold("bvr","ArrowRight");
 var drag=null;R.domElement.addEventListener("pointerdown",function(e){drag=e.clientX});addEventListener("pointerup",function(){drag=null});addEventListener("pointermove",function(e){if(drag!==null&&!paused){yaw-=(e.clientX-drag)*.006;drag=e.clientX}});
 function loop(n){requestAnimationFrame(loop);var dt=Math.min((n-last)/1000,.05);last=n;hallAnim(n,dt);
  if(!paused){upd(dt);if(run)emitTrail(tdef(),px,py,pz,wv(),face)}
@@ -381,7 +382,9 @@ function loop(n){requestAnimationFrame(loop);var dt=Math.min((n-last)/1000,.05);
  var ph=n*.016*(run?1:0)*(1+v/40),sw=run?.9:0;if(!stand&&curN){lg[0].rotation.x=.6;lg[1].rotation.x=-.4;arm[0].rotation.x=-2.4;arm[1].rotation.x=-2.4}else{lg[0].rotation.x=Math.sin(ph)*sw;lg[1].rotation.x=-Math.sin(ph)*sw;arm[0].rotation.x=-Math.sin(ph)*sw;arm[1].rotation.x=Math.sin(ph)*sw}
  P.visible=inv<=0||Math.floor(n/70)%2==0;
  dl.position.set(px+15,60,pz+25);dl.target.position.set(px,py,pz);
- var dist=16+py*.05,hgt=8+py*.12,cx=cl(px+Math.sin(yaw)*dist,-HW+1,HW-1),cz=cl(pz+Math.cos(yaw)*dist,ZN+1,LZ-1);C.position.set(cx,Math.min(py*.7+hgt,HH-6),cz);C.lookAt(px-Math.sin(yaw)*3,py+2,pz-Math.cos(yaw)*3);
+ var tOff=onT?.5:0;
+ if(POV==2){P.visible=false;C.position.set(px,py+tOff+3.4,pz);C.lookAt(px-Math.sin(yaw)*10,py+tOff+3.2,pz-Math.cos(yaw)*10)}
+ else{var k2=POV==1?.45:1,dist=(16+py*.05)*k2,hgt=(8+py*.12)*k2,cx=cl(px+Math.sin(yaw)*dist,-HW+1,HW-1),cz=cl(pz+Math.cos(yaw)*dist,ZN+1,LZ-1);C.position.set(cx,Math.min(py*.7+hgt,HH-6),cz);C.lookAt(px-Math.sin(yaw)*3,py+2,pz-Math.cos(yaw)*3)}
  C.fov=62;C.updateProjectionMatrix();R.render(S,C)}
 // UI
 var prog=0,A=0,B=0;
@@ -413,7 +416,7 @@ $("rb").onclick=function(){this.blur();if(SP<rbReq()){msg("Rebirth needs "+abbr(
  RB++;wins=0;SP=0;st=1;done=[];pend=0;runLv=0;PL={step:0};msIdx=0;MW=0;
  px=0;pz=170;py=0;vy=0;stand=PLAT[0];lavaOn=false;yaw=0;cLock=false;startN=1;save();updLabels();updPads();updGates();msg("REBIRTH "+RB+"! Permanent speed gains x"+rbM().toFixed(1),"#ffd23f",4000)};
 pr();checkMS();save();lbr();updLabels();updGates();updPads();
-$("help").textContent="WASD move (every step earns speed) · ◀ ▶ or drag = rotate view · Space jump · R restart level · fall = restart the level, no checkpoints";
+$("help").textContent="WASD move (every step earns speed) · ◀ ▶ or drag = rotate view · ▲ ▼ = change camera (far / close / first person) · Space jump · R restart level · fall = restart the level, no checkpoints";
 setTimeout(function(){msg(st>1||SP>0?"Welcome back! ▶ Continue takes you to level "+st:"Welcome! Walk to gain speed, buy pads on the sides, then head north","#fff",3800)},400);
 requestAnimationFrame(loop);
 })();
