@@ -60,14 +60,15 @@ var MZ={a:["####S####","#.......#","#.#####.#","#.#...#.#","#.#.#.###","#.#.#...
 b:["#####S#####","#.........#","#.#######.#","#.#.....#.#","#.#.###.#.#","#...#.#...#","###.#.#####","#...#.....#","#.###.###.#","#.........#","#####E#####"],
 c:["####S####","#.......#","#.#####.#","#.#...#.#","#.#.#.#.#","#...#...#","#####.###","#.....#.#","#.###.#.#","#.....#.#","####E####"]};
 MZ.d=MZ.b.map(function(r){return r.split("").reverse().join("")});
-var RCAP=500,SK=47000000;
+var WORLD=1;try{WORLD=+localStorage.getItem("sse_world")==2?2:1}catch(e){}
+var SC=WORLD==2?1e8:1,RCAP=WORLD==2?1000:500,SK=47000000,PFX=WORLD==2?"s2_":"";
 function vG(n){return 14+2.5*(n-1)}
 function vN(n){return vOf(reqOf(n))}
-function jv(sp){return 21+34*(1-Math.exp(-sp/300000000))}
+function jv(sp){sp/=SC;return 21+34*(1-Math.exp(-sp/300000000))}
 function rewardOf(n){return Math.round(25*Math.pow(1.27,n-1))}
-function vOf(sp){return 12+(RCAP-12)*(1-Math.exp(-Math.sqrt(sp/SK)))}
+function vOf(sp){sp/=SC;return 12+(RCAP-12)*(1-Math.exp(-Math.sqrt(sp/SK)))}
 function wvOf(run,L){return 12+(run-12)*(vG(L)-12)/(vN(L)-12)}
-function reqOf(n){return Math.round(400*Math.pow(2.5e6,(n-1)/29))}
+function reqOf(n){return Math.round(SC*400*Math.pow(2.5e6,(n-1)/29))}
 function laneOf(n){var k=(n-1)%15,x=k==0?0:(k%2?1:-1)*Math.ceil(k/2)*76,sd=n<=15?-1:1;return{x:x,sd:sd,oz:sd*102,d0:sd<0?0:2}}
 function compile(def,n,ox,oz){
  var vn=vN(n),gj=Math.round(vn*(2*jv(reqOf(n))/52)*.62*10)/10,ls=1+.02*(vn-14),fs=Math.max(.85,1+(vn-40)/200),sq=Math.max(.9,Math.min(2.2,1+(vn-40)/250));
@@ -140,18 +141,20 @@ var STG=[
 (function(){
 var $=function(i){return document.getElementById(i)};
 var wins=0,SP=0,st=1,trail="",own=[],done=[],pend=0,runLv=0,PL={step:0},msIdx=0,MW=0,RB=0,tLab,STEPG=(function(){var a=[];for(var i=0;i<=100;i++)a.push(Math.max(i+1,Math.round((i+1)*Math.pow(1.13,Math.max(0,i-3)))));return a})(),TM2=[1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6],MSL=[{sp:1000,w:25},{sp:5000,w:60},{sp:25000,w:150},{sp:100000,w:400},{sp:400000,w:1000},{sp:1e6,w:50},{sp:5e6,w:200},{sp:2e7,w:600},{sp:7.5e7,w:2000,tr:"starfire"},{sp:2.5e8,w:6000},{sp:6e8,w:15000,tr:"cosmic"},{sp:1e9,w:40000},{sp:5e9,w:150000},{sp:2.5e10,w:600000}];
-function LS(k,d){try{var v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}}
-wins=+LS("sse_wins",0)||0;SP=+LS("sse_speed",0)||0;st=+LS("sse_st",1)||1;trail=LS("sse_trail","");own=LS("sse_own",[]);done=LS("sse_done",[]);pend=+LS("sse_pend",0)||0;runLv=+LS("sse_run",0)||0;PL.step=Math.min(100,+(LS("sse_pl",{})||{}).step||0);msIdx=+LS("sse_ms",0)||0;MW=+LS("sse_mw",0)||0;RB=+LS("sse_rb",0)||0;
+function LS(k,d){try{var v=localStorage.getItem((k=="sse_own"||k=="sse_trail"?"":PFX)+k);return v===null?d:JSON.parse(v)}catch(e){return d}}
+wins=+LS("sse_wins",0)||0;SP=+LS("sse_speed",0)||0;st=+LS("sse_st",1)||1;trail=LS("sse_trail","");own=LS("sse_own",[]);done=LS("sse_done",[]);pend=+LS("sse_pend",0)||0;runLv=+LS("sse_run",0)||0;PL.step=Math.min(100,+(LS("sse_pl",{})||{}).step||0);msIdx=+LS("sse_ms",0)||0;MW=+LS("sse_mw",0)||0;RB=0;
+if(SC>1){STEPG=STEPG.map(function(x){return x*SC});MSL.forEach(function(m){m.sp*=SC});STG.forEach(function(g){g.n="II · "+g.n});if(localStorage.getItem(PFX+"sse_speed")===null){SP=1e12;wins=0;msIdx=0;while(MSL[msIdx]&&MSL[msIdx].sp<=SP)msIdx++}}
+
 if(typeof trail!="string")trail="";if(!Array.isArray(own))own=[];if(!Array.isArray(done))done=[];
 function troph(){var n=0;for(var i=1;i<=30;i++)if(done[i])n++;return n}
-function abbr(n){n=Math.floor(n);return n>=1e9?(n/1e9).toFixed(n>=1e10?0:1)+"B":n>=1e6?(n/1e6).toFixed(1)+"M":n>=1e5?Math.round(n/1e3)+"k":n>=1e4?(n/1e3).toFixed(1)+"k":String(n)}
+function abbr(n){n=Math.floor(n);return n>=1e18?(n/1e18).toFixed(1)+"Qi":n>=1e15?(n/1e15).toFixed(1)+"Qa":n>=1e12?(n/1e12).toFixed(n>=1e13?0:1)+"T":n>=1e9?(n/1e9).toFixed(n>=1e10?0:1)+"B":n>=1e6?(n/1e6).toFixed(1)+"M":n>=1e5?Math.round(n/1e3)+"k":n>=1e4?(n/1e3).toFixed(1)+"k":String(n)}
 var AUTO=false,CT=1;try{CT=Math.max(.05,Math.min(1,+localStorage.getItem("sse_ct")||1))}catch(e){}
 function wv(){return Math.max(5,vOf(SP)*CT)}
 function mult(){return 1+.05*troph()}
-function rbReq(){return 5e7*Math.pow(3,RB)}function rbM(){return 1+.5*RB}
-function save(){MW=Math.max(MW,wins);if(typeof updRB=="function")updRB();var o={sse_wins:wins,sse_speed:SP,sse_st:st,sse_trail:trail,sse_own:own,sse_done:done,sse_pend:pend,sse_run:runLv,sse_pl:PL,sse_ms:msIdx,sse_mw:MW,sse_rb:RB};try{for(var k in o)localStorage.setItem(k,JSON.stringify(o[k]))}catch(e){}
+function rbReq(){return 5e7*Math.pow(3,RB)}function rbM(){return 1}
+function save(){MW=Math.max(MW,wins);if(typeof updRB=="function")updRB();var o={sse_wins:wins,sse_speed:SP,sse_st:st,sse_trail:trail,sse_own:own,sse_done:done,sse_pend:pend,sse_run:runLv,sse_pl:PL,sse_ms:msIdx,sse_mw:MW,sse_rb:RB};try{for(var k in o)localStorage.setItem((k=="sse_own"||k=="sse_trail"?"":PFX)+k,JSON.stringify(o[k]))}catch(e){}
  $("wn").textContent="Wins "+wins+(pend?"  (+"+pend+" unclaimed)":"")+"   🏆 "+troph()+"   +"+abbr(STEPG[PL.step]*mult()*rbM())+" speed/step";
- $("sp").textContent="Speed "+Math.floor(SP).toLocaleString()+"  (run "+vOf(SP).toFixed(0)+" / "+RCAP+")";var nm=MSL[msIdx];$("ms").textContent=nm?"Next milestone: "+Math.floor(nm.sp).toLocaleString()+" speed → +"+nm.w.toLocaleString()+" wins"+(nm.tr?" + exclusive trail":""):"All speed milestones reached!";
+ $("sp").textContent=(WORLD==2?"🌍 WORLD 2 · ":"")+"Speed "+Math.floor(SP).toLocaleString()+"  (run "+vOf(SP).toFixed(0)+" / "+RCAP+")";var nm=MSL[msIdx];$("ms").textContent=nm?"Next milestone: "+Math.floor(nm.sp).toLocaleString()+" speed → +"+nm.w.toLocaleString()+" wins"+(nm.tr?" + exclusive trail":""):"All speed milestones reached!";
  if(tLab)tLab.set("🏆 TROPHIES: "+troph()+"/30","#ffd23f");if(typeof updGates=="function"){updGates();updPads()}}
 var R=new THREE.WebGLRenderer({antialias:true});R.setPixelRatio(Math.min(devicePixelRatio,2));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.05;document.body.prepend(R.domElement);
 var S=new THREE.Scene(),C=new THREE.PerspectiveCamera(62,1,.5,3500);
@@ -410,11 +413,12 @@ $("ctm").onclick=function(){setMin($("ctb").style.display!="none");this.blur()};
 addEventListener("keydown",function(e){if(e.target.id!="ans"&&e.code=="KeyM")setMin($("ctb").style.display!="none")});
 function togAuto(){AUTO=!AUTO;$("auto").textContent="AUTO-RUN (AFK): "+(AUTO?"ON":"OFF")+"  [T]";$("auto").style.background=AUTO?"#1b6b3a":"#1d0b30"}
 $("auto").onclick=function(){togAuto();this.blur()};togAuto();addEventListener("keydown",function(e){if(e.target.id!="ans"&&e.code=="KeyT")togAuto()});
-function updRB(){var b=$("rb");if(!b)return;var ok=SP>=rbReq();b.textContent="🔁 REBIRTH "+RB+" (speed x"+rbM().toFixed(1)+") · "+(ok?"READY → x"+(1+.5*(RB+1)).toFixed(1):"need "+abbr(rbReq())+" speed");b.style.background=ok?"#6b4a00":"#1d0b30";b.style.opacity=ok?1:.7}
-$("rb").onclick=function(){this.blur();if(SP<rbReq()){msg("Rebirth needs "+abbr(rbReq())+" speed (you have "+abbr(SP)+")","#ffb347",2200);return}
- if(!confirm("REBIRTH?\n\nResets: speed, wins, pads, levels and trophies.\nKeeps: your trails.\nGives: permanent speed gains x"+(1+.5*(RB+1)).toFixed(1)+" and +"+10*(RB+1)+"% level wins."))return;
- RB++;wins=0;SP=0;st=1;done=[];pend=0;runLv=0;PL={step:0};msIdx=0;MW=0;
- px=0;pz=170;py=0;vy=0;stand=PLAT[0];lavaOn=false;yaw=0;cLock=false;startN=1;save();updLabels();updPads();updGates();msg("REBIRTH "+RB+"! Permanent speed gains x"+rbM().toFixed(1),"#ffd23f",4000)};
+function updRB(){var b=$("rb");if(!b)return;var ok=localStorage.getItem("sse_w2")||(SP>=1e12&&wins>=1e4);b.textContent=WORLD==2?"🌍 BACK TO WORLD 1":localStorage.getItem("sse_w2")?"🌍 TRAVEL TO WORLD 2":"🌍 WORLD 2 · "+(ok?"READY (10,000 wins)":"need 1T speed + 10,000 wins");b.style.background=ok||WORLD==2?"#6b4a00":"#1d0b30";b.style.opacity=ok||WORLD==2?1:.7}
+$("rb").onclick=function(){this.blur();
+ if(WORLD==2){if(confirm("Return to World 1? World 2 progress is saved.")){save();localStorage.setItem("sse_world","1");location.reload()}return}
+ if(!localStorage.getItem("sse_w2")){if(SP<1e12||wins<1e4){msg("World 2 needs 1T speed (you have "+abbr(SP)+") and 10,000 wins (you have "+abbr(wins)+")","#ffb347",2800);return}
+  if(!confirm("Travel to WORLD 2?\n\nCosts 10,000 wins. You arrive with 1T speed, but World 2 is scaled so 1T there feels like 10k in World 1. 30 new levels, run-speed cap 1000. World 1 progress is kept."))return;wins-=1e4;localStorage.setItem("sse_w2","1")}
+ save();localStorage.setItem("sse_world","2");location.reload()};
 pr();checkMS();save();lbr();updLabels();updGates();updPads();
 $("help").textContent="WASD move (every step earns speed) · ◀ ▶ or drag = rotate view · ▲ ▼ = change camera (far / close / first person) · Space jump · R restart level · fall = restart the level, no checkpoints";
 setTimeout(function(){msg(st>1||SP>0?"Welcome back! ▶ Continue takes you to level "+st:"Welcome! Walk to gain speed, buy pads on the sides, then head north","#fff",3800)},400);
