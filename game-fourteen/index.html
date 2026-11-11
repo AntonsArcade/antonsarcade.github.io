@@ -623,7 +623,7 @@ function openMk(){mk=true;if(eg)eg.gain.value=0;renderMk();$('mk').style.display
 function openCm(){mk=true;if(eg)eg.gain.value=0;$('cr').textContent='';$('cm').style.display='flex';setTimeout(()=>$('ci').focus(),30)}
 function closeMk(){mk=false;$('mk').style.display='none';$('cm').style.display='none';$('ci').blur();$('cs').style.display='none';$('rdm').style.display='none';$('cum').style.display='none';$('tw').style.display='none';$('hw').style.display='none';CS.busy=0;if(FC.menu)fcCloseMenu();if(typeof closePhoneUI=='function')closePhoneUI()}
 function giveCar(id){P.owned[id]=1;setCar(id);P.hp=P.mx}
-const CODES={FREETANK:()=>giveCar('tank'),HYPER300:()=>giveCar('hyper'),GHOSTCAR:()=>giveCar('phantom'),NUKEIT:()=>{P.am[8]+=3},ALLBOMBS:()=>{for(let i=0;i<9;i++)P.am[i]+=10},RICHBOI:()=>{P.cash+=50000},SEWERS:()=>{},SUBWAY:()=>{},AREA51:()=>{},GODTANK:()=>{giveCar('godtank');toast('GOD TANK: 5,000 HP and 400 km/h!')},HACKERZ:()=>{toast('HACKERZ: +$10,000 passive income every second!')}};
+const CODES={FREETANK:()=>giveCar('tank'),HYPER300:()=>giveCar('hyper'),GHOSTCAR:()=>giveCar('phantom'),NUKEIT:()=>{P.am[8]+=3},ALLBOMBS:()=>{for(let i=0;i<9;i++)P.am[i]+=10},RICHBOI:()=>{P.cash+=50000},SEWERS:()=>{},SUBWAY:()=>{},AREA51:()=>{},GODTANK:()=>{giveCar('godtank');toast('GOD TANK: 5,000 HP and 400 km/h!')},HACKERZ:()=>{toast('HACKERZ: +$10,000 passive income every second!')},GREEDY:()=>{toast('GREEDY: +$100,000 cash every second!')}};
 function applyCode(){const s=$('ci').value.trim().toUpperCase();$('ci').value='';const f=CODES[s];if(!f){$('cr').textContent='Invalid code';return}if(P.codes[s]){$('cr').textContent='Already used';return}P.codes[s]=1;f();applyUnlocks();save();$('cr').textContent='CODE ACCEPTED: '+s;toast('Code accepted: '+s)}
 // ---------- update
 function update(dt){time+=dt;P.cd-=dt;P.noUG-=dt;P.grace-=dt;
@@ -2057,8 +2057,8 @@ addEventListener('keydown',e=>{if(!started||paused||document.activeElement===$('
  if(e.code=='KeyY'&&!mk){qSet((QL+1)%3);return}
  if(e.code=='KeyT'||e.code=='Tab'){if(PHN.open){closeMk();return}if(mk||FC.menu||(FC.on&&FC.fight))return;openPhone()}});
 $('tph').addEventListener('pointerdown',e=>{e.preventDefault();if(!started||paused)return;if(PHN.open){closeMk();return}if(mk||FC.menu||(FC.on&&FC.fight))return;openPhone()});
-let phHint=0;
-function v15Tick(dt){crewTick(dt);for(let i=RG.length-1;i>=0;i--){const o=RG[i];o.t+=dt;const u=o.t/.45;if(u>=1){scene.remove(o.m);RG.splice(i,1);continue}o.m.scale.setScalar(1+u*o.r*1.2);o.m.material.opacity=.7*(1-u)}
+let phHint=0,grAcc=0;
+function v15Tick(dt){if(P.codes.GREEDY){grAcc+=100000*dt;const w=Math.floor(grAcc);if(w>0){P.cash+=w;grAcc-=w}}crewTick(dt);for(let i=RG.length-1;i>=0;i--){const o=RG[i];o.t+=dt;const u=o.t/.45;if(u>=1){scene.remove(o.m);RG.splice(i,1);continue}o.m.scale.setScalar(1+u*o.r*1.2);o.m.material.opacity=.7*(1-u)}
  if(QL>=1&&!P.foot&&!P.fly&&!P.ug&&!(BOATS[P.ty])){const lt=P.vx*Math.cos(P.h)-P.vz*Math.sin(P.h);SK.t-=dt;if(Math.abs(lt)>5.5&&Math.hypot(P.vx,P.vz)>6&&SK.t<=0){SK.t=.05;const fx=Math.sin(P.h),fz=Math.cos(P.h);[-1,1].forEach(s=>skMark(P.x-fx*1.4+fz*s*.8,P.z-fz*1.4-fx*s*.8,P.h))}}
  if(!phHint&&started&&time>6){phHint=1;toast('Press T or Tab (or the 📱 button on mobile) for your PHONE (supplies, cars, crew, radio, graphics)')}}
 qApply();
