@@ -147,14 +147,14 @@ if(SC>1){STEPG=STEPG.map(function(x){return x*SC});MSL.forEach(function(m){m.sp*
 
 if(typeof trail!="string")trail="";if(!Array.isArray(own))own=[];if(!Array.isArray(done))done=[];
 function troph(){var n=0;for(var i=1;i<=30;i++)if(done[i])n++;return n}
-function abbr(n){n=Math.floor(n);return n>=1e18?(n/1e18).toFixed(1)+"Qi":n>=1e15?(n/1e15).toFixed(1)+"Qa":n>=1e12?(n/1e12).toFixed(n>=1e13?0:1)+"T":n>=1e9?(n/1e9).toFixed(n>=1e10?0:1)+"B":n>=1e6?(n/1e6).toFixed(1)+"M":n>=1e5?Math.round(n/1e3)+"k":n>=1e4?(n/1e3).toFixed(1)+"k":String(n)}
+function abbr(n){n=Math.floor(n);var F=function(x,u,d){return x.toFixed(d).replace(/\.0$/,"")+u};if(n>=1e27)return F(n/1e27,"Oc",1);if(n>=1e24)return F(n/1e24,"Sp",1);if(n>=1e21)return F(n/1e21,"Sx",1);if(n>=1e18)return F(n/1e18,"Qi",1);if(n>=1e15)return F(n/1e15,"Qa",1);if(n>=1e12)return F(n/1e12,"T",n>=1e13?0:1);return n>=1e9?(n/1e9).toFixed(n>=1e10?0:1)+"B":n>=1e6?(n/1e6).toFixed(1)+"M":n>=1e5?Math.round(n/1e3)+"k":n>=1e4?(n/1e3).toFixed(1)+"k":String(n)}
 var AUTO=false,CT=1;try{CT=Math.max(.05,Math.min(1,+localStorage.getItem("sse_ct")||1))}catch(e){}
 function wv(){return Math.max(5,vOf(SP)*CT)}
 function mult(){return 1+.05*troph()}
 function rbReq(){return 5e7*Math.pow(3,RB)}function rbM(){return 1}
 function save(){MW=Math.max(MW,wins);if(typeof updRB=="function")updRB();var o={sse_wins:wins,sse_speed:SP,sse_st:st,sse_trail:trail,sse_own:own,sse_done:done,sse_pend:pend,sse_run:runLv,sse_pl:PL,sse_ms:msIdx,sse_mw:MW,sse_rb:RB};try{for(var k in o)localStorage.setItem((k=="sse_own"||k=="sse_trail"?"":PFX)+k,JSON.stringify(o[k]))}catch(e){}
  $("wn").textContent="Wins "+wins+(pend?"  (+"+pend+" unclaimed)":"")+"   🏆 "+troph()+"   +"+abbr(STEPG[PL.step]*mult()*rbM())+" speed/step";
- $("sp").textContent=(WORLD>1?"🌍 WORLD "+WORLD+" · ":"")+"Speed "+Math.floor(SP).toLocaleString()+"  (run "+vOf(SP).toFixed(0)+" / "+RCAP+")";var nm=MSL[msIdx];$("ms").textContent=nm?"Next milestone: "+Math.floor(nm.sp).toLocaleString()+" speed → +"+nm.w.toLocaleString()+" wins"+(nm.tr?" + exclusive trail":""):"All speed milestones reached!";
+ $("sp").textContent=(WORLD>1?"🌍 WORLD "+WORLD+" · ":"")+"Speed "+abbr(SP)+"  (run "+vOf(SP).toFixed(0)+" / "+RCAP+")";var nm=MSL[msIdx];$("ms").textContent=nm?"Next milestone: "+abbr(nm.sp)+" speed → +"+nm.w.toLocaleString()+" wins"+(nm.tr?" + exclusive trail":""):"All speed milestones reached!";
  if(tLab)tLab.set("🏆 TROPHIES: "+troph()+"/30","#ffd23f");if(typeof updGates=="function"){updGates();updPads()}}
 var R=new THREE.WebGLRenderer({antialias:true});R.setPixelRatio(Math.min(devicePixelRatio,2));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.05;document.body.prepend(R.domElement);
 var S=new THREE.Scene(),C=new THREE.PerspectiveCamera(62,1,.5,3500);
@@ -336,12 +336,12 @@ function goStage(n,quiet){n=Math.max(1,Math.min(30,n));if(n==1){px=0;pz=12;stand
 function respawn(why){goStage(startN,true);msg((why||"Restart")+" · restarting level "+startN+" from the beginning","#ff9a9a",1800)}
 function inside(p,x,z){return x>p.x0-.3&&x<p.x1+.3&&z>p.z0-.3&&z<p.z1+.3}
 function U(){return K.KeyW?1:0}function D(){return K.KeyS?1:0}
-function checkMS(){while(msIdx<MSL.length&&SP>=MSL[msIdx].sp){var m=MSL[msIdx++];wins+=m.w;if(m.tr&&own.indexOf(m.tr)<0)own.push(m.tr);save();msg("★ SPEED MILESTONE "+m.sp.toLocaleString()+"! +"+m.w+" wins"+(m.tr?" + EXCLUSIVE TRAIL!":""),"#ffd23f",4500);emitTrail(CEL,px,py,pz,0,face,70)}}
+function checkMS(){while(msIdx<MSL.length&&SP>=MSL[msIdx].sp){var m=MSL[msIdx++];wins+=m.w;if(m.tr&&own.indexOf(m.tr)<0)own.push(m.tr);save();msg("★ SPEED MILESTONE "+abbr(m.sp)+"! +"+m.w+" wins"+(m.tr?" + EXCLUSIVE TRAIL!":""),"#ffd23f",4500);emitTrail(CEL,px,py,pz,0,face,70)}}
 function stepGain(c){var g=STEPG[PL.step]*mult()*rbM()*c;SP+=g;popAcc+=g;if(T-popT>.6){pop("+"+(+popAcc.toFixed(1))+" Speed");popAcc=0;popT=T}save();checkMS()}
 function complete(n){var first=!done[n],r=rewardOf(n)*(1+.1*RB);if(!first)r=Math.max(1,r/2);r=Math.round(r);done[n]=1;pend+=r;runLv++;if(n<30)st=Math.max(st,n+1);save();K={};paused=true;cLock=true;
  var b=1+.1*(runLv-1),tot=Math.round(pend*b);
  $("cpt").textContent="LEVEL "+n+" CLEARED!";$("cpd").textContent=(first?"🏆 Trophy! ":"")+"+"+r+" wins this level · "+pend+" unclaimed · streak bonus x"+b.toFixed(1)+" if you claim now. Progress is saved either way.";
- var nx=n+1;$("cpn").style.display=nx>30?"none":"block";if(nx<=30)$("cpn").textContent="Keep going → Level "+nx+" (recommended speed "+reqOf(nx).toLocaleString()+")";
+ var nx=n+1;$("cpn").style.display=nx>30?"none":"block";if(nx<=30)$("cpn").textContent="Keep going → Level "+nx+" (recommended speed "+abbr(reqOf(nx))+")";
  $("cpn").onclick=function(){$("cp").classList.remove("on");paused=false;last=performance.now();var p=SINFO[n].o.fpl;if(p.y>0)p.desc=true};
  $("cpl").textContent="Claim "+tot+" wins & go to lobby";$("cp").classList.add("on")}
 function upd(dt){
@@ -414,7 +414,7 @@ var prog=0,A=0,B=0;
 function pr(){var h="";for(var i=0;i<5;i++)h+="<b class='"+(i<prog?"f":"")+"'></b>";$("pr").innerHTML=h}
 function nq(){A=2+Math.floor(rnd()*11);B=2+Math.floor(rnd()*11);$("q").textContent=A+" × "+B;$("ans").value="";pr()}
 function smUI(){var h="";for(var i=1;i<=30;i++){var cl2=done[i]?"done":i>st?"lock":SP>=reqOf(i)?"ok":"";h+="<button data-n='"+i+"' class='"+cl2+"'><b>"+(done[i]?"🏆 ":"")+i+"</b><span>"+STG[i-1].n+"</span><i>"+(i>st?"🔒 not reached":"rec. "+abbr(reqOf(i))+" · "+Math.round(rewardOf(i)*(1+.1*RB))+"w")+"</i></button>"}
- $("sg").innerHTML=h;[].forEach.call($("sg").querySelectorAll("button"),function(b){var n=+b.getAttribute("data-n");b.onmouseenter=function(){$("smi").textContent=TH[Math.floor((n-1)/5)].n+" · Level "+n+": "+STG[n-1].n+" · recommended speed "+reqOf(n).toLocaleString()+" · reward "+Math.round(rewardOf(n)*(1+.1*RB))+" wins"};
+ $("sg").innerHTML=h;[].forEach.call($("sg").querySelectorAll("button"),function(b){var n=+b.getAttribute("data-n");b.onmouseenter=function(){$("smi").textContent=TH[Math.floor((n-1)/5)].n+" · Level "+n+": "+STG[n-1].n+" · recommended speed "+abbr(reqOf(n))+" · reward "+Math.round(rewardOf(n)*(1+.1*RB))+" wins"};
   b.onclick=function(){if(n>st){msg("Reach level "+(n-1)+" first","#ff9a9a",1200);return}openP("sm");goStage(n)}})}
 function openP(id){var v=!$(id).classList.contains("on");["mp","tp","sm"].forEach(function(i){$(i).classList.remove("on")});if(v)$(id).classList.add("on");paused=v;
  if(v&&id=="mp"){nq();setTimeout(function(){$("ans").focus()},30)}if(v&&id=="tp")trUI();if(v&&id=="sm")smUI();if(!v){$("ans").blur();last=performance.now();K={};updLabels();updPads()}}
