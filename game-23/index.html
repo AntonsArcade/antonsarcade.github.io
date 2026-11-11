@@ -141,9 +141,9 @@ var STG=[
 (function(){
 var $=function(i){return document.getElementById(i)};
 var wins=0,SP=0,st=1,trail="",own=[],done=[],pend=0,runLv=0,PL={step:0},msIdx=0,MW=0,RB=0,tLab,STEPG=(function(){var a=[];for(var i=0;i<=100;i++)a.push(Math.max(i+1,Math.round((i+1)*Math.pow(1.13,Math.max(0,i-3)))));return a})(),TM2=[1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6],MSL=[{sp:1000,w:25},{sp:5000,w:60},{sp:25000,w:150},{sp:100000,w:400},{sp:400000,w:1000},{sp:1e6,w:50},{sp:5e6,w:200},{sp:2e7,w:600},{sp:7.5e7,w:2000,tr:"starfire"},{sp:2.5e8,w:6000},{sp:6e8,w:15000,tr:"cosmic"},{sp:1e9,w:40000},{sp:5e9,w:150000},{sp:2.5e10,w:600000}];
-function LS(k,d){try{var v=localStorage.getItem((k=="sse_own"||k=="sse_trail"?"":PFX)+k);return v===null?d:JSON.parse(v)}catch(e){return d}}
+function LS(k,d){try{var v=localStorage.getItem((k=="sse_st"||k=="sse_done"?PFX:"")+k);return v===null?d:JSON.parse(v)}catch(e){return d}}
 wins=+LS("sse_wins",0)||0;SP=+LS("sse_speed",0)||0;st=+LS("sse_st",1)||1;trail=LS("sse_trail","");own=LS("sse_own",[]);done=LS("sse_done",[]);pend=+LS("sse_pend",0)||0;runLv=+LS("sse_run",0)||0;PL.step=Math.min(100,+(LS("sse_pl",{})||{}).step||0);msIdx=+LS("sse_ms",0)||0;MW=+LS("sse_mw",0)||0;RB=0;
-if(SC>1){STEPG=STEPG.map(function(x){return x*SC});MSL.forEach(function(m){m.sp*=SC});STG.forEach(function(g){g.n=["","II · ","III · "][WORLD-1]+g.n});if(localStorage.getItem(PFX+"sse_speed")===null){SP=1e4*SC;wins=0;msIdx=0;while(MSL[msIdx]&&MSL[msIdx].sp<=SP)msIdx++}}
+if(SC>1)STG.forEach(function(g){g.n=["","II · ","III · "][WORLD-1]+g.n});
 
 if(typeof trail!="string")trail="";if(!Array.isArray(own))own=[];if(!Array.isArray(done))done=[];
 function troph(){var n=0;for(var i=1;i<=30;i++)if(done[i])n++;return n}
@@ -152,7 +152,7 @@ var AUTO=false,CT=1;try{CT=Math.max(.05,Math.min(1,+localStorage.getItem("sse_ct
 function wv(){return Math.max(5,vOf(SP)*CT)}
 function mult(){return 1+.05*troph()}
 function rbReq(){return 5e7*Math.pow(3,RB)}function rbM(){return 1}
-function save(){MW=Math.max(MW,wins);if(typeof updRB=="function")updRB();var o={sse_wins:wins,sse_speed:SP,sse_st:st,sse_trail:trail,sse_own:own,sse_done:done,sse_pend:pend,sse_run:runLv,sse_pl:PL,sse_ms:msIdx,sse_mw:MW,sse_rb:RB};try{for(var k in o)localStorage.setItem((k=="sse_own"||k=="sse_trail"?"":PFX)+k,JSON.stringify(o[k]))}catch(e){}
+function save(){MW=Math.max(MW,wins);if(typeof updRB=="function")updRB();var o={sse_wins:wins,sse_speed:SP,sse_st:st,sse_trail:trail,sse_own:own,sse_done:done,sse_pend:pend,sse_run:runLv,sse_pl:PL,sse_ms:msIdx,sse_mw:MW,sse_rb:RB};try{for(var k in o)localStorage.setItem((k=="sse_st"||k=="sse_done"?PFX:"")+k,JSON.stringify(o[k]))}catch(e){}
  $("wn").textContent="Wins "+wins+(pend?"  (+"+pend+" unclaimed)":"")+"   🏆 "+troph()+"   +"+abbr(STEPG[PL.step]*mult()*rbM())+" speed/step";
  $("sp").textContent=(WORLD>1?"🌍 WORLD "+WORLD+" · ":"")+"Speed "+abbr(SP)+"  (run "+vOf(SP).toFixed(0)+" / "+RCAP+")";var nm=MSL[msIdx];$("ms").textContent=nm?"Next milestone: "+abbr(nm.sp)+" speed → +"+nm.w.toLocaleString()+" wins"+(nm.tr?" + exclusive trail":""):"All speed milestones reached!";
  if(tLab)tLab.set("🏆 TROPHIES: "+troph()+"/30","#ffd23f");if(typeof updGates=="function"){updGates();updPads()}}
@@ -439,7 +439,7 @@ $("rb").onclick=function(){this.blur();var t=+prompt("Travel to which world? Typ
  if(!(t>=1&&t<=3)||t==WORLD)return;
  if(t>1&&!localStorage.getItem("sse_w"+t)){if(t==3&&!localStorage.getItem("sse_w2")){msg("Unlock World 2 first","#ffb347",2500);return}
   var r=WREQ[t];if(SP<r[0]||wins<r[1]){msg("World "+t+" needs "+abbr(r[0])+" speed (you have "+abbr(SP)+") and "+r[1].toLocaleString()+" wins (you have "+abbr(wins)+")","#ffb347",3200);return}
-  if(!confirm("Unlock WORLD "+t+"? Costs "+r[1].toLocaleString()+" wins. You arrive with "+abbr(1e4*[1,1e8,1e14][t-1])+" speed. Run-speed cap "+[500,1000,2000][t-1]+"."))return;wins-=r[1];localStorage.setItem("sse_w"+t,"1")}
+  if(!confirm("Unlock WORLD "+t+"? Costs "+r[1].toLocaleString()+" wins. Your speed, wins and pads carry over, but the world is far bigger so your speed counts for less. Level progress is separate. Run-speed cap "+[500,1000,2000][t-1]+"."))return;wins-=r[1];localStorage.setItem("sse_w"+t,"1")}
  save();localStorage.setItem("sse_world",String(t));location.reload()};
 pr();checkMS();save();lbr();updLabels();updGates();updPads();
 $("help").textContent="WASD move (every step earns speed) · ◀ ▶ or drag = rotate view · ▲ ▼ = change camera (far / close / first person) · Space jump · R restart level · fall = restart the level, no checkpoints";
