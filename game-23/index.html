@@ -60,8 +60,8 @@ var MZ={a:["####S####","#.......#","#.#####.#","#.#...#.#","#.#.#.###","#.#.#...
 b:["#####S#####","#.........#","#.#######.#","#.#.....#.#","#.#.###.#.#","#...#.#...#","###.#.#####","#...#.....#","#.###.###.#","#.........#","#####E#####"],
 c:["####S####","#.......#","#.#####.#","#.#...#.#","#.#.#.#.#","#...#...#","#####.###","#.....#.#","#.###.#.#","#.....#.#","####E####"]};
 MZ.d=MZ.b.map(function(r){return r.split("").reverse().join("")});
-var WORLD=1;try{WORLD=+localStorage.getItem("sse_world")==2?2:1}catch(e){}
-var SC=WORLD==2?1e8:1,RCAP=WORLD==2?1000:500,SK=47000000,PFX=WORLD==2?"s2_":"";
+var WORLD=1;try{WORLD=Math.max(1,Math.min(3,+localStorage.getItem("sse_world")||1))}catch(e){}
+var SC=[1,1e8,1e14][WORLD-1],RCAP=[500,1000,2000][WORLD-1],SK=47000000,PFX=["","s2_","s3_"][WORLD-1];
 function vG(n){return 14+2.5*(n-1)}
 function vN(n){return vOf(reqOf(n))}
 function jv(sp){sp/=SC;return 21+34*(1-Math.exp(-sp/300000000))}
@@ -143,7 +143,7 @@ var $=function(i){return document.getElementById(i)};
 var wins=0,SP=0,st=1,trail="",own=[],done=[],pend=0,runLv=0,PL={step:0},msIdx=0,MW=0,RB=0,tLab,STEPG=(function(){var a=[];for(var i=0;i<=100;i++)a.push(Math.max(i+1,Math.round((i+1)*Math.pow(1.13,Math.max(0,i-3)))));return a})(),TM2=[1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6],MSL=[{sp:1000,w:25},{sp:5000,w:60},{sp:25000,w:150},{sp:100000,w:400},{sp:400000,w:1000},{sp:1e6,w:50},{sp:5e6,w:200},{sp:2e7,w:600},{sp:7.5e7,w:2000,tr:"starfire"},{sp:2.5e8,w:6000},{sp:6e8,w:15000,tr:"cosmic"},{sp:1e9,w:40000},{sp:5e9,w:150000},{sp:2.5e10,w:600000}];
 function LS(k,d){try{var v=localStorage.getItem((k=="sse_own"||k=="sse_trail"?"":PFX)+k);return v===null?d:JSON.parse(v)}catch(e){return d}}
 wins=+LS("sse_wins",0)||0;SP=+LS("sse_speed",0)||0;st=+LS("sse_st",1)||1;trail=LS("sse_trail","");own=LS("sse_own",[]);done=LS("sse_done",[]);pend=+LS("sse_pend",0)||0;runLv=+LS("sse_run",0)||0;PL.step=Math.min(100,+(LS("sse_pl",{})||{}).step||0);msIdx=+LS("sse_ms",0)||0;MW=+LS("sse_mw",0)||0;RB=0;
-if(SC>1){STEPG=STEPG.map(function(x){return x*SC});MSL.forEach(function(m){m.sp*=SC});STG.forEach(function(g){g.n="II · "+g.n});if(localStorage.getItem(PFX+"sse_speed")===null){SP=1e12;wins=0;msIdx=0;while(MSL[msIdx]&&MSL[msIdx].sp<=SP)msIdx++}}
+if(SC>1){STEPG=STEPG.map(function(x){return x*SC});MSL.forEach(function(m){m.sp*=SC});STG.forEach(function(g){g.n=["","II · ","III · "][WORLD-1]+g.n});if(localStorage.getItem(PFX+"sse_speed")===null){SP=1e4*SC;wins=0;msIdx=0;while(MSL[msIdx]&&MSL[msIdx].sp<=SP)msIdx++}}
 
 if(typeof trail!="string")trail="";if(!Array.isArray(own))own=[];if(!Array.isArray(done))done=[];
 function troph(){var n=0;for(var i=1;i<=30;i++)if(done[i])n++;return n}
@@ -154,7 +154,7 @@ function mult(){return 1+.05*troph()}
 function rbReq(){return 5e7*Math.pow(3,RB)}function rbM(){return 1}
 function save(){MW=Math.max(MW,wins);if(typeof updRB=="function")updRB();var o={sse_wins:wins,sse_speed:SP,sse_st:st,sse_trail:trail,sse_own:own,sse_done:done,sse_pend:pend,sse_run:runLv,sse_pl:PL,sse_ms:msIdx,sse_mw:MW,sse_rb:RB};try{for(var k in o)localStorage.setItem((k=="sse_own"||k=="sse_trail"?"":PFX)+k,JSON.stringify(o[k]))}catch(e){}
  $("wn").textContent="Wins "+wins+(pend?"  (+"+pend+" unclaimed)":"")+"   🏆 "+troph()+"   +"+abbr(STEPG[PL.step]*mult()*rbM())+" speed/step";
- $("sp").textContent=(WORLD==2?"🌍 WORLD 2 · ":"")+"Speed "+Math.floor(SP).toLocaleString()+"  (run "+vOf(SP).toFixed(0)+" / "+RCAP+")";var nm=MSL[msIdx];$("ms").textContent=nm?"Next milestone: "+Math.floor(nm.sp).toLocaleString()+" speed → +"+nm.w.toLocaleString()+" wins"+(nm.tr?" + exclusive trail":""):"All speed milestones reached!";
+ $("sp").textContent=(WORLD>1?"🌍 WORLD "+WORLD+" · ":"")+"Speed "+Math.floor(SP).toLocaleString()+"  (run "+vOf(SP).toFixed(0)+" / "+RCAP+")";var nm=MSL[msIdx];$("ms").textContent=nm?"Next milestone: "+Math.floor(nm.sp).toLocaleString()+" speed → +"+nm.w.toLocaleString()+" wins"+(nm.tr?" + exclusive trail":""):"All speed milestones reached!";
  if(tLab)tLab.set("🏆 TROPHIES: "+troph()+"/30","#ffd23f");if(typeof updGates=="function"){updGates();updPads()}}
 var R=new THREE.WebGLRenderer({antialias:true});R.setPixelRatio(Math.min(devicePixelRatio,2));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.05;document.body.prepend(R.domElement);
 var S=new THREE.Scene(),C=new THREE.PerspectiveCamera(62,1,.5,3500);
@@ -183,6 +183,12 @@ function deco(k,s){var g=new THREE.Group();
  else if(k=="cookie"){cy(2.4*s,.8*s,M(0xd9a05b),0,0,0,g,24);for(var i=0;i<5;i++)cy(.4*s,.3*s,M(0x4a2a18),(rnd()-.5)*3*s,.45*s,(rnd()-.5)*3*s,g,8)}
  else if(k=="gum"){var m=new THREE.Mesh(new THREE.SphereGeometry(1.8*s,18,10,0,Math.PI*2,0,Math.PI/2),M([0xff5050,0x50ff80,0xffd23f,0x8a6aff][Math.floor(rnd()*4)],{roughness:.2}));g.add(m);cy(1.8*s,.4*s,M(0xffffff),0,-.2*s,0,g,18)}
  else if(k=="mallow"){cy(1.6*s,2.4*s,M(0xffffff),0,1.2*s,0,g,16)}
+ else if(k=="rock"){var m=new THREE.Mesh(new THREE.DodecahedronGeometry(1.8*s),M(0x2a1a1a));m.position.y=1.2*s;g.add(m)}
+ else if(k=="ember"){var m=new THREE.Mesh(new THREE.OctahedronGeometry(.9*s),new THREE.MeshBasicMaterial({color:0xff7a1a}));m.position.y=2*s;g.add(m)}
+ else if(k=="ice"){var m=new THREE.Mesh(new THREE.ConeGeometry(1.2*s,5*s,6),M(0xbfe8ff,{roughness:.1}));m.position.y=2.5*s;g.add(m)}
+ else if(k=="snow"){var m=new THREE.Mesh(new THREE.SphereGeometry(1.6*s,14,10),M(0xffffff));m.position.y=1.2*s;g.add(m)}
+ else if(k=="star"){var m=new THREE.Mesh(new THREE.OctahedronGeometry(1.1*s),new THREE.MeshBasicMaterial({color:[0xffffff,0xffe066,0x9fe8ff][Math.floor(rnd()*3)]}));m.position.y=2*s;g.add(m)}
+ else if(k=="planet"){var c=[0xff7eb6,0x4fd8ff,0xffa03a,0x9d6bff][Math.floor(rnd()*4)],m=new THREE.Mesh(new THREE.SphereGeometry(2*s,18,12),M(c));m.position.y=2.5*s;g.add(m);var r=new THREE.Mesh(new THREE.TorusGeometry(3.2*s,.18*s,6,32),new THREE.MeshBasicMaterial({color:0xffffff}));r.rotation.x=Math.PI/2.3;r.position.y=2.5*s;g.add(r)}
  else{[[0,0,0,2],[2,-.4,.3,1.6],[-2,-.3,0,1.5],[0,.6,-1.4,1.5]].forEach(function(a){var m=new THREE.Mesh(new THREE.SphereGeometry(a[3]*s,12,8),M(0xffffff,{emissive:0x555566}));m.position.set(a[0]*s,a[1]*s,a[2]*s);g.add(m)})}
  return g}
 function scatter(par,kinds,n,cnt,bx){for(var i=0;i<n;i++){var x,y,z,ok=false,tr=0;while(!ok&&tr++<30){x=bx.x0-bx.m+rnd()*(bx.x1-bx.x0+2*bx.m);z=bx.z0-bx.m+rnd()*(bx.z1-bx.z0+2*bx.m);y=bx.y0-25+rnd()*(bx.y1-bx.y0+35);ok=true;for(var j=0;j<cnt.length;j++){var p=cnt[j],dx=Math.max(0,p.x0-x,x-p.x1),dz=Math.max(0,p.z0-z,z-p.z1);if(Math.hypot(dx,dz)<9&&Math.abs(y-p.y)<14){ok=false;break}}}
@@ -193,6 +199,20 @@ var TH=[{n:"Candy Meadow",sky:["#7fd0ff","#ffd1f0"],fog:0xffd1f0,s:0xff6fb0,t:0x
 {n:"Cookie Canyon",sky:["#ff9a5a","#ffe0a0"],fog:0xffd9a0,s:0xb8743a,t:0xe6a96a,k:["cookie","cane","mallow","gum"]},
 {n:"Gummy Jungle",sky:["#44d880","#eaff9a"],fog:0xcaf7a0,s:0x2fb860,t:0x7dff9a,k:["gum","lolli","donut","cane"]},
 {n:"Rainbow Peaks",sky:["#6a5cff","#ff9ae6"],fog:0xe0b0ff,s:0x8a5cff,t:0xc9a8ff,k:["lolli","cane","cloud","donut","gum"]}];
+if(WORLD==2)TH=[
+{n:"Ember Fields",sky:["#3a0a05","#ff6a2a"],fog:0x3a1208,s:0x2a0d08,t:0xff5a1f,k:["rock","ember","rock"]},
+{n:"Magma Caverns",sky:["#2a0505","#ff8c1a"],fog:0x2a0a0a,s:0x1c0a0a,t:0xff8c1a,k:["rock","ember"]},
+{n:"Obsidian Core",sky:["#0a0a10","#ff3b1f"],fog:0x14080a,s:0x15151c,t:0xff3b1f,k:["rock","ember","rock"]},
+{n:"Frost Meadows",sky:["#7fc8f0","#e8fbff"],fog:0xdff4ff,s:0x7fc8f0,t:0xe8fbff,k:["ice","snow","ice"]},
+{n:"Glacier Maze",sky:["#4a9ad8","#bfe8ff"],fog:0xbfe8ff,s:0x4a9ad8,t:0xbfe8ff,k:["ice","snow"]},
+{n:"Aurora Summit",sky:["#3a5bd8","#9fffe0"],fog:0x9fd8ff,s:0x3a5bd8,t:0x9fffe0,k:["ice","snow","star"]}];
+if(WORLD==3)TH=[
+{n:"Nebula Gate",sky:["#05021a","#6a2cff"],fog:0x16062f,s:0x2a1560,t:0xb06bff,k:["planet","star"]},
+{n:"Asteroid Belt",sky:["#02020a","#2a3a5a"],fog:0x0a0a18,s:0x3a3f55,t:0x9fb4d8,k:["rock","star","rock"]},
+{n:"Ringed Giants",sky:["#0a0630","#d86aff"],fog:0x1a0a3a,s:0x5a2a8a,t:0xff9ae6,k:["planet","star"]},
+{n:"Black Hole Rim",sky:["#000000","#3a0a5a"],fog:0x050010,s:0x0a0a14,t:0x7d2cff,k:["star","planet"]},
+{n:"Pulsar Fields",sky:["#020a2a","#00e5ff"],fog:0x04102a,s:0x0a3a5a,t:0x4fe8ff,k:["star","planet","star"]},
+{n:"Cosmic Core",sky:["#1a0030","#ffd23f"],fog:0x20083a,s:0x6a1a8a,t:0xffd23f,k:["star","planet"]}];
 var PK={s:null,t:[0x2ecc71,0x9bffb5],v:[0xff9f1c,0xffd166],m:[0x2a9df4,0x9fe0ff],l:[0x2a9df4,0x9fe0ff],f:[0xd4a017,0xffe066]};
 // HALL (LED night party)
 var HW=48,HH=170,LZ=200,cl=function(v,a,b){return Math.max(a,Math.min(b,v))};
@@ -202,7 +222,7 @@ function curStage(z){if(z>0)return 0;for(var n=1;n<=30;n++)if(z>=ZE[n])return n;
 var zc=0,xc=0;for(var n=1;n<=30;n++){var o0=compile(STG[n-1],n,xc,zc);SINFO[n]={o:o0};ZS[n]=zc;zc=o0.end.z;xc=o0.end.x;ZE[n]=zc}
 var ZN=zc-70,HL=LZ-ZN,HCZ=(LZ+ZN)/2;
 var HG=new THREE.Group();S.add(HG);
-sky("#06021a","#2c0e55");S.fog=new THREE.Fog(0x16062f,250,1500);
+if(WORLD==2){sky("#1a0505","#3a1a2a");S.fog=new THREE.Fog(0x24101c,250,1500)}else if(WORLD==3){sky("#000006","#0a0630");S.fog=new THREE.Fog(0x05031a,250,1500)}else{sky("#06021a","#2c0e55");S.fog=new THREE.Fog(0x16062f,250,1500)}
 function sqTex(c1,c2,rx,ry){return cvTex(64,64,function(g){g.fillStyle=c1;g.fillRect(0,0,64,64);g.fillStyle=c2;g.fillRect(0,0,32,32);g.fillRect(32,32,32,32)},[rx,ry])}
 function strTex(rx,ry){return cvTex(64,64,function(g){g.fillStyle="#2a1060";g.fillRect(0,0,64,64);g.fillStyle="#ff4fa3";for(var i=-64;i<128;i+=32){g.beginPath();g.moveTo(i,0);g.lineTo(i+16,0);g.lineTo(i-48,64);g.lineTo(i-64,64);g.fill()}},[rx,ry])}
 var pit=new THREE.Mesh(new THREE.PlaneGeometry(2*HW,HL),new THREE.MeshStandardMaterial({map:sqTex("#12082c","#26115a",HW/20,HL/40)}));pit.rotation.x=-Math.PI/2;pit.position.set(0,-40,HCZ);pit.receiveShadow=true;HG.add(pit);
@@ -413,12 +433,14 @@ $("ctm").onclick=function(){setMin($("ctb").style.display!="none");this.blur()};
 addEventListener("keydown",function(e){if(e.target.id!="ans"&&e.code=="KeyM")setMin($("ctb").style.display!="none")});
 function togAuto(){AUTO=!AUTO;$("auto").textContent="AUTO-RUN (AFK): "+(AUTO?"ON":"OFF")+"  [T]";$("auto").style.background=AUTO?"#1b6b3a":"#1d0b30"}
 $("auto").onclick=function(){togAuto();this.blur()};togAuto();addEventListener("keydown",function(e){if(e.target.id!="ans"&&e.code=="KeyT")togAuto()});
-function updRB(){var b=$("rb");if(!b)return;var ok=localStorage.getItem("sse_w2")||(SP>=1e12&&wins>=1e4);b.textContent=WORLD==2?"🌍 BACK TO WORLD 1":localStorage.getItem("sse_w2")?"🌍 TRAVEL TO WORLD 2":"🌍 WORLD 2 · "+(ok?"READY (10,000 wins)":"need 1T speed + 10,000 wins");b.style.background=ok||WORLD==2?"#6b4a00":"#1d0b30";b.style.opacity=ok||WORLD==2?1:.7}
-$("rb").onclick=function(){this.blur();
- if(WORLD==2){if(confirm("Return to World 1? World 2 progress is saved.")){save();localStorage.setItem("sse_world","1");location.reload()}return}
- if(!localStorage.getItem("sse_w2")){if(SP<1e12||wins<1e4){msg("World 2 needs 1T speed (you have "+abbr(SP)+") and 10,000 wins (you have "+abbr(wins)+")","#ffb347",2800);return}
-  if(!confirm("Travel to WORLD 2?\n\nCosts 10,000 wins. You arrive with 1T speed, but World 2 is scaled so 1T there feels like 10k in World 1. 30 new levels, run-speed cap 1000. World 1 progress is kept."))return;wins-=1e4;localStorage.setItem("sse_w2","1")}
- save();localStorage.setItem("sse_world","2");location.reload()};
+var WREQ={2:[1e12,1e4],3:[1e18,1e5]};
+function updRB(){var bt=$("rb");if(!bt)return;var nx=WORLD<3?WORLD+1:0,t="🌍 WORLD "+WORLD+" · TRAVEL";if(nx&&!localStorage.getItem("sse_w"+nx))t+=" (W"+nx+": "+abbr(WREQ[nx][0])+" speed + "+WREQ[nx][1].toLocaleString()+" wins)";bt.textContent=t;var ok=nx&&(localStorage.getItem("sse_w"+nx)||(SP>=WREQ[nx][0]&&wins>=WREQ[nx][1]));bt.style.background=ok?"#6b4a00":"#1d0b30";bt.style.opacity=ok||!nx?1:.8}
+$("rb").onclick=function(){this.blur();var t=+prompt("Travel to which world? Type 1, 2 or 3.\n\nWorld 2 (volcano + frozen): 1T speed + 10,000 wins, one time.\nWorld 3 (space): 1Qi speed + 100,000 wins, one time.\nEach world keeps its own progress.");
+ if(!(t>=1&&t<=3)||t==WORLD)return;
+ if(t>1&&!localStorage.getItem("sse_w"+t)){if(t==3&&!localStorage.getItem("sse_w2")){msg("Unlock World 2 first","#ffb347",2500);return}
+  var r=WREQ[t];if(SP<r[0]||wins<r[1]){msg("World "+t+" needs "+abbr(r[0])+" speed (you have "+abbr(SP)+") and "+r[1].toLocaleString()+" wins (you have "+abbr(wins)+")","#ffb347",3200);return}
+  if(!confirm("Unlock WORLD "+t+"? Costs "+r[1].toLocaleString()+" wins. You arrive with "+abbr(1e4*[1,1e8,1e14][t-1])+" speed. Run-speed cap "+[500,1000,2000][t-1]+"."))return;wins-=r[1];localStorage.setItem("sse_w"+t,"1")}
+ save();localStorage.setItem("sse_world",String(t));location.reload()};
 pr();checkMS();save();lbr();updLabels();updGates();updPads();
 $("help").textContent="WASD move (every step earns speed) · ◀ ▶ or drag = rotate view · ▲ ▼ = change camera (far / close / first person) · Space jump · R restart level · fall = restart the level, no checkpoints";
 setTimeout(function(){msg(st>1||SP>0?"Welcome back! ▶ Continue takes you to level "+st:"Welcome! Walk to gain speed, buy pads on the sides, then head north","#fff",3800)},400);
