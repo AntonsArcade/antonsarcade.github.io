@@ -94,7 +94,7 @@ const PW={};
 function bpath(a){if(PW[a])return PW[a];const bs=B.filter(b=>b.a===a);let seed=a*977+31;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
 let x=0,z=0,h=-PI/2+(a%2?.5:-.5)+(rnd()-.5)*.3;if(a===0){x=0;z=-18;h=-PI/2+.35}const pts=[[x,z]];
 bs.forEach((b,j)=>{if(a===2&&b.nm==='King Blob Revenge'){x=Math.cos(2.2)*250;z=Math.sin(2.2)*250;h=Math.atan2(z,x)+PI;pts.push([x,z]);return}
-if(a===0&&j===0)return;const pb=bs[j-1],step=b.mz==='Stair Maze'?165:(pb&&pb.mz==='Stair Maze')?155:b.mz?105:(pb&&pb.mz)?85:48+rnd()*22;let turn=(rnd()-.5)*.3;if(j%5===3)turn+=(rnd()<.5?-.6:.6);h+=turn;const LIM=b.mz==='Stair Maze'?225:265;let best=null;
+if(a===0&&j===0)return;const pb=bs[j-1],cl=a!==0||j>4,step=b.mz==='Stair Maze'?165:(pb&&pb.mz==='Stair Maze')?(cl?75:155):b.mz?(cl?78:105):(pb&&pb.mz)?(cl?60:85):(cl?30+rnd()*10:48+rnd()*22);let turn=(rnd()-.5)*.3;if(j%5===3)turn+=(rnd()<.5?-.6:.6);h+=turn;const LIM=b.mz==='Stair Maze'?225:265;let best=null;
 for(const dl of[0,.3,-.3,.6,-.6,.9,-.9,1.3,-1.3,1.8,-1.8,2.4,-2.4,PI]){const hh=h+dl,nx=x+Math.cos(hh)*step,nz=z+Math.sin(hh)*step;if(Math.abs(nx)<=LIM&&Math.abs(nz)<=LIM){best=[hh,nx,nz];break}}
 if(!best){const hh=Math.atan2(-z,-x);best=[hh,x+Math.cos(hh)*step,z+Math.sin(hh)*step]}h=best[0];x=best[1];z=best[2];pts.push([x,z])});return PW[a]=pts}
 const bidx=(a,j)=>a===0?j:j+1;
