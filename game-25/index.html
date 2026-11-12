@@ -130,7 +130,7 @@ if(a!==2)for(let i=0;i<45;i++){const r=new THREE.Mesh(i%2?new THREE.SphereGeomet
 const spot=new THREE.Mesh(new THREE.CylinderGeometry(5,5,.2,24),mat(0xffe9a8));spot.position.y=.1;wg.add(spot);
 {const n=700,im=new THREE.InstancedMesh(a<2?new THREE.ConeGeometry(.18,1,4):new THREE.OctahedronGeometry(.6),a<2?new THREE.MeshStandardMaterial({roughness:1}):new THREE.MeshBasicMaterial(),n),o=new THREE.Object3D(),c=new THREE.Color();for(let i=0;i<n;i++){const s=a<2?.6+R()*1.2:.5+R()*2.2;o.position.set((R()-.5)*420,s*(a<2?.5:.9),(R()-.5)*420);o.scale.set(a<2?1:.6,s*(a<2?1:2.4),a<2?1:.6);o.rotation.y=R()*6;o.updateMatrix();im.setMatrixAt(i,o.matrix);if(a<2)c.set(A[2]).offsetHSL(R()*.06,.1,.05+R()*.12);else c.setHSL((.55+a*.13+R()*.15)%1,.9,.6);im.setColorAt(i,c)}wg.add(im)}
 const all=B.filter(b=>b.a===a),nb=all.find(b=>!S.def[b.id]);if(nb&&!(a===0&&nb===B[0]))spawnBoss(nb,all.indexOf(nb),a);mkVillages(a);if(a===0&&!S.def[B[0].id])spawnBoss(B[0],0,0,[0,-18]);
-const wn0=a===2?28:(a===0&&!S.def.Macaroni1)?22:60;for(let i=0;i<wn0;i++)spawnWeak(a)}
+const wn0=a===2?14:(a===0&&!S.def.Macaroni1)?12:20;for(let i=0;i<wn0;i++)spawnWeak(a)}
 function spawnBoss(b,j,a,pos,st){let[x,z]=pos||bpos(b,j),yy=0;const pv=bprev(b,j,a);const i=b.i,core=b.core,hp=bossHP(b,i,core);
 const col=b.nm.includes('Macaroni')?0xf2c230:/Blob/.test(b.nm)?blobCol(b):new THREE.Color().setHSL((i*.137)%1,.65,core?.35:.5).getHex();
 const e=mk(x,z,{s:b.nm.includes("Mice")?1.2:(core?4.2:2.6),sh:/Blob/.test(b.nm)?0:i%3,col,hp,max:hp,dmg:(5+i*.9*(core?1.4:1))*1.35*(1+i*.03)*(i<=3?.35:1)*(b.nm==='King Blob'?.15:1),spd:(3+(i%5)*.5)*1.08,k:i%4,boss:1,b,maze:b.mz?1:0,rew:{m:Math.floor(60+i*35),x:Math.floor(40+i*25)}});
@@ -961,7 +961,7 @@ for(let i=projs.length-1;i>=0;i--){const q=projs[i];burst(q.m.position.x,q.m.pos
 if(q.fr&&!q.vis){for(const e of ents){if(Math.hypot(e.m.position.x-q.m.position.x,e.m.position.z-q.m.position.z)<e.s*1.1+.7&&pvY(e,q)){q.ex?blast(q.m.position.x,q.m.position.z,q.ex,q.d):hit(e,q.d);dead=true;break}}}
 else if(Math.hypot(P.x-q.m.position.x,P.z-q.m.position.z)<1.1){hurt(q.d);dead=true}
 if(!dead&&blocked(q.m.position.x,q.m.position.z))dead=true;if(dead){wg.remove(q.m);projs.splice(i,1)}}
-weakT-=dt;if(weakT<=0){weakT=.8;const cap=S.area===2?32:(S.area===0&&!S.def.Macaroni1)?26:64;let n=0;for(const q of ents)if(q.w)n++;for(let k=0;k<3&&n<cap;k++,n++)spawnWeak(S.area)}
+weakT-=dt;if(weakT<=0){weakT=.8;const cap=S.area===2?14:(S.area===0&&!S.def.Macaroni1)?12:20;let n=0;for(const q of ents)if(q.w)n++;for(let k=0;k<3&&n<cap;k++,n++)spawnWeak(S.area)}
 if(P.hp<maxhp()&&!boss)P.hp=Math.min(maxhp(),P.hp+dt*1.5);
 saveT+=dt;if(saveT>10){saveT=0;save()}}
 pl.position.set(P.x,P.y,P.z);pl.rotation.y=Math.atan2(P.fx,P.fz)+PI;animWeapon();pb.material.emissive.setHex(P.hs>0?0xff0000:P.inv>0?0x2244ff:0);
