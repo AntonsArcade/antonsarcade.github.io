@@ -617,8 +617,8 @@ const cv=ren.domElement,tpos=e=>{const t=e.touches[0]||e.changedTouches[0];if(t)
 cv.addEventListener('touchstart',e=>{e.preventDefault();tpos(e);mouse=true},{passive:false});cv.addEventListener('touchmove',e=>{e.preventDefault();tpos(e)},{passive:false});['touchend','touchcancel'].forEach(n=>cv.addEventListener(n,()=>mouse=false));
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&started&&!paused&&!mk)pause()});
 const ITEMS=[...BD.slice(0,9).map((b,i)=>({id:'b'+i,t:'b',i,n:b.n+' x'+b.pk,d:b.d,c:b.cost})),{id:'rep',n:'Repair',d:'Full health',c:150,t:'r'},{id:'muscle',n:'Muscle Car',d:'151 km/h, tough',c:1500,t:'car'},{id:'sports',n:'Sports Car',d:'194 km/h',c:4000,t:'car'},{id:'super',n:'Supercar',d:'223 km/h',c:9000,t:'car'},{id:'hyper',n:'Hypercar',d:'252 km/h, 300 with nitro',c:20000,t:'car'},{id:'truck',n:'Armored Truck',d:'Cops barely scratch it',c:8000,t:'car'},{id:'tank',n:'TANK',d:'900 HP. Crushes everything. 86 km/h',c:30000,t:'car'},{id:'phantom',n:'Phantom',d:'Secret stealth supercar',c:0,t:'car',sec:1}];
-function renderMk(){$('mi').innerHTML='<p>Cash: $'+P.cash+'</p>'+ITEMS.filter(i=>!i.sec||P.owned[i.id]).map(i=>{const own=i.t=='car'&&P.owned[i.id],eq=own&&P.ty==i.id;return `<div class="it"><div><b>${i.n}</b><br><small>${i.d}</small></div><button ${eq||(!own&&P.cash<i.c)?'disabled':''} onclick="buy('${i.id}')">${eq?'EQUIPPED':own?'EQUIP':'$'+i.c}</button></div>`}).join('')}
-function buy(id){const i=ITEMS.find(x=>x.id==id);if(i.t=='car'&&P.owned[id]){setCar(id)}else{if(P.cash<i.c)return;P.cash-=i.c;if(i.t=='b')P.am[i.i]+=BD[i.i].pk;if(i.t=='r')P.hp=P.mx;if(i.t=='car'){P.owned[id]=1;setCar(id);toast(i.n+' equipped')}}save();renderMk()}
+const ip=i=>Math.round(i.c*(1-crDisc()));function renderMk(){$('mi').innerHTML='<p>Cash: $'+P.cash+(crDisc()?' · casino rank discount −'+Math.round(crDisc()*100)+'%':'')+'</p>'+ITEMS.filter(i=>!i.sec||P.owned[i.id]).map(i=>{const own=i.t=='car'&&P.owned[i.id],eq=own&&P.ty==i.id;return `<div class="it"><div><b>${i.n}</b><br><small>${i.d}</small></div><button ${eq||(!own&&P.cash<ip(i))?'disabled':''} onclick="buy('${i.id}')">${eq?'EQUIPPED':own?'EQUIP':'$'+ip(i)}</button></div>`}).join('')}
+function buy(id){const i=ITEMS.find(x=>x.id==id);if(i.t=='car'&&P.owned[id]){setCar(id)}else{if(P.cash<ip(i))return;P.cash-=ip(i);if(i.t=='b')P.am[i.i]+=BD[i.i].pk;if(i.t=='r')P.hp=P.mx;if(i.t=='car'){P.owned[id]=1;setCar(id);toast(i.n+' equipped')}}save();renderMk()}
 function openMk(){mk=true;if(eg)eg.gain.value=0;renderMk();$('mk').style.display='flex'}
 function openCm(){mk=true;if(eg)eg.gain.value=0;$('cr').textContent='';$('cm').style.display='flex';setTimeout(()=>$('ci').focus(),30)}
 function closeMk(){mk=false;$('mk').style.display='none';$('cm').style.display='none';$('ci').blur();$('cs').style.display='none';$('rdm').style.display='none';$('cum').style.display='none';$('tw').style.display='none';$('hw').style.display='none';CS.busy=0;if(FC.menu)fcCloseMenu();if(typeof closePhoneUI=='function')closePhoneUI();if(typeof rgClose=='function')rgClose()}
@@ -714,16 +714,17 @@ const WINQ=['GRINDHARD','SWEAT','GET A LIFE','TOUCH GRASS','EZ MONEY','SHEESH','
 function tone(f,d=.1,ty='square',v=.05,f2){if(!AC)return;try{const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type=ty;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.02)}catch(e){}}
 const chime=()=>{tone(660,.12);setTimeout(()=>tone(880,.12),110);setTimeout(()=>tone(1320,.25),220)};
 // ---------- shell
-function build(){$c('cs').innerHTML=`<div id="cz-top"><h1>♠ ROYALE CASINO ♥</h1><div class="cz-stats"><div id="cz-net"></div><div id="cz-bal"></div></div><button id="cz-leave" data-a="leave">LEAVE</button></div><div id="cz-wrap"><div class="tabs" id="cz-tabs"></div><div class="pan" id="cz-game"></div></div><div id="cz-ban" data-a="ban"></div>`}
+function build(){$c('cs').innerHTML=`<div id="cz-top"><h1>♠ ROYALE CASINO ♥</h1><div class="cz-stats"><div id="cz-rk" style="font-size:12px;margin-right:12px"></div><div id="cz-net"></div><div id="cz-bal"></div></div><button id="cz-leave" data-a="leave">LEAVE</button></div><div id="cz-wrap"><div class="tabs" id="cz-tabs"></div><div class="pan" id="cz-game"></div></div><div id="cz-ban" data-a="ban"></div>`}
 const GAMES=[['pier','LUCKY PIER','3.8%'],['gold','GOLD RUSH','2.7%'],['heist','DIAMOND HEIST','1.7%'],['roulette','ROULETTE','1.4%'],['blackjack','BLACKJACK','~0.5%'],['craps','CRAPS','~1%'],['baccarat','BACCARAT','1.1%'],['poker','VIDEO POKER','0.5%'],['wheel','FORTUNE WHEEL','3.1%'],['mines','MINES','3%'],['hilo','HI-LO LADDER','~2%'],['dice','LUCKY DICE','3%'],['horse','HORSE DERBY','5%'],['crash','ROCKET CRASH','3%'],['plinko','PLINKO','~1.5%']];
 function tabs(){$c('cz-tabs').innerHTML=GAMES.map(g=>`<button class="tab${CS.g==g[0]?' on':''}" data-a="tab" data-v="${g[0]}"><b>${g[1]}</b><small>edge ${g[2]}</small></button>`).join('')}
 function show(id){if(CS.g&&GM[CS.g]&&GM[CS.g].off)GM[CS.g].off();CS.g=id;tabs();GM[id].render();syncBet();bal();$c('cs').scrollTop=0}
-function bal(){const b=$c('cz-bal');if(b)b.textContent=fm(P.cash);const n=$c('cz-net');if(n){n.textContent='SESSION '+(CS.net>=0?'+':'-')+fm(Math.abs(CS.net));n.className=CS.net>0?'up':CS.net<0?'dn':''}}
+function bal(){const rk=$c('cz-rk');if(rk)rk.innerHTML=crInfo();const b=$c('cz-bal');if(b)b.textContent=fm(P.cash);const n=$c('cz-net');if(n){n.textContent='SESSION '+(CS.net>=0?'+':'-')+fm(Math.abs(CS.net));n.className=CS.net>0?'up':CS.net<0?'dn':''}}
 const head=(t,s)=>`<div class="gh"><div class="gt">${t}</div><div class="gs">${s}</div></div>`;
 function betBar(label='BET'){return `<div class="betbar"><div class="bl">${label}</div><div class="chips">${CHIPS.map((v,i)=>`<button class="chip c${i}" data-a="chip" data-v="${v}">${v>=1000?v/1000+'K':v}</button>`).join('')}</div><div class="bctl"><button data-a="half">½</button><input id="betin" type="number" min="1" inputmode="numeric" value="${CS.bet}"><button data-a="dbl">2×</button><button data-a="max">MAX</button></div></div>`}
 function syncBet(skip){const i=$c('betin');if(i&&!skip)i.value=CS.bet;document.querySelectorAll('#cs .chip').forEach(b=>b.classList.toggle('sel',+b.dataset.v==CS.bet));document.querySelectorAll('#cs .betv').forEach(e=>e.textContent=fm(Math.min(CS.bet,Math.max(P.cash,0))))}
 const stake=()=>Math.max(0,Math.min(CS.bet,P.cash));
-function need(b){if(b<1){msg('NO CASH. GO COMMIT MORE CRIMES.');return 0}return 1}
+function crUp(u){if(u)setTimeout(()=>banner('<div class="q" style="font-size:clamp(22px,5vw,44px)">'+u+'</div>','w'),700)}
+function need(b){if(b<1){msg('NO CASH. GO COMMIT MORE CRIMES.');return 0}crUp(crAdd(b));return 1}
 // ---------- banners
 function rain(em){const cs=$c('cs');for(let i=0;i<26;i++){const d=document.createElement('span');d.className='rn';d.textContent=rnd(em);d.style.left=R(0,100)+'vw';d.style.animationDuration=R(1.6,3)+'s';d.style.fontSize=R(22,48)+'px';cs.appendChild(d);setTimeout(()=>d.remove(),3300)}}
 function banner(h,cls){const b=$c('cz-ban');if(!b)return;b.className=cls;b.innerHTML=h;b.style.animation='none';void b.offsetWidth;b.style.animation='';b.style.display='flex';clearTimeout(b.t);b.t=setTimeout(()=>b.style.display='none',2600)}
@@ -1097,6 +1098,80 @@ GM.heist={render(){DH={st:0,k:0,bet:0,alarm:-1};
   else{DH.k++;bs[i].className='ok';bs[i].textContent='💎';$c('vlt').className='vault ok';chime();$c('dhr').textContent=m2(dhM(DH.k))+'×';this.upd();
    setTimeout(()=>{CS.lock=0;if(!alive('heist')||!DH.st)return;if(DH.k>=12){this.cash();return}DH.alarm=ri(3);bs.forEach((b,j)=>{b.className='';b.disabled=false;b.textContent='ABC'[j]});$c('vlt').className='vault'},700)}},
  cash(){if(CS.lock)return;const ret=Math.floor(DH.bet*dhM(DH.k));DH.st=0;CS.busy=0;P.cash+=ret;this.doors(0);this.upd();$c('dhr').textContent='CRACKED!';result(ret-DH.bet,'Cleared '+DH.k+' stages · '+m2(dhM(DH.k))+'×')}};
+// ---------- TEXAS HOLD'EM vs 3 AI (cash table)
+const HV={A:14,K:13,Q:12,J:11,'10':10};const hcv=c=>HV[c.r]||+c.r;
+function hv5(c){const v=c.map(hcv).sort((a,b)=>b-a),fl=c.every(x=>x.s==c[0].s);let st=0;const u=[...new Set(v)];if(u.length==5){if(v[0]-v[4]==4)st=v[0];else if(v[0]==14&&v[1]==5)st=5}
+ const cn={};v.forEach(x=>cn[x]=(cn[x]||0)+1);const g=Object.keys(cn).map(k=>[cn[k],+k]).sort((a,b)=>b[0]-a[0]||b[1]-a[1]);let cat,ks;
+ if(st&&fl){cat=8;ks=[st]}else if(g[0][0]==4){cat=7;ks=[g[0][1],g[1][1]]}else if(g[0][0]==3&&g[1][0]==2){cat=6;ks=[g[0][1],g[1][1]]}else if(fl){cat=5;ks=v}else if(st){cat=4;ks=[st]}else if(g[0][0]==3){cat=3;ks=g.map(x=>x[1])}else if(g[0][0]==2&&g[1][0]==2){cat=2;ks=g.map(x=>x[1])}else if(g[0][0]==2){cat=1;ks=g.map(x=>x[1])}else{cat=0;ks=v}
+ let n=cat;for(let i=0;i<5;i++)n=n*15+(ks[i]||0);return n}
+function best7(c){let b=0;for(let i=0;i<c.length;i++)for(let j=i+1;j<c.length;j++){const h=[];for(let k=0;k<c.length;k++)if(k!=i&&k!=j)h.push(c[k]);if(c.length==5)return hv5(c);const s=hv5(h);if(s>b)b=s}return b}
+const hcat=n=>Math.floor(n/Math.pow(15,5)),HNAMES=['High card','Pair','Two pair','Three of a kind','Straight','Flush','Full house','Four of a kind','Straight flush'];
+function aiStr(p,board){const h=p.h;if(!board.length){const a=hcv(h[0]),b=hcv(h[1]),hi=Math.max(a,b),lo=Math.min(a,b);let s=a==b?.5+(hi-2)/24:(hi+lo)/34+(h[0].s==h[1].s?.06:0)+(hi-lo<=2?.05:0)-(hi-lo>5?.04:0);return Math.max(0,Math.min(1,s))}
+ const all=h.concat(board),n=best7(all),cat=hcat(n),bc=board.length>=5?hcat(best7(board)):hcat(best7(board.concat(board.slice(0,2)).slice(0,5)));
+ let s=[.18,.42,.66,.78,.86,.9,.96,.99,1][cat];if(cat<=1){const top=Math.max(...board.map(hcv));const hm=Math.max(hcv(h[0]),hcv(h[1]));if(cat==0)s=.12+hm/140;else if(!h.some(x=>board.some(y=>hcv(y)==hcv(x))))s=.2;else s=.36+(Math.max(...h.filter(x=>board.some(y=>hcv(y)==hcv(x))).map(hcv))>=top?.14:0)}
+ const sc={};all.forEach(x=>sc[x.s]=(sc[x.s]||0)+1);if(board.length<5&&cat<5&&Object.values(sc).some(v=>v>=4))s=Math.max(s,.5);return Math.min(1,s)}
+const HE={sit:0,hand:0,buy:0,B:0,sb:0,bb:0,d:0,pl:[],board:[],pot:0,cur:0,minr:0,res:null,deck:[],ph:0,msg:''};
+const HN=[['You',0,'#ffd24a'],['Vinnie',1,'#ff6a6a'],['Dolores',0,'#7ec8ff'],['Slick',.5,'#b98cff']],HSTY=[0,.7,.15,.4];
+function heAI(p,toCall){const s=aiStr(p,HE.board),sty=p.sty,pot=HE.pot,bluff=Math.random()<.04+sty*.1;
+ const need=toCall/Math.max(1,pot+toCall),tight=.34-sty*.14+need*.7;
+ if(toCall>0){if(s<tight&&!bluff)return{t:'f'};if((s>.72||bluff&&Math.random()<.4)&&p.chips>toCall&&Math.random()<.35+sty*.4){const amt=Math.max(HE.minr,Math.round(pot*(.5+Math.random()*.6)));return{t:'r',to:HE.cur+amt}}return{t:'c'}}
+ if((s>.55&&Math.random()<.55+sty*.3)||bluff&&Math.random()<.5){const amt=Math.max(HE.bb,Math.round(pot*(.4+Math.random()*.6)));return{t:'r',to:HE.cur+amt}}return{t:'c'}}
+function hePlayer(toCall){return new Promise(res=>{HE.res=res;HE.tc=toCall;drawHE()})}
+async function heRound(first,curBet){const pl=HE.pl;let q=[];for(let k=0;k<4;k++){const p=pl[(first+k)%4];if(!p.fold&&!p.allin)q.push(p)}HE.cur=curBet;HE.minr=Math.max(HE.minr,HE.bb);
+ while(q.length){const p=q.shift();if(p.fold||p.allin)continue;if(pl.filter(x=>!x.fold).length<2||!alive('holdem'))return;
+  if(pl.filter(x=>!x.fold&&!x.allin).length<2&&p.bet>=HE.cur)continue;
+  const toCall=HE.cur-p.bet;let a;if(p.ai){HE.act=p;drawHE();await sleep(520+ri(500));a=heAI(p,toCall)}else{HE.act=p;a=await hePlayer(toCall);HE.res=null}if(!alive('holdem'))return;
+  if(a.t=='f'){p.fold=1;p.last='FOLD'}
+  else if(a.t=='c'||a.to<=HE.cur){const m=Math.min(toCall,p.chips);p.chips-=m;p.bet+=m;p.tot+=m;HE.pot+=m;if(!p.chips)p.allin=1;p.last=p.allin?'ALL IN':toCall?'CALL':'CHECK'}
+  else{const mn=HE.cur+HE.minr,to=Math.min(Math.max(a.to,mn),p.bet+p.chips),m=to-p.bet;p.chips-=m;const prev=HE.cur;p.bet=to;p.tot+=m;HE.pot+=m;if(!p.chips)p.allin=1;if(to>prev){HE.minr=Math.max(HE.minr,to-prev);HE.cur=to;const i=pl.indexOf(p);q=[];for(let k=1;k<4;k++){const o=pl[(i+k)%4];if(!o.fold&&!o.allin)q.push(o)}}p.last=p.allin?'ALL IN':(prev?'RAISE':'BET')+' '+fm(to)}
+  tone(p.fold?200:420,.05);HE.act=null;drawHE()}
+ HE.act=null}
+function hePost(p,amt){const m=Math.min(amt,p.chips);p.chips-=m;p.bet+=m;p.tot+=m;HE.pot+=m;if(!p.chips)p.allin=1}
+function hePots(){const pl=HE.pl,lv=[...new Set(pl.filter(p=>!p.fold&&p.tot>0).map(p=>p.tot))].sort((a,b)=>a-b),out=[];let prev=0;
+ for(const L of lv){let amt=0;for(const p of pl)amt+=Math.max(0,Math.min(p.tot,L)-prev);out.push({amt,el:pl.filter(p=>!p.fold&&p.tot>=L)});prev=L}
+ // chips from folded players above the last level go to the last pot
+ const tot=pl.reduce((a,p)=>a+p.tot,0),got=out.reduce((a,x)=>a+x.amt,0);if(tot>got&&out.length)out[out.length-1].amt+=tot-got;return out}
+async function heHand(){const pl=HE.pl;CS.busy=1;HE.hand=1;HE.board=[];HE.pot=0;HE.res=null;HE.msg='';HE.show=0;HE.win=null;
+ pl.forEach((p,i)=>{p.h=[];p.fold=0;p.allin=0;p.bet=0;p.tot=0;p.last='';if(p.ai)p.chips=HE.B});
+ const dk=deck52();HE.deck=dk;pl.forEach(p=>{p.h=[dk.pop(),dk.pop()]});HE.d=(HE.d+1)%4;
+ const sb=(HE.d+1)%4,bb=(HE.d+2)%4;hePost(pl[sb],HE.sb);hePost(pl[bb],HE.bb);pl[sb].last='SB';pl[bb].last='BB';HE.minr=HE.bb;drawHE();
+ await sleep(500);
+ const rounds=[[ (HE.d+3)%4,HE.bb ],[ (HE.d+1)%4,0 ],[ (HE.d+1)%4,0 ],[ (HE.d+1)%4,0 ]];
+ for(let r=0;r<4;r++){if(!alive('holdem'))return;if(r>0){pl.forEach(p=>{p.bet=0;if(!p.fold&&!p.allin)p.last=''});HE.minr=HE.bb;const n=r==1?3:1;for(let k=0;k<n;k++)HE.board.push(dk.pop());tone(700,.06);drawHE();await sleep(500)}
+  if(pl.filter(x=>!x.fold).length<2)break;await heRound(rounds[r][0],rounds[r][1]);if(!alive('holdem'))return}
+ const live=pl.filter(p=>!p.fold);
+ if(live.length>1){while(HE.board.length<5){HE.board.push(dk.pop());drawHE();await sleep(650)}HE.show=1}
+ const w={};pl.forEach((p,i)=>w[i]=0);const pots=hePots(),sc=pl.map(p=>p.fold?-1:best7(p.h.concat(HE.board)));
+ for(const pt of pots){let b=-1;pt.el.forEach(p=>{b=Math.max(b,sc[pl.indexOf(p)])});const wn=pt.el.filter(p=>sc[pl.indexOf(p)]==b);const sh=Math.floor(pt.amt/wn.length);wn.forEach((p,k)=>{w[pl.indexOf(p)]+=sh+(k==0?pt.amt-sh*wn.length:0)})}
+ pl.forEach((p,i)=>{p.chips+=w[i]});
+ const me=pl[0],gain=w[0]-me.tot;crUp(crAdd(me.tot));HE.win=w;
+ const wi=pl.map((p,i)=>i).filter(i=>w[i]>0);HE.msg=(live.length>1?wi.map(i=>pl[i].n+' wins '+fm(w[i])+' — '+HNAMES[hcat(sc[i])]).join(' · '):pl[wi[0]].n+' wins '+fm(w[wi[0]])+' (everyone folded)');
+ if(gain>0){chime()}else if(gain<0)tone(180,.3,'sawtooth',.07,70);
+ HE.hand=0;CS.busy=0;if(me.chips<HE.bb)HE.msg+=' · You are out of chips';drawHE()}
+function drawHE(){const g=$c('hes');if(!g||!alive('holdem'))return;const pl=HE.pl;
+ const seat=(p,i)=>{const act=HE.act===p,c=HN[i][2];return `<div style="background:#0008;border:2px solid ${act?'#ffd24a':p.fold?'#333':c+'66'};border-radius:12px;padding:8px;opacity:${p.fold?.45:1}"><div style="font-weight:800;color:${c}">${HN[i][0]}${HE.d==i&&HE.hand?' ⓓ':''}</div><div style="font-size:13px">${fm(p.chips)}</div><div class="hh" id="hh${i}" style="display:flex;justify-content:center;gap:4px;min-height:60px;margin:4px 0"></div><div style="font-size:12px;color:#ffe08a;min-height:16px">${p.last||''}${p.bet?' · in: '+fm(p.bet):''}</div></div>`};
+ g.innerHTML=pl.slice(1).map((p,i)=>seat(p,i+1)).join('');
+ const bd=$c('heb');bd.innerHTML='';for(let i=0;i<5;i++){if(HE.board[i]){const e=cardEl(HE.board[i],false,true);e.classList.remove('deal');bd.appendChild(e)}else{const e=document.createElement('div');e.style.cssText='width:58px;height:84px;border:2px dashed #fff3;border-radius:8px';bd.appendChild(e)}}
+ $c('hep').textContent='POT '+fm(HE.pot);
+ pl.forEach((p,i)=>{const h=document.getElementById(i?'hh'+i:'hme');if(!h||!p.h.length)return;h.innerHTML='';p.h.forEach(c=>{const e=cardEl(c,!(i==0||HE.show&&!p.fold),true);e.classList.remove('deal');h.appendChild(e)})});
+ const me=pl[0];$c('hemn').innerHTML='<b style="color:#ffd24a">You</b> · '+fm(me.chips)+(me.last?' · '+me.last:'')+(HE.d==0&&HE.hand?' ⓓ':'');
+ if(HE.hand&&me.h.length&&!me.fold){const b=best7(me.h.concat(HE.board.length?HE.board:[]).length>=5?me.h.concat(HE.board):[]);$c('hemh').textContent=HE.board.length>=3?HNAMES[hcat(best7(me.h.concat(HE.board)))]:''}else $c('hemh').textContent='';
+ const A=$c('heact');let h='';
+ if(HE.res&&HE.act===me){const tc=HE.tc,mn=HE.cur+HE.minr,half=HE.cur+Math.max(HE.minr,Math.round(HE.pot/2)),pot=HE.cur+Math.max(HE.minr,HE.pot),all=me.bet+me.chips,can=a=>a<=all;
+  h=`<button class="act" style="background:#444" data-a="he" data-v="f">FOLD</button><button class="act go" data-a="he" data-v="c">${tc?'CALL '+fm(Math.min(tc,me.chips)):'CHECK'}</button>`
+  +(me.chips>tc?[[mn,'MIN RAISE'],[half,'½ POT'],[pot,'POT']].filter(x=>can(x[0])&&x[0]>HE.cur&&x[0]<all).map(x=>`<button class="act" data-a="he" data-v="${x[0]}">${x[1]} → ${fm(x[0])}</button>`).join('')+`<button class="act" data-a="he" data-v="${all}">ALL IN ${fm(all)}</button>`:'')}
+ else if(!HE.hand){h=(me.chips>=HE.bb?`<button class="act go" data-a="hedeal">DEAL NEXT HAND</button>`:'')+`<button class="act" style="background:#444" data-a="hecash">${me.chips>=HE.bb?'CASH OUT '+fm(me.chips):'LEAVE TABLE'}</button>`}
+ else h='<div style="color:#aab;font-size:13px;padding:10px">'+(HE.act&&HE.act.ai?HE.act.n+' is thinking…':'…')+'</div>';
+ A.innerHTML=h;$c('hemsg').textContent=HE.msg}
+GM.holdem={render(){HE.sit=0;
+ $c('cz-game').innerHTML=head("TEXAS HOLD'EM",'You vs 3 AI · buy in with your bet · blinds 2%/4% · cash out between hands · no house edge, just skill')+`<div id="hesit">${betBar('BUY-IN')}<div class="act-row" style="text-align:center;margin-top:10px"><button class="act" data-a="hesit">SIT DOWN <span class="betv"></span></button></div></div><div class="felt" id="hetb" style="display:none;padding:12px"><div id="hes" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div><div id="heb" style="margin:12px 0;min-height:90px;display:flex;gap:6px;justify-content:center;align-items:center"></div><div id="hep" style="text-align:center;font-weight:800;font-size:18px;color:#ffe08a">POT $0</div><div style="margin-top:8px"><div id="hemn" style="font-size:13px"></div><div id="hemh" style="font-size:12px;color:#7dff9a;min-height:16px"></div><div class="hh" id="hme" style="display:flex;justify-content:center;gap:6px;min-height:84px"></div></div><div id="heact" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px"></div><div id="hemsg" style="margin-top:8px;color:#9ab;font-size:13px;min-height:18px"></div></div>`},
+ act(a,v){if(a=='hesit'){const b=stake();if(b<100){msg('MIN BUY-IN $100');return}P.cash-=b;bal();HE.sit=1;HE.B=b;HE.buy=b;HE.sb=Math.max(1,Math.round(b/50));HE.bb=HE.sb*2;HE.d=ri(4);HE.pl=HN.map((n,i)=>({n:n[0],ai:i>0,sty:HSTY[i],chips:b,h:[],fold:0,allin:0,bet:0,tot:0,last:''}));$c('hesit').style.display='none';$c('hetb').style.display='block';HE.msg='';heHand()}
+  else if(a=='hedeal'){if(!HE.hand&&HE.pl[0].chips>=HE.bb)heHand()}
+  else if(a=='hecash'){this.cash()}
+  else if(a=='he'&&HE.res){const r=HE.res;HE.res=null;r(v=='f'?{t:'f'}:v=='c'?{t:'c'}:{t:'r',to:+v})}},
+ cash(){if(!HE.sit||HE.hand)return;const me=HE.pl[0],back=me.chips;P.cash+=back;bal();HE.sit=0;result(back-HE.buy,"Hold'em");this.render();syncBet();bal()},
+ off(){if(HE.sit&&!HE.hand){const me=HE.pl[0];P.cash+=me.chips;HE.sit=0;bal()}}};
+GAMES.push(['holdem',"TEXAS HOLD'EM",'vs AI']);
 })();
 
 
@@ -2066,7 +2141,7 @@ function v15Tick(dt){if(P.codes.GREEDY){grAcc+=100000*dt;const w=Math.floor(grAc
  if(QL>=1&&!P.foot&&!P.fly&&!P.ug&&!(BOATS[P.ty])){const lt=P.vx*Math.cos(P.h)-P.vz*Math.sin(P.h);SK.t-=dt;if(Math.abs(lt)>5.5&&Math.hypot(P.vx,P.vz)>6&&SK.t<=0){SK.t=.05;const fx=Math.sin(P.h),fz=Math.cos(P.h);[-1,1].forEach(s=>skMark(P.x-fx*1.4+fz*s*.8,P.z-fz*1.4-fx*s*.8,P.h))}}
  if(!phHint&&started&&time>6){phHint=1;toast('Press T or Tab (or the 📱 button on mobile) for your PHONE (supplies, cars, crew, radio, graphics)')}}
 // ===== v21: shooting range, monster truck + hovercraft, Crimson Empire war, crew heists, adaptive speed =====
-P.v9.rg=P.v9.rg||{best:{}};P.v9.rv=P.v9.rv||{on:0,ch:0,k:0};if(P.v9.hs===undefined)P.v9.hs=null;
+P.v9.rg=P.v9.rg||{best:{}};P.v9.cr=P.v9.cr||{w:0,r:0};P.v9.rv=P.v9.rv||{on:0,ch:0,k:0};if(P.v9.hs===undefined)P.v9.hs=null;
 // ---------- vehicles
 Object.assign(CT,{monster:{sp:38,ac:16,hp:1500,ar:.2,col:0xe0451c,ms:9,rad:3.4},hover:{sp:52,ac:22,hp:500,ar:.5,col:0x4ad0e0,ms:2,rad:2.4}});
 ITEMS.push({id:'monster',n:'MONSTER TRUCK',d:'Crushes cars · 137 km/h · 1,500 HP',c:400000,t:'car'},{id:'hover',n:'HOVERCRAFT',d:'Drives on land AND the lake · 187 km/h',c:350000,t:'car'});
@@ -2109,7 +2184,7 @@ function rgOpen(){mk=true;SG.on=1;if(eg)eg.gain.value=0;rg3Init();SG.yaw=SG.pitc
 function rgMenu(){SG.ph='menu';try{document.exitPointerLock()}catch(e){}rgEl.style.background='rgba(0,0,0,.55)';rgEl.style.cursor='default';rgEl.style.alignItems='center';rgEl.style.justifyContent='center';const r=rgS(),rk=rgRank(r.xp);
  rgEl.innerHTML='<div style="background:#12121c;border:2px solid #6a5cff;border-radius:14px;padding:18px 22px;width:min(560px,94vw);max-height:92vh;overflow:auto"><h2 style="margin:0 0 4px;color:#9d92ff;letter-spacing:2px">🎯 SHOOTING RANGE · GRIDSHOT</h2><div style="color:#aab;font-size:12px;margin-bottom:8px">Hit the 3 targets for '+RGT+' s. Mouse/tap, or arrows/WASD + Space. Cash = points × $'+RGBASE+' × your cash multiplier (upgrades).</div>'+rgBar(r.xp)
  +'<div style="text-align:left;font-size:12px;color:#889;margin-bottom:2px">WEAPON (unlock by ranking up)</div>'+GWP.map((w,i)=>{const lk=rk<w.rk;return rgB((i==r.w?'✔ ':'')+w.n+' · '+(lk?'🔒 '+GRK[w.rk][0]:w.d),'rgEq('+i+')',lk)}).join('<br>')
- +'<div style="text-align:left;font-size:12px;color:#889;margin:8px 0 2px">UPGRADES · Cash $'+Math.round(P.cash).toLocaleString('en-US')+' · cash multiplier ×'+rgMul()+'</div>'+(r.up<GUP.length?rgB(GUP[r.up].n+' · $'+GUP[r.up].c.toLocaleString('en-US'),'rgBuy()',P.cash<GUP[r.up].c):'<div style="color:#7dff9a;font-size:13px">All cash upgrades owned (×8)</div>')
+ +'<div style="text-align:left;font-size:12px;color:#889;margin:8px 0 2px">GUN SKIN (one per rank · gold at Legend)</div><div>'+GSK.map((x,i)=>{const lk=rk<i;return '<button '+(lk?'disabled ':'')+'onclick="rgSk('+i+')" style="padding:6px 9px;margin:3px;border-radius:8px;border:1px solid '+(i==(r.sk||0)?'#ffd24a':'#6a5cff')+';background:'+(lk?'#2a2a33':'#26225a')+';color:#fff;font-size:12px;font-weight:700;cursor:pointer">'+(i==(r.sk||0)?'✔ ':'')+x[0]+(lk?' 🔒':'')+'</button>'}).join('')+'</div><div style="text-align:left;font-size:12px;color:#889;margin:8px 0 2px">UPGRADES · Cash $'+Math.round(P.cash).toLocaleString('en-US')+' · cash multiplier ×'+rgMul()+'</div>'+(r.up<GUP.length?rgB(GUP[r.up].n+' · $'+GUP[r.up].c.toLocaleString('en-US'),'rgBuy()',P.cash<GUP[r.up].c):'<div style="color:#7dff9a;font-size:13px">All cash upgrades owned (×8)</div>')
  +'<div style="margin-top:8px">'+rgB('▶ PLAY [Enter / 1]','rgStart()')+'<br>'+rgB('Best: '+(r.best.g||0)+' points · Close (Esc)','closeMk()')+'</div></div>'}
 function rgEq(i){const r=rgS();if(rgRank(r.xp)>=GWP[i].rk){r.w=i;save();rgMenu()}}
 function rgBuy(){const r=rgS(),u=GUP[r.up];if(!u||P.cash<u.c)return;P.cash-=u.c;r.up++;sfx('coin');save();toast('Cash multiplier ×'+u.m+'!');rgMenu()}
@@ -2152,7 +2227,7 @@ function rg3Init(){if(RS)return;
   if(k==3)add(.1,.12,.5,gm,0,-.02,.45);
   if(k==4){const sp=new T.Mesh(new T.BoxGeometry(.09,.09,.34),gm2);sp.position.set(0,.18,-.2);gun.add(sp);RS.pieces.push(sp);add(.1,.14,.5,gm,0,-.02,.45)}
   if(k==5){add(.135,.05,L*.5,gcy,0,.0,-L/2+.1);add(.04,.14,.04,gcy,0,.1,-.3)}
-  gun.position.set(.4,-.36,-.72);gun.rotation.set(0,.1,0);RS.mz=-L+.1};
+  gun.position.set(.4,-.36,-.72);gun.rotation.set(0,.1,0);RS.mz=-L+.1;rgSkinApply()};
  RS.build(0)}
 function rg3Resize(){if(RS){RS.cam.aspect=innerWidth/innerHeight;RS.cam.updateProjectionMatrix()}}
 addEventListener('resize',rg3Resize);
@@ -2468,4 +2543,34 @@ function hwRender(keep){$('hw-bal').textContent='🎃 '+P.hw.candy+' candy · '+
 let last=performance.now();
 function loop(t){requestAnimationFrame(loop);const dt=Math.min((t-last)/1000,.05);last=t;if(started&&!paused&&!mk)update(dt);else if(!started){time+=dt;cam.position.set(Math.sin(time*.15)*95,34,Math.cos(time*.15)*95);cam.lookAt(0,24,0);sky.position.copy(cam.position)}hud();mini();drawBig();if(SG.on&&RS)ren.render(RS.sc,RS.cam);else ren.render(scene,cam)}
 requestAnimationFrame(loop);
+/* ===== v25: casino ranks, weapon skins, cooler car looks ===== */
+const CRK=[['ROOKIE',0],['PUNTER',25e3],['REGULAR',15e4],['HIGH ROLLER',75e4],['WHALE',3e6],['SHARK',12e6],['VIP',40e6],['MOGUL',12e7],['TYCOON',4e8],['CASINO LEGEND',15e8]],CRG=[0,2500,1e4,4e4,15e4,5e5,15e5,4e6,1e7,25e6],CRD=[0,0,.02,.04,.06,.09,.12,.16,.2,.25],CRC=['#9aa3ad','#7ec8ff','#7dff9a','#ffd24a','#ff9a3a','#ff5a5a','#c070ff','#5fe3d0','#ff7ad9','#ffe27a'];
+const crS=()=>P.v9.cr=P.v9.cr||{w:0,r:0};
+function crRank(){let i=0;const w=crS().w;CRK.forEach((r,k)=>{if(w>=r[1])i=k});return i}
+const crDisc=()=>CRD[crRank()];
+function crAdd(b){const c=crS();c.w+=b;const r=crRank();if(r>c.r){c.r=r;P.cash+=CRG[r];save();return 'RANK UP: '+CRK[r][0]+' · +$'+CRG[r].toLocaleString('en-US')+' bonus'}return ''}
+function crInfo(){const c=crS(),i=crRank(),n=CRK[i+1];return '<b style="color:'+CRC[i]+'">'+(i+1)+'/10 '+CRK[i][0]+'</b> · wagered $'+Math.round(c.w).toLocaleString('en-US')+(n?' · next at $'+n[1].toLocaleString('en-US'):' · MAX')+(i?' · perks: heal'+(CRD[i]?', market −'+Math.round(CRD[i]*100)+'%':''):'')}
+function crOpen(){if(crRank()>=1&&P.hp<P.mx){P.hp=P.mx;toast('Casino rank perk: fully healed')}}
+/* weapon skins (unlock by range rank, gold = top) */
+const GSK=[['STEEL',0x232833,0x3a4252,0],['COPPER',0x6a3a1a,0xcd7f32,0x1a0c04],['CHROME',0x8a94a4,0xe6edf7,0x10141a],['DESERT',0x6a5a38,0xb5a46a,0],['TEAL ICE',0x0f5a56,0x5fe3d0,0x062a28],['DIAMOND',0x1a4690,0x6ab7ff,0x0a2040],['NEON VIOLET',0x3a1a6a,0xc070ff,0x2a0a4a],['GOLD',0xd9a400,0xffe27a,0x6a4a00]];
+function rgSkinApply(){try{const s=GSK[Math.min(rgS().sk||0,rgRank(rgS().xp))];RS.gm.color.setHex(s[1]);RS.gm2.color.setHex(s[2]);RS.gm.emissive.setHex(s[3]);RS.gm2.emissive.setHex(s[3]);RS.gm.metalness=RS.gm2.metalness=s[0]=='GOLD'||s[0]=='CHROME'?1:.8}catch(e){}}
+function rgSk(i){const r=rgS();if(rgRank(r.xp)>=i){r.sk=i;save();rgSkinApply();rgMenu()}}
+/* cooler cars */
+const GLOW25={muscle:0xff3322,sports:0x22e8ff,super:0xff2fd6,hyper:0x9ad0ff,phantom:0xa040ff,raptor:0x40ff90};
+function cool25(g,ty){if(!g||g.userData.cool)return g;g.userData.cool=1;if(ty=='tank'||ty=='godtank'||ty=='monster'||ty=='hover'||(typeof BIKES!='undefined'&&BIKES[ty])||(typeof BOATS!='undefined'&&BOATS[ty])||(CT[ty]&&CT[ty].fly))return g;
+ const bg=/truck|ptruck|hearse/.test(ty),L=bg?4.8:4.4,sp=/sports|super|hyper|phantom|raptor/.test(ty),mb=c=>new T.MeshBasicMaterial({color:c}),chr=Mt(0xd0d6de,.2,.9),blk=Mt(0x0d0f14,.45,.6),bm=g.userData.bm||blk;
+ B(g,1.5,.06,.05,mb(0xf4faff),0,.93,L/2+.03);B(g,1.75,.07,.05,mb(0xff1a2a),0,.92,-L/2-.03);
+ B(g,.18,.14,.3,bm,-1.12,1.34,.55);B(g,.18,.14,.3,bm,1.12,1.34,.55);
+ if(QL<1)return g;
+ B(g,.14,.14,.24,chr,-.6,.4,-L/2-.08);B(g,.14,.14,.24,chr,.6,.4,-L/2-.08);
+ const gc=GLOW25[ty];
+ if(gc||sp||ty=='muscle'){B(g,.08,.14,L*.55,blk,-1.07,.5,0);B(g,.08,.14,L*.55,blk,1.07,.5,0);B(g,1.9,.05,.45,blk,0,.34,L/2+.12);B(g,1.8,.07,.4,blk,0,.34,-L/2-.1)}
+ if(ty=='muscle'){B(g,.7,.16,1,blk,0,1.13,1)}
+ if(sp){B(g,.05,.36,.5,blk,-.98,1.5,-2);B(g,.05,.36,.5,blk,.98,1.5,-2);B(g,.5,.02,1.4,blk,0,1.12,.9)}
+ if(ty=='truck'||ty=='ptruck'){B(g,1.8,.12,.14,mb(0xfff2b0),0,2.15,.6);B(g,1.9,.35,.2,blk,0,.6,L/2+.1)}
+ if(gc){const u=new T.Mesh(new T.PlaneGeometry(2.7,L+.5),new T.MeshBasicMaterial({color:gc,transparent:true,opacity:.42,depthWrite:false}));u.rotation.x=-PI/2;u.position.y=.07;g.add(u);g.userData.ug=u;
+  const e=Mt(gc,.4,.2);B(g,1.4,.04,.04,mb(gc),0,1.62,-.9)}
+ return g}
+{const _c=carMesh;carMesh=function(ty,col){const g=_c(ty,col);try{cool25(g,ty)}catch(e){}return g}}
+{const _o=window.openCasino;window.openCasino=function(){_o();crOpen()}}
 </script></body></html>
