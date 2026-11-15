@@ -1175,6 +1175,13 @@ GAMES.push(['holdem',"TEXAS HOLD'EM",'vs AI']);
 // ---------- TEXAS HOLD'EM ONLINE (PeerJS, host-authoritative, 2-4 humans + AI fill)
 const OL={mode:'',peer:null,seats:[],me:0,B:0,sb:0,bb:0,d:0,pot:0,cur:0,minr:0,board:[],hand:0,hn:0,show:0,act:-1,tc:0,msg:'',code:'',buy:0,last:0,cnt:0,wait:null,conn:null,stage:'menu',lob:[],started:0,view:null,tmo:0,name:'Player'};
 const PEERS=['https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js','https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js'];
+let OLICE=null;
+async function olIce(){if(OLICE)return OLICE;const ic=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}];
+ try{const un=String(Math.floor(Date.now()/1000)+86400),k=await crypto.subtle.importKey('raw',new TextEncoder().encode('openrelayprojectsecret'),{name:'HMAC',hash:'SHA-1'},false,['sign']),sg=await crypto.subtle.sign('HMAC',k,new TextEncoder().encode(un));let b='';new Uint8Array(sg).forEach(x=>b+=String.fromCharCode(x));
+  ic.push({urls:['turn:staticauth.openrelay.metered.ca:80','turn:staticauth.openrelay.metered.ca:80?transport=tcp','turn:staticauth.openrelay.metered.ca:443','turns:staticauth.openrelay.metered.ca:443?transport=tcp'],username:un,credential:btoa(b)})}catch(e){}
+ return OLICE={iceServers:ic}}
+function olStatus(t,btn){const c=$c('olc');if(c)c.innerHTML='<div class="felt" style="padding:20px"><div style="font-size:16px;color:#ffe08a;white-space:pre-line">'+t+'</div><div style="margin-top:12px"><button class="act" style="background:#444" data-a="olcancel">'+(btn||'CANCEL')+'</button></div></div>'}
+function olCancel(){try{if(OL.peer)OL.peer.destroy()}catch(e){}clearTimeout(OL.poll);OL.mode='';OL.stage='menu';OL.peer=null;OL.conn=null;if(alive('holdemol'))GM.holdemol.render()}
 function olLoad(cb,fail,k){k=k||0;if(window.Peer){cb();return}if(k>=PEERS.length){fail();return}const s=document.createElement('script');s.src=PEERS[k];s.onload=()=>window.Peer?cb():olLoad(cb,fail,k+1);s.onerror=()=>olLoad(cb,fail,k+1);document.head.appendChild(s)}
 const olCode=()=>Array.from({length:5},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ'[ri(24)]).join('');
 const olHu=()=>OL.seats.filter(p=>p.hu);
@@ -1188,11 +1195,13 @@ function olStartHost(){
  if(P.cash<100||stake()<100){msg('MIN BUY-IN $100');return}
  const nm=($c('olname')&&$c('olname').value||'Player').slice(0,10)||'Player';OL.name=nm;
  $c('olc').innerHTML='<div style="padding:20px;color:#9ab">Connecting to the PeerJS server…</div>';
- olLoad(()=>{let tries=0;const mkp=()=>{const code=olCode();let pr;try{pr=new Peer('ocholdem-'+code)}catch(e){msg('NETWORK ERROR');GM.holdemol.render();return}
+ olStatus('Hosting: reaching the PeerJS server…');OL.inc=0;
+ olLoad(()=>{let tries=0;const mkp=async()=>{const code=olCode();let pr;const ice=await olIce();try{pr=new Peer('ocholdem-'+code,{config:ice})}catch(e){msg('NETWORK ERROR');GM.holdemol.render();return}
    pr.on('open',()=>{const B=stake();if(P.cash<B){msg('NOT ENOUGH CASH');pr.destroy();GM.holdemol.render();return}P.cash-=B;bal();OL.peer=pr;OL.mode='host';OL.code=code;OL.B=B;OL.sb=Math.max(1,Math.round(B/50));OL.bb=OL.sb*2;OL.buy=B;OL.last=B;OL.hn=0;OL.started=0;OL.d=ri(4);
     OL.seats=[0,1,2,3].map(i=>({n:i?'':nm,hu:i==0,ai:i>0,conn:null,chips:i==0?B:0,h:[],fold:0,allin:0,bet:0,tot:0,last:'',leave:0,ready:i==0,sty:0}));OL.stage='lobbyhost';olLobbyDraw()});
    pr.on('error',e=>{if(e&&e.type=='unavailable-id'&&tries++<5){try{pr.destroy()}catch(x){}mkp();return}if(!OL.mode){msg('COULD NOT CREATE TABLE ('+(e&&e.type||'error')+')');GM.holdemol.render()}});
-   pr.on('connection',conn=>{conn.on('data',m=>olHostMsg(conn,m));conn.on('close',()=>olDrop(conn));conn.on('error',()=>olDrop(conn))})};mkp()},()=>{msg('CANNOT LOAD PEERJS (OFFLINE?)');GM.holdemol.render()})}
+   pr.on('disconnected',()=>{try{pr.reconnect()}catch(e){}});
+   pr.on('connection',conn=>{OL.inc=(OL.inc||0)+1;if(OL.stage=='lobbyhost')olLobbyDraw();conn.on('data',m=>olHostMsg(conn,m));conn.on('close',()=>olDrop(conn));conn.on('error',()=>olDrop(conn))})};mkp()},()=>{msg('CANNOT LOAD PEERJS (OFFLINE?)');GM.holdemol.render()})}
 function olSeatOf(conn){return OL.seats.findIndex(p=>p.conn===conn)}
 function olHostMsg(conn,m){if(!m||!OL.mode)return;const i=olSeatOf(conn);
  if(m.t=='join'){if(OL.started||i>=0){olSend(conn,{t:'full',why:OL.started?'Game already started':'Already joined'});return}const k=OL.seats.findIndex((p,j)=>j>0&&!p.hu);if(k<0){olSend(conn,{t:'full',why:'Table is full'});return}Object.assign(OL.seats[k],{hu:1,ai:0,conn,n:String(m.name||'Player').slice(0,10),ready:0,chips:0});olSend(conn,{t:'welcome',seat:k,B:OL.B});olLobbyBroadcast();return}
@@ -1238,18 +1247,23 @@ async function olHand(){const pl=OL.seats;CS.busy=1;OL.hand=1;OL.hn++;OL.board=[
  pl.forEach((p,i)=>{if(p.leave)olToAI(i)});
  olBroadcast()}
 // ----- client side
-function olJoin(){const code=($c('olcode').value||'').trim().toUpperCase();if(code.length<4){msg('ENTER THE ROOM CODE');return}const nm=($c('olname')&&$c('olname').value||'Player').slice(0,10)||'Player';OL.name=nm;
- $c('olc').innerHTML='<div style="padding:20px;color:#9ab">Connecting to table '+code+'…</div>';
- olLoad(()=>{let pr;try{pr=new Peer()}catch(e){msg('NETWORK ERROR');GM.holdemol.render();return}
-  const fail=t=>{if(OL.mode!='client'||!OL.started&&OL.stage!='lobbyclient'){msg(t);try{pr.destroy()}catch(e){}if(alive('holdemol')){OL.mode='';GM.holdemol.render()}}};
-  const to=setTimeout(()=>{if(OL.stage!='lobbyclient'&&OL.mode=='client'){fail('NO TABLE FOUND / TIMED OUT')}},15000);
-  pr.on('error',e=>{if(OL.mode=='client'&&OL.stage=='lobbyclient')return;fail('CANNOT CONNECT ('+(e&&e.type||'error')+')')});
-  pr.on('open',()=>{OL.mode='client';OL.peer=pr;const c=pr.connect('ocholdem-'+code,{reliable:true});OL.conn=c;
-   c.on('open',()=>{olSend(c,{t:'join',name:nm})});
-   c.on('data',m=>olClientMsg(m,to));c.on('close',()=>{if(OL.mode=='client'&&OL.buy)olRefund('Connection to the table was lost')});c.on('error',()=>{})})},()=>{msg('CANNOT LOAD PEERJS (OFFLINE?)');GM.holdemol.render()})}
-function olClientMsg(m,to){if(!m)return;
- if(m.t=='full'){clearTimeout(to);msg(m.why||'TABLE FULL');try{OL.peer.destroy()}catch(e){}OL.mode='';OL.stage='menu';if(alive('holdemol'))GM.holdemol.render();return}
- if(m.t=='welcome'){clearTimeout(to);if(P.cash<m.B){msg('YOU NEED '+fm(m.B)+' TO SIT');olSend(OL.conn,{t:'leave'});try{OL.peer.destroy()}catch(e){}OL.mode='';OL.stage='menu';GM.holdemol.render();return}
+function olJoin(){const code=($c('olcode').value||'').trim().toUpperCase();if(code.length<4){msg('ENTER THE ROOM CODE');return}const nm=($c('olname')&&$c('olname').value||'Player').slice(0,10)||'Player';OL.name=nm;OL.mode='client';OL.stage='joining';
+ olStatus('Step 1/3: loading PeerJS…');
+ olLoad(async()=>{if(OL.stage!='joining')return;const ice=await olIce();let pr;try{pr=new Peer(undefined,{config:ice})}catch(e){olStatus('NETWORK ERROR: '+e.message,'BACK');return}
+  OL.peer=pr;olStatus('Step 1/3: reaching the PeerJS server…');let c=null,done=0;const t0=Date.now();
+  const fail=(title,detail)=>{if(done||OL.stage=='lobbyclient'||OL.stage=='game')return;done=1;clearTimeout(OL.poll);try{pr.destroy()}catch(e){}OL.peer=null;OL.mode='';OL.stage='joinfail';olStatus(title+'\n\n'+detail,'BACK')};
+  const ics=()=>c&&c.peerConnection?c.peerConnection.iceConnectionState:'none';
+  OL.poll=setInterval(()=>{if(done||OL.stage!='joining'){clearInterval(OL.poll);return}const el=(Date.now()-t0)/1000;
+   if(c)olStatus('Step 2/3: contacting table '+code+'…\nlink state: '+ics()+' · '+Math.round(el)+'s');
+   if(el>30){clearInterval(OL.poll);const st=ics();fail(st=='none'||st=='new'?'NO ANSWER FROM TABLE':'COULD NOT LINK THE DEVICES (ICE '+st+')',st=='none'||st=='new'?'Check the room code, and make sure the host is still on the lobby screen of Hold\'em Online.':'Both devices reached the PeerJS server, but a direct connection could not be made. Some school/work Wi-Fi and phone networks block peer-to-peer links. Try both devices on the same Wi-Fi or a different network.')}},700);
+  pr.on('error',e=>{const ty=e&&e.type||'error';if(ty=='peer-unavailable')fail('TABLE NOT FOUND','No table with code '+code+' is open right now. Check the code and that the host is on the lobby screen.');else fail('CANNOT CONNECT ('+ty+')','Could not reach the PeerJS server or the table.')});
+  pr.on('disconnected',()=>{});
+  pr.on('open',()=>{if(OL.stage!='joining')return;olStatus('Step 2/3: contacting table '+code+'…');c=pr.connect('ocholdem-'+code,{reliable:true});OL.conn=c;
+   c.on('open',()=>{olStatus('Step 3/3: linked! Asking to join…');olSend(c,{t:'join',name:nm})});
+   c.on('data',m=>{if(m&&m.t=='welcome'||m&&m.t=='full'){done=1;clearInterval(OL.poll)}olClientMsg(m)});c.on('close',()=>{if(OL.mode=='client'&&OL.buy)olRefund('Connection to the table was lost');else if(OL.stage=='joining')fail('TABLE CLOSED THE LINK','The host closed the connection before you joined.')});c.on('error',()=>{})})},()=>{olStatus('CANNOT LOAD PEERJS (offline, or the CDN is blocked)','BACK')})}
+function olClientMsg(m){if(!m)return;
+ if(m.t=='full'){msg(m.why||'TABLE FULL');try{OL.peer.destroy()}catch(e){}OL.mode='';OL.stage='menu';if(alive('holdemol'))GM.holdemol.render();return}
+ if(m.t=='welcome'){if(P.cash<m.B){msg('YOU NEED '+fm(m.B)+' TO SIT');olSend(OL.conn,{t:'leave'});try{OL.peer.destroy()}catch(e){}OL.mode='';OL.stage='menu';GM.holdemol.render();return}
   P.cash-=m.B;bal();OL.B=m.B;OL.buy=m.B;OL.last=m.B;OL.me=m.seat;OL.stage='lobbyclient';OL.lob=[];olSend(OL.conn,{t:'ready'});olLobbyDraw();return}
  if(m.t=='lobby'){OL.lob=m.names;OL.B=m.B;olLobbyDraw();return}
  if(m.t=='view'){OL.started=1;OL.stage='game';OL.view=m.v;OL.last=m.v.seats[m.v.me].chips;CS.busy=m.v.hand?1:0;olDraw(m.v);return}
@@ -1259,7 +1273,7 @@ function olLeave(){if(OL.mode=='host'){if(OL.hand){msg('FINISH THE HAND FIRST');
  if(OL.mode=='client'){const v=OL.view;if(v&&v.hand&&v.seats[v.me].allin){msg("YOU'RE ALL IN — WAIT FOR THE HAND");return}olSend(OL.conn,{t:'leave'});olRefund('')}}
 function olLobbyDraw(){const c=$c('olc');if(!c||!alive('holdemol'))return;
  if(OL.mode=='host'){const sl=OL.seats.map((p,i)=>`<div style="padding:6px 12px;border:1px solid ${p.hu&&p.ready?'#7dff9a':'#555'};border-radius:10px;margin:4px;display:inline-block;min-width:130px">${i==0?'👑 ':''}${p.hu?(p.ready?p.n:p.n+' (joining…)'):'<span style="color:#778">empty · AI fills in</span>'}</div>`).join('');
-  c.innerHTML=`<div class="felt" style="padding:18px"><div style="font-size:13px;color:#cfe">Tell your friends this room code:</div><div style="font:900 56px/1.1 monospace;letter-spacing:10px;color:#ffd24a;margin:8px 0">${OL.code}</div><div style="color:#9ab;font-size:13px;margin-bottom:10px">Buy-in ${fm(OL.B)} · blinds ${fm(OL.sb)}/${fm(OL.bb)} · they open the casino → Texas Hold'em Online → Join</div>${sl}<div style="margin-top:14px"><button class="act go" data-a="olstart" ${OL.seats.filter(p=>p.hu&&p.ready).length<2?'disabled':''}>START GAME (${OL.seats.filter(p=>p.hu&&p.ready).length} players)</button> <button class="act" style="background:#444" data-a="olleave">CANCEL TABLE</button></div></div>`}
+  c.innerHTML=`<div class="felt" style="padding:18px"><div style="font-size:13px;color:#cfe">Tell your friends this room code:</div><div style="font:900 56px/1.1 monospace;letter-spacing:10px;color:#ffd24a;margin:8px 0">${OL.code}</div><div style="color:#9ab;font-size:13px;margin-bottom:10px">Buy-in ${fm(OL.B)} · blinds ${fm(OL.sb)}/${fm(OL.bb)} · they open the casino → Texas Hold'em Online → Join</div>${sl}<div style="margin-top:8px;font-size:12px;color:#889">Connection attempts received: ${OL.inc||0} · players joined: ${OL.seats.filter(p=>p.hu&&p.ready).length-1} · keep this screen open</div><div style="margin-top:14px"><button class="act go" data-a="olstart" ${OL.seats.filter(p=>p.hu&&p.ready).length<2?'disabled':''}>START GAME (${OL.seats.filter(p=>p.hu&&p.ready).length} players)</button> <button class="act" style="background:#444" data-a="olleave">CANCEL TABLE</button></div></div>`}
  else if(OL.mode=='client'){c.innerHTML=`<div class="felt" style="padding:22px"><div style="font-size:20px;font-weight:800;color:#ffd24a">Connected!</div><div style="margin:8px 0;color:#cfe">Buy-in ${fm(OL.B)} paid. Waiting for the host to start…</div><div>${OL.lob.map(n=>n?`<div style="display:inline-block;border:1px solid #7dff9a;border-radius:10px;padding:6px 12px;margin:4px">${n}</div>`:'').join('')}</div><div style="margin-top:12px"><button class="act" style="background:#444" data-a="olleave">LEAVE</button></div></div>`}}
 function olDraw(v){const c=$c('olc');if(!c||!alive('holdemol'))return;OL.view=v;const me=v.me,s=v.seats,ms=s[me],cols=['#ffd24a','#ff6a6a','#7ec8ff','#b98cff'];
  if(v.hn!==OL.cnt&&!v.hand&&ms.tot>0){OL.cnt=v.hn;crUp(crAdd(ms.tot))}
@@ -1276,7 +1290,7 @@ GM.holdemol={render(){const c=$c('cz-game');
  if(OL.mode&&(OL.stage=='lobbyhost'||OL.stage=='lobbyclient')){olLobbyDraw();return}
  if(OL.mode&&OL.stage=='game'&&OL.view){olDraw(OL.view);return}
  $c('olc').innerHTML=`<div style="margin-bottom:10px;color:#cfe;font-size:13px">Your name: <input id="olname" maxlength="10" value="${OL.name}" style="padding:6px 10px;border-radius:8px;border:1px solid #555;background:#111;color:#fff;width:140px"></div><div style="display:flex;flex-wrap:wrap;gap:14px;justify-content:center"><div class="felt" style="padding:16px;min-width:260px;flex:1"><div style="font-weight:800;color:#ffd24a;margin-bottom:6px">HOST A TABLE</div>${betBar('BUY-IN (everyone pays this)')}<button class="act" data-a="olcreate" style="margin-top:10px">CREATE TABLE <span class="betv"></span></button></div><div class="felt" style="padding:16px;min-width:260px;flex:1"><div style="font-weight:800;color:#ffd24a;margin-bottom:6px">JOIN A FRIEND</div><input id="olcode" maxlength="5" placeholder="CODE" style="font:800 28px monospace;letter-spacing:6px;text-transform:uppercase;text-align:center;width:170px;padding:8px;border-radius:10px;border:1px solid #555;background:#111;color:#ffd24a"><div style="margin-top:10px"><button class="act" data-a="oljoin">JOIN TABLE</button></div></div></div><div style="margin-top:10px;color:#889;font-size:12px">Needs an internet connection (uses the free PeerJS server to link devices). Each device keeps its own cash, so play with friends you trust.</div>`;syncBet()},
- act(a,v){if(a=='olcreate')olStartHost();else if(a=='oljoin')olJoin();else if(a=='olstart')olStartGame();else if(a=='olleave')olLeave();else if(a=='olact'){const m=v=='f'?{t:'f'}:v=='c'?{t:'c'}:{t:'r',to:+v};olSendAct(m)}},
+ act(a,v){if(a=='olcreate')olStartHost();else if(a=='oljoin')olJoin();else if(a=='olstart')olStartGame();else if(a=='olleave')olLeave();else if(a=='olcancel'){if(OL.stage=='joinfail'||OL.stage=='joining'||!OL.mode)olCancel();else olCancel()}else if(a=='olact'){const m=v=='f'?{t:'f'}:v=='c'?{t:'c'}:{t:'r',to:+v};olSendAct(m)}},
  off(){if(OL.mode=='client'&&OL.buy){olSend(OL.conn,{t:'leave'});olRefund('')}else if(OL.mode=='host'&&!OL.hand)olCloseTable('')}};
 GAMES.push(['holdemol',"HOLD'EM ONLINE",'vs friends']);
 window.OLx={OL,olView,olHu,olLeave};
