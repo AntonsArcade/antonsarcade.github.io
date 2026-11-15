@@ -1127,7 +1127,7 @@ async function heRound(first,curBet){const pl=HE.pl;let q=[];for(let k=0;k<4;k++
   tone(p.fold?200:420,.05);HE.act=null;drawHE()}
  HE.act=null}
 function hePost(p,amt){const m=Math.min(amt,p.chips);p.chips-=m;p.bet+=m;p.tot+=m;HE.pot+=m;if(!p.chips)p.allin=1}
-function hePots(){const pl=HE.pl,lv=[...new Set(pl.filter(p=>!p.fold&&p.tot>0).map(p=>p.tot))].sort((a,b)=>a-b),out=[];let prev=0;
+function hePots(pl0){const pl=pl0||HE.pl,lv=[...new Set(pl.filter(p=>!p.fold&&p.tot>0).map(p=>p.tot))].sort((a,b)=>a-b),out=[];let prev=0;
  for(const L of lv){let amt=0;for(const p of pl)amt+=Math.max(0,Math.min(p.tot,L)-prev);out.push({amt,el:pl.filter(p=>!p.fold&&p.tot>=L)});prev=L}
  // chips from folded players above the last level go to the last pot
  const tot=pl.reduce((a,p)=>a+p.tot,0),got=out.reduce((a,x)=>a+x.amt,0);if(tot>got&&out.length)out[out.length-1].amt+=tot-got;return out}
@@ -1172,6 +1172,114 @@ GM.holdem={render(){HE.sit=0;
  cash(){if(!HE.sit||HE.hand)return;const me=HE.pl[0],back=me.chips;P.cash+=back;bal();HE.sit=0;result(back-HE.buy,"Hold'em");this.render();syncBet();bal()},
  off(){if(HE.sit&&!HE.hand){const me=HE.pl[0];P.cash+=me.chips;HE.sit=0;bal()}}};
 GAMES.push(['holdem',"TEXAS HOLD'EM",'vs AI']);
+// ---------- TEXAS HOLD'EM ONLINE (PeerJS, host-authoritative, 2-4 humans + AI fill)
+const OL={mode:'',peer:null,seats:[],me:0,B:0,sb:0,bb:0,d:0,pot:0,cur:0,minr:0,board:[],hand:0,hn:0,show:0,act:-1,tc:0,msg:'',code:'',buy:0,last:0,cnt:0,wait:null,conn:null,stage:'menu',lob:[],started:0,view:null,tmo:0,name:'Player'};
+const PEERS=['https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js','https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js'];
+function olLoad(cb,fail,k){k=k||0;if(window.Peer){cb();return}if(k>=PEERS.length){fail();return}const s=document.createElement('script');s.src=PEERS[k];s.onload=()=>window.Peer?cb():olLoad(cb,fail,k+1);s.onerror=()=>olLoad(cb,fail,k+1);document.head.appendChild(s)}
+const olCode=()=>Array.from({length:5},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ'[ri(24)]).join('');
+const olHu=()=>OL.seats.filter(p=>p.hu);
+function olView(i){return{me:i,B:OL.B,bb:OL.bb,sb:OL.sb,hn:OL.hn,hand:OL.hand,pot:OL.pot,cur:OL.cur,minr:OL.minr,tc:OL.tc,act:OL.act,board:OL.board,show:OL.show,msg:OL.msg,d:OL.d,seats:OL.seats.map((p,j)=>({n:p.n,hu:p.hu,chips:p.chips,bet:p.bet,tot:p.tot,last:p.last,fold:p.fold,allin:p.allin,cards:(j==i||OL.show&&!p.fold)?p.h:(p.h.length?[0,0]:[])}))}}
+function olSend(c,m){try{c.send(m)}catch(e){}}
+function olBroadcast(){if(OL.mode!='host')return;OL.seats.forEach((p,i)=>{if(p.hu&&p.conn)olSend(p.conn,{t:'view',v:olView(i)})});olDraw(olView(0))}
+function olLobbyBroadcast(){const names=OL.seats.map(p=>p.hu?p.n:'');OL.seats.forEach(p=>{if(p.hu&&p.conn)olSend(p.conn,{t:'lobby',names,B:OL.B})});olLobbyDraw()}
+function olReset(){try{if(OL.peer)OL.peer.destroy()}catch(e){}clearTimeout(OL.tmo);Object.assign(OL,{mode:'',peer:null,seats:[],hand:0,started:0,wait:null,conn:null,stage:'menu',lob:[],view:null,act:-1,board:[],pot:0});CS.busy=0}
+function olRefund(why){const c=Math.max(0,Math.round(OL.last||0));if(OL.buy){P.cash+=c;result(c-OL.buy,"Online Hold'em")}OL.buy=0;OL.last=0;bal();olReset();if(alive('holdemol')){GM.holdemol.render();if(why)msg(why)}}
+function olStartHost(){
+ if(P.cash<100||stake()<100){msg('MIN BUY-IN $100');return}
+ const nm=($c('olname')&&$c('olname').value||'Player').slice(0,10)||'Player';OL.name=nm;
+ $c('olc').innerHTML='<div style="padding:20px;color:#9ab">Connecting to the PeerJS server…</div>';
+ olLoad(()=>{let tries=0;const mkp=()=>{const code=olCode();let pr;try{pr=new Peer('ocholdem-'+code)}catch(e){msg('NETWORK ERROR');GM.holdemol.render();return}
+   pr.on('open',()=>{const B=stake();if(P.cash<B){msg('NOT ENOUGH CASH');pr.destroy();GM.holdemol.render();return}P.cash-=B;bal();OL.peer=pr;OL.mode='host';OL.code=code;OL.B=B;OL.sb=Math.max(1,Math.round(B/50));OL.bb=OL.sb*2;OL.buy=B;OL.last=B;OL.hn=0;OL.started=0;OL.d=ri(4);
+    OL.seats=[0,1,2,3].map(i=>({n:i?'':nm,hu:i==0,ai:i>0,conn:null,chips:i==0?B:0,h:[],fold:0,allin:0,bet:0,tot:0,last:'',leave:0,ready:i==0,sty:0}));OL.stage='lobbyhost';olLobbyDraw()});
+   pr.on('error',e=>{if(e&&e.type=='unavailable-id'&&tries++<5){try{pr.destroy()}catch(x){}mkp();return}if(!OL.mode){msg('COULD NOT CREATE TABLE ('+(e&&e.type||'error')+')');GM.holdemol.render()}});
+   pr.on('connection',conn=>{conn.on('data',m=>olHostMsg(conn,m));conn.on('close',()=>olDrop(conn));conn.on('error',()=>olDrop(conn))})};mkp()},()=>{msg('CANNOT LOAD PEERJS (OFFLINE?)');GM.holdemol.render()})}
+function olSeatOf(conn){return OL.seats.findIndex(p=>p.conn===conn)}
+function olHostMsg(conn,m){if(!m||!OL.mode)return;const i=olSeatOf(conn);
+ if(m.t=='join'){if(OL.started||i>=0){olSend(conn,{t:'full',why:OL.started?'Game already started':'Already joined'});return}const k=OL.seats.findIndex((p,j)=>j>0&&!p.hu);if(k<0){olSend(conn,{t:'full',why:'Table is full'});return}Object.assign(OL.seats[k],{hu:1,ai:0,conn,n:String(m.name||'Player').slice(0,10),ready:0,chips:0});olSend(conn,{t:'welcome',seat:k,B:OL.B});olLobbyBroadcast();return}
+ if(i<0)return;const p=OL.seats[i];
+ if(m.t=='ready'){p.ready=1;p.chips=OL.B;olLobbyBroadcast();return}
+ if(m.t=='act'&&OL.wait&&OL.wait.seat==i){const a=m.a||{};OL.wait.res(a.t=='f'?{t:'f'}:a.t=='r'?{t:'r',to:Math.floor(+a.to)||0}:{t:'c'});return}
+ if(m.t=='leave'){olLeaveSeat(i)}}
+function olLeaveSeat(i){const p=OL.seats[i];if(!p||i==0)return;if(OL.hand){p.leave=1;if(OL.wait&&OL.wait.seat==i)OL.wait.res({t:'f'});return}olToAI(i);if(!OL.started)olLobbyBroadcast();else{if(olHu().length<2)olCloseTable('Not enough players');else olBroadcast()}}
+function olToAI(i){const p=OL.seats[i];try{p.conn&&p.conn.close()}catch(e){}Object.assign(p,{hu:0,ai:1,conn:null,leave:0,ready:0,chips:OL.started?OL.B:0,n:OL.started?(['Vinnie','Dolores','Slick'][i-1]||'Bot'):''});p.sty=[0,.7,.15,.4][i]}
+function olDrop(conn){const i=olSeatOf(conn);if(i<0||!OL.mode)return;const p=OL.seats[i];if(OL.hand){p.leave=1;if(OL.wait&&OL.wait.seat==i)OL.wait.res({t:'f'});return}olToAI(i);if(!OL.started)olLobbyBroadcast();else{if(olHu().length<2)olCloseTable('Not enough players');else olBroadcast()}}
+function olCloseTable(why){if(OL.mode!='host')return;OL.seats.forEach((p,i)=>{if(i&&p.hu&&p.conn)olSend(p.conn,{t:'close',why:why||'Host closed the table'})});OL.last=OL.seats[0].chips||OL.last;setTimeout(()=>{olRefund(why||'')},200)}
+function olStartGame(){if(OL.mode!='host'||OL.started)return;const hs=OL.seats.filter(p=>p.hu&&p.ready);if(hs.length<2){msg('NEED 2+ PLAYERS');return}
+ OL.seats.forEach((p,i)=>{if(p.hu&&!p.ready)olToAI(i)});OL.started=1;OL.seats.forEach((p,i)=>{if(!p.hu){p.ai=1;p.n=['','Vinnie','Dolores','Slick'][i];p.sty=[0,.7,.15,.4][i];p.chips=OL.B}});olGameLoop()}
+async function olGameLoop(){while(OL.mode=='host'&&OL.started){if(olHu().filter(p=>p.chips>=OL.bb).length<2){olCloseTable('Not enough players with chips');return}await olHand();if(OL.mode!='host')return;
+  for(let k=7;k>0&&OL.mode=='host';k--){OL.msgT=k;olBroadcast();await sleep(1000)}}}
+function olAsk(i,toCall){const p=OL.seats[i];if(p.leave||!p.hu)return Promise.resolve({t:'f'});return new Promise(res=>{let done=0;const fin=a=>{if(done)return;done=1;clearTimeout(OL.tmo);OL.wait=null;OL.act=-1;res(a)};OL.wait={seat:i,res:fin};OL.act=i;OL.tc=toCall;olBroadcast();if(i!=0)OL.tmo=setTimeout(()=>fin(toCall?{t:'f'}:{t:'c'}),45000)})}
+async function olRound(first,curBet){const pl=OL.seats;let q=[];for(let k=0;k<4;k++){const p=pl[(first+k)%4];if(!p.fold&&!p.allin)q.push(p)}OL.cur=curBet;OL.minr=Math.max(OL.minr,OL.bb);
+ while(q.length){const p=q.shift();if(p.fold||p.allin)continue;if(pl.filter(x=>!x.fold).length<2||OL.mode!='host')return;if(pl.filter(x=>!x.fold&&!x.allin).length<2&&p.bet>=OL.cur)continue;
+  const i=pl.indexOf(p),toCall=OL.cur-p.bet;let a;
+  if(!p.hu){OL.act=i;olBroadcast();await sleep(550+ri(500));Object.assign(HE,{pot:OL.pot,cur:OL.cur,minr:OL.minr,bb:OL.bb,board:OL.board});a=heAI(p,toCall)}else a=await olAsk(i,toCall);
+  if(OL.mode!='host')return;
+  if(a.t=='f'){p.fold=1;p.last='FOLD'}
+  else if(a.t=='c'||a.to<=OL.cur){const m=Math.min(toCall,p.chips);p.chips-=m;p.bet+=m;p.tot+=m;OL.pot+=m;if(!p.chips)p.allin=1;p.last=p.allin?'ALL IN':toCall?'CALL':'CHECK'}
+  else{const mn=OL.cur+OL.minr,to=Math.min(Math.max(a.to,mn),p.bet+p.chips),m=to-p.bet;p.chips-=m;const prev=OL.cur;p.bet=to;p.tot+=m;OL.pot+=m;if(!p.chips)p.allin=1;if(to>prev){OL.minr=Math.max(OL.minr,to-prev);OL.cur=to;q=[];for(let k=1;k<4;k++){const o=pl[(i+k)%4];if(!o.fold&&!o.allin)q.push(o)}}p.last=p.allin?'ALL IN':(prev?'RAISE':'BET')+' '+fm(to)}
+  OL.act=-1;olBroadcast()}
+ OL.act=-1}
+function olPost(p,amt){const m=Math.min(amt,p.chips);p.chips-=m;p.bet+=m;p.tot+=m;OL.pot+=m;if(!p.chips)p.allin=1}
+async function olHand(){const pl=OL.seats;CS.busy=1;OL.hand=1;OL.hn++;OL.board=[];OL.pot=0;OL.show=0;OL.msg='';OL.msgT=0;
+ pl.forEach(p=>{p.h=[];p.fold=0;p.allin=0;p.bet=0;p.tot=0;p.last='';if(!p.hu)p.chips=OL.B;if(p.hu&&p.chips<OL.bb){p.fold=1;p.last='OUT'}});
+ const dk=deck52();pl.forEach(p=>{p.h=p.fold?[]:[dk.pop(),dk.pop()]});OL.d=(OL.d+1)%4;
+ const act=pl.map((p,i)=>i).filter(i=>!pl[i].fold),nx=(i)=>{let k=1;while(pl[(i+k)%4].fold)k++;return(i+k)%4};
+ const sb=nx(OL.d),bb=nx(sb);olPost(pl[sb],OL.sb);olPost(pl[bb],OL.bb);pl[sb].last='SB';pl[bb].last='BB';OL.minr=OL.bb;olBroadcast();await sleep(600);
+ const first=nx(bb);
+ for(let r=0;r<4;r++){if(OL.mode!='host')return;if(r>0){pl.forEach(p=>{p.bet=0;if(!p.fold&&!p.allin)p.last=''});OL.minr=OL.bb;const n=r==1?3:1;for(let k=0;k<n;k++)OL.board.push(dk.pop());olBroadcast();await sleep(600)}
+  if(pl.filter(x=>!x.fold).length<2)break;await olRound(r==0?first:nx(OL.d),r==0?OL.bb:0);if(OL.mode!='host')return}
+ const live=pl.filter(p=>!p.fold);
+ if(live.length>1){while(OL.board.length<5){OL.board.push(dk.pop());olBroadcast();await sleep(700)}OL.show=1}
+ const w=pl.map(()=>0),pots=hePots(pl),sc=pl.map(p=>p.fold?-1:best7(p.h.concat(OL.board)));
+ for(const pt of pots){let b=-1;pt.el.forEach(p=>{b=Math.max(b,sc[pl.indexOf(p)])});const wn=pt.el.filter(p=>sc[pl.indexOf(p)]==b),sh=Math.floor(pt.amt/wn.length);wn.forEach((p,k)=>{w[pl.indexOf(p)]+=sh+(k==0?pt.amt-sh*wn.length:0)})}
+ pl.forEach((p,i)=>{p.chips+=w[i]});
+ const wi=w.map((x,i)=>i).filter(i=>w[i]>0);OL.msg=live.length>1?wi.map(i=>pl[i].n+' wins '+fm(w[i])+' — '+HNAMES[hcat(sc[i])]).join(' · '):pl[wi[0]].n+' wins '+fm(w[wi[0]])+' (everyone folded)';
+ OL.hand=0;CS.busy=0;
+ pl.forEach((p,i)=>{if(p.leave)olToAI(i)});
+ olBroadcast()}
+// ----- client side
+function olJoin(){const code=($c('olcode').value||'').trim().toUpperCase();if(code.length<4){msg('ENTER THE ROOM CODE');return}const nm=($c('olname')&&$c('olname').value||'Player').slice(0,10)||'Player';OL.name=nm;
+ $c('olc').innerHTML='<div style="padding:20px;color:#9ab">Connecting to table '+code+'…</div>';
+ olLoad(()=>{let pr;try{pr=new Peer()}catch(e){msg('NETWORK ERROR');GM.holdemol.render();return}
+  const fail=t=>{if(OL.mode!='client'||!OL.started&&OL.stage!='lobbyclient'){msg(t);try{pr.destroy()}catch(e){}if(alive('holdemol')){OL.mode='';GM.holdemol.render()}}};
+  const to=setTimeout(()=>{if(OL.stage!='lobbyclient'&&OL.mode=='client'){fail('NO TABLE FOUND / TIMED OUT')}},15000);
+  pr.on('error',e=>{if(OL.mode=='client'&&OL.stage=='lobbyclient')return;fail('CANNOT CONNECT ('+(e&&e.type||'error')+')')});
+  pr.on('open',()=>{OL.mode='client';OL.peer=pr;const c=pr.connect('ocholdem-'+code,{reliable:true});OL.conn=c;
+   c.on('open',()=>{olSend(c,{t:'join',name:nm})});
+   c.on('data',m=>olClientMsg(m,to));c.on('close',()=>{if(OL.mode=='client'&&OL.buy)olRefund('Connection to the table was lost')});c.on('error',()=>{})})},()=>{msg('CANNOT LOAD PEERJS (OFFLINE?)');GM.holdemol.render()})}
+function olClientMsg(m,to){if(!m)return;
+ if(m.t=='full'){clearTimeout(to);msg(m.why||'TABLE FULL');try{OL.peer.destroy()}catch(e){}OL.mode='';OL.stage='menu';if(alive('holdemol'))GM.holdemol.render();return}
+ if(m.t=='welcome'){clearTimeout(to);if(P.cash<m.B){msg('YOU NEED '+fm(m.B)+' TO SIT');olSend(OL.conn,{t:'leave'});try{OL.peer.destroy()}catch(e){}OL.mode='';OL.stage='menu';GM.holdemol.render();return}
+  P.cash-=m.B;bal();OL.B=m.B;OL.buy=m.B;OL.last=m.B;OL.me=m.seat;OL.stage='lobbyclient';OL.lob=[];olSend(OL.conn,{t:'ready'});olLobbyDraw();return}
+ if(m.t=='lobby'){OL.lob=m.names;OL.B=m.B;olLobbyDraw();return}
+ if(m.t=='view'){OL.started=1;OL.stage='game';OL.view=m.v;OL.last=m.v.seats[m.v.me].chips;CS.busy=m.v.hand?1:0;olDraw(m.v);return}
+ if(m.t=='close'){olRefund(m.why||'Host closed the table');return}}
+function olSendAct(a){if(OL.mode=='host'){if(OL.wait&&OL.wait.seat==0)OL.wait.res(a)}else if(OL.conn)olSend(OL.conn,{t:'act',a})}
+function olLeave(){if(OL.mode=='host'){if(OL.hand){msg('FINISH THE HAND FIRST');return}olCloseTable('');return}
+ if(OL.mode=='client'){const v=OL.view;if(v&&v.hand&&v.seats[v.me].allin){msg("YOU'RE ALL IN — WAIT FOR THE HAND");return}olSend(OL.conn,{t:'leave'});olRefund('')}}
+function olLobbyDraw(){const c=$c('olc');if(!c||!alive('holdemol'))return;
+ if(OL.mode=='host'){const sl=OL.seats.map((p,i)=>`<div style="padding:6px 12px;border:1px solid ${p.hu&&p.ready?'#7dff9a':'#555'};border-radius:10px;margin:4px;display:inline-block;min-width:130px">${i==0?'👑 ':''}${p.hu?(p.ready?p.n:p.n+' (joining…)'):'<span style="color:#778">empty · AI fills in</span>'}</div>`).join('');
+  c.innerHTML=`<div class="felt" style="padding:18px"><div style="font-size:13px;color:#cfe">Tell your friends this room code:</div><div style="font:900 56px/1.1 monospace;letter-spacing:10px;color:#ffd24a;margin:8px 0">${OL.code}</div><div style="color:#9ab;font-size:13px;margin-bottom:10px">Buy-in ${fm(OL.B)} · blinds ${fm(OL.sb)}/${fm(OL.bb)} · they open the casino → Texas Hold'em Online → Join</div>${sl}<div style="margin-top:14px"><button class="act go" data-a="olstart" ${OL.seats.filter(p=>p.hu&&p.ready).length<2?'disabled':''}>START GAME (${OL.seats.filter(p=>p.hu&&p.ready).length} players)</button> <button class="act" style="background:#444" data-a="olleave">CANCEL TABLE</button></div></div>`}
+ else if(OL.mode=='client'){c.innerHTML=`<div class="felt" style="padding:22px"><div style="font-size:20px;font-weight:800;color:#ffd24a">Connected!</div><div style="margin:8px 0;color:#cfe">Buy-in ${fm(OL.B)} paid. Waiting for the host to start…</div><div>${OL.lob.map(n=>n?`<div style="display:inline-block;border:1px solid #7dff9a;border-radius:10px;padding:6px 12px;margin:4px">${n}</div>`:'').join('')}</div><div style="margin-top:12px"><button class="act" style="background:#444" data-a="olleave">LEAVE</button></div></div>`}}
+function olDraw(v){const c=$c('olc');if(!c||!alive('holdemol'))return;OL.view=v;const me=v.me,s=v.seats,ms=s[me],cols=['#ffd24a','#ff6a6a','#7ec8ff','#b98cff'];
+ if(v.hn!==OL.cnt&&!v.hand&&ms.tot>0){OL.cnt=v.hn;crUp(crAdd(ms.tot))}
+ const seat=j=>{const p=s[j],a=v.act==j,col=cols[j];return `<div style="background:#0008;border:2px solid ${a?'#ffd24a':p.fold?'#333':col+'66'};border-radius:12px;padding:8px;opacity:${p.fold?.45:1}"><div style="font-weight:800;color:${col}">${p.n||'…'}${p.hu?' 👤':' 🤖'}${v.d==j?' ⓓ':''}</div><div style="font-size:13px">${fm(p.chips)}</div><div class="olh" data-s="${j}" style="display:flex;justify-content:center;gap:4px;min-height:60px;margin:4px 0"></div><div style="font-size:12px;color:#ffe08a;min-height:16px">${p.last||''}${p.bet?' · in: '+fm(p.bet):''}</div></div>`};
+ const others=[1,2,3].map(k=>(me+k)%4);
+ let btn='';if(v.act==me&&!ms.fold){const tc=v.tc,mn=v.cur+v.minr,half=v.cur+Math.max(v.minr,Math.round(v.pot/2)),pot=v.cur+Math.max(v.minr,v.pot),all=ms.bet+ms.chips;
+  btn=`<button class="act" style="background:#444" data-a="olact" data-v="f">FOLD</button><button class="act go" data-a="olact" data-v="c">${tc?'CALL '+fm(Math.min(tc,ms.chips)):'CHECK'}</button>`+(ms.chips>tc?[[mn,'MIN RAISE'],[half,'½ POT'],[pot,'POT']].filter(x=>x[0]<=all&&x[0]>v.cur&&x[0]<all).map(x=>`<button class="act" data-a="olact" data-v="${x[0]}">${x[1]} → ${fm(x[0])}</button>`).join('')+`<button class="act" data-a="olact" data-v="${all}">ALL IN ${fm(all)}</button>`:'')}
+ else btn='<div style="color:#aab;font-size:13px;padding:10px">'+(v.hand?(v.act>=0&&v.act!=me?(s[v.act].n||'…')+' is thinking…':'…'):(v.msgT?'Next hand in '+v.msgT+'…':'Next hand starting…'))+'</div>';
+ c.innerHTML=`<div class="felt" style="padding:12px"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">${others.map(seat).join('')}</div><div class="olb" style="margin:12px 0;min-height:90px;display:flex;gap:6px;justify-content:center;align-items:center"></div><div style="text-align:center;font-weight:800;font-size:18px;color:#ffe08a">POT ${fm(v.pot)}</div><div style="margin-top:8px"><div style="font-size:13px"><b style="color:#ffd24a">${ms.n}</b> · ${fm(ms.chips)}${ms.last?' · '+ms.last:''}${v.d==me?' ⓓ':''}</div><div style="font-size:12px;color:#7dff9a;min-height:16px">${v.hand&&ms.cards.length&&!ms.fold&&v.board.length>=3&&ms.cards[0]?HNAMES[hcat(best7(ms.cards.concat(v.board)))]:''}</div><div class="olh" data-s="${me}" style="display:flex;justify-content:center;gap:6px;min-height:84px"></div></div><div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px">${btn}</div><div style="margin-top:8px;color:#9ab;font-size:13px;min-height:18px">${v.msg||''}</div><div style="margin-top:8px"><button class="act" style="background:#444;font-size:12px;padding:6px 12px" data-a="olleave">LEAVE TABLE</button> <span style="font-size:11px;color:#889">leaving mid-hand folds your hand · you get your chips back</span></div></div>`;
+ const bd=c.querySelector('.olb');for(let i=0;i<5;i++){if(v.board[i]){const e=cardEl(v.board[i],false,true);e.classList.remove('deal');bd.appendChild(e)}else{const e=document.createElement('div');e.style.cssText='width:58px;height:84px;border:2px dashed #fff3;border-radius:8px';bd.appendChild(e)}}
+ c.querySelectorAll('.olh').forEach(h=>{const j=+h.dataset.s;s[j].cards.forEach(cd=>{const e=cardEl(cd||{r:'?',s:'♠'},!cd,true);e.classList.remove('deal');h.appendChild(e)})})}
+GM.holdemol={render(){const c=$c('cz-game');
+ c.innerHTML=head("TEXAS HOLD'EM ONLINE",'Play friends on other devices · room code · up to 4 humans, AI fills empty seats · buy-in from your own cash · no house edge')+'<div id="olc"></div>';
+ if(OL.mode&&(OL.stage=='lobbyhost'||OL.stage=='lobbyclient')){olLobbyDraw();return}
+ if(OL.mode&&OL.stage=='game'&&OL.view){olDraw(OL.view);return}
+ $c('olc').innerHTML=`<div style="margin-bottom:10px;color:#cfe;font-size:13px">Your name: <input id="olname" maxlength="10" value="${OL.name}" style="padding:6px 10px;border-radius:8px;border:1px solid #555;background:#111;color:#fff;width:140px"></div><div style="display:flex;flex-wrap:wrap;gap:14px;justify-content:center"><div class="felt" style="padding:16px;min-width:260px;flex:1"><div style="font-weight:800;color:#ffd24a;margin-bottom:6px">HOST A TABLE</div>${betBar('BUY-IN (everyone pays this)')}<button class="act" data-a="olcreate" style="margin-top:10px">CREATE TABLE <span class="betv"></span></button></div><div class="felt" style="padding:16px;min-width:260px;flex:1"><div style="font-weight:800;color:#ffd24a;margin-bottom:6px">JOIN A FRIEND</div><input id="olcode" maxlength="5" placeholder="CODE" style="font:800 28px monospace;letter-spacing:6px;text-transform:uppercase;text-align:center;width:170px;padding:8px;border-radius:10px;border:1px solid #555;background:#111;color:#ffd24a"><div style="margin-top:10px"><button class="act" data-a="oljoin">JOIN TABLE</button></div></div></div><div style="margin-top:10px;color:#889;font-size:12px">Needs an internet connection (uses the free PeerJS server to link devices). Each device keeps its own cash, so play with friends you trust.</div>`;syncBet()},
+ act(a,v){if(a=='olcreate')olStartHost();else if(a=='oljoin')olJoin();else if(a=='olstart')olStartGame();else if(a=='olleave')olLeave();else if(a=='olact'){const m=v=='f'?{t:'f'}:v=='c'?{t:'c'}:{t:'r',to:+v};olSendAct(m)}},
+ off(){if(OL.mode=='client'&&OL.buy){olSend(OL.conn,{t:'leave'});olRefund('')}else if(OL.mode=='host'&&!OL.hand)olCloseTable('')}};
+GAMES.push(['holdemol',"HOLD'EM ONLINE",'vs friends']);
+window.OLx={OL,olView,olHu,olLeave};
 })();
 
 
