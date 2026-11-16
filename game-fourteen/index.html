@@ -260,6 +260,7 @@ input[type=range].czr{width:100%;accent-color:#ff7ad9;-webkit-user-select:none}
 <div id="fb" style="display:none"><button class="tb sm" data-k="ArrowUp" style="left:14px;bottom:172px">▲</button><button class="tb sm" data-k="ArrowDown" style="left:74px;bottom:172px">▼</button></div>
 <button class="tb xs" id="tp" style="left:calc(50% - 66px)">⏸</button><button class="tb xs" id="tk" style="left:calc(50% - 20px)">🔑</button><button class="tb xs" id="tf" style="left:calc(50% + 26px)">⛶</button><button class="tb xs" id="tm2" style="left:calc(50% + 72px)">🗺</button><button class="tb xs" id="tph" style="left:calc(50% + 118px)">📱</button>
 </div>
+<script src="supabase-config.js" onerror="void 0"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>window.THREE||document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"><\/script>')</script>
 <script>
@@ -1183,7 +1184,7 @@ async function olIce(){if(OLICE)return OLICE;const ic=[{urls:'stun:stun.l.google
 function olStatus(t,btn){const c=$c('olc');if(c)c.innerHTML='<div class="felt" style="padding:20px"><div style="font-size:16px;color:#ffe08a;white-space:pre-line">'+t+'</div><div style="margin-top:12px"><button class="act" style="background:#444" data-a="olcancel">'+(btn||'CANCEL')+'</button></div></div>'}
 function olCancel(){try{if(OL.peer)OL.peer.destroy()}catch(e){}clearTimeout(OL.poll);OL.mode='';OL.stage='menu';OL.peer=null;OL.conn=null;if(alive('holdemol'))GM.holdemol.render()}
 const MQ={base:'ocholdem/v1/',brokers:['wss://broker.hivemq.com:8884/mqtt','wss://broker.emqx.io:8084/mqtt','wss://test.mosquitto.org:8081'],libs:['https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js','https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js']};
-function olLoadK(kind,cb,fail,k){k=k||0;const g=kind=='mqtt'?'mqtt':'Peer',urls=kind=='mqtt'?MQ.libs:PEERS;if(window[g]){cb();return}if(k>=urls.length){fail();return}const sc=document.createElement('script');sc.src=urls[k];sc.onload=()=>window[g]?cb():olLoadK(kind,cb,fail,k+1);sc.onerror=()=>olLoadK(kind,cb,fail,k+1);document.head.appendChild(sc)}
+function olLoadK(kind,cb,fail,k){k=k||0;const g=kind=='sb'?'supabase':kind=='mqtt'?'mqtt':'Peer',urls=kind=='sb'?SB.libs:kind=='mqtt'?MQ.libs:PEERS;if(window[g]){cb();return}if(k>=urls.length){fail();return}const sc=document.createElement('script');sc.src=urls[k];sc.onload=()=>window[g]?cb():olLoadK(kind,cb,fail,k+1);sc.onerror=()=>olLoadK(kind,cb,fail,k+1);document.head.appendChild(sc)}
 const olLoad=(cb,fail)=>olLoadK('peer',cb,fail);
 class MqConn{constructor(peer,remote,cid){this.peer=peer;this.remote=remote;this.cid=cid;this.h={}}on(e,f){(this.h[e]=this.h[e]||[]).push(f);return this}emit(e,a){(this.h[e]||[]).slice().forEach(f=>{try{f(a)}catch(x){console.error(x)}})}send(m){this.peer._pub(this.remote,{t:'d',f:this.peer.id,c:this.cid,m})}close(){if(this.closed)return;this.closed=1;this.peer._pub(this.remote,{t:'c',f:this.peer.id,c:this.cid});this.emit('close');delete this.peer.conns[this.cid]}}
 class MqPeer{constructor(id,o){this.id=id||'u'+Math.random().toString(36).slice(2,9);this.h={};this.conns={};this.pend={};this.bi=(o&&o.broker)||0;this.host=!!id;this._connect()}
@@ -1202,6 +1203,35 @@ class MqPeer{constructor(id,o){this.id=id||'u'+Math.random().toString(36).slice(
   else if(d.t=='c'){const c=this.conns[d.c];if(c){c.closed=1;c.emit('close');delete this.conns[d.c]}}}
  connect(rid){const cid=Math.random().toString(36).slice(2,9),c=new MqConn(this,rid,cid);this.conns[cid]=c;this.pend[rid]={cid,tm:setTimeout(()=>{delete this.pend[rid];this.emit('error',{type:'peer-unavailable'})},6000)};try{this.c.subscribe(MQ.base+rid+'/pres',{qos:0})}catch(e){}return c}
  destroy(){this.dead=1;try{if(this.host)this.c.publish(MQ.base+this.id+'/pres','',{qos:0,retain:true});setTimeout(()=>{try{this.c.end(true)}catch(e){}},150)}catch(e){}}}
+
+// ---------- SUPABASE REALTIME TRANSPORT (Broadcast only: no tables, no login) ----------
+const SB=Object.assign({url:'',key:''},window.OC_SB||{},{libs:['https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js','https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js']});
+const SB_OK=()=>/^https:\/\/[a-z0-9-]+\.supabase\.(co|in)\/?$/i.test(String(SB.url).trim())&&String(SB.key).trim().length>20;
+const olTr=()=>OL.tr||(SB_OK()?'sb':'relay');
+let SBC=null;
+class SbPeer extends MqPeer{
+ _connect(){this.ch=null;
+  if(this.host)this._join(this.id,()=>this.emit('open',this.id),()=>{if(!this.failed){this.failed=1;this.emit('error',{type:'server-error'})}});
+  else setTimeout(()=>this.emit('open',this.id),0)}
+ _join(room,ok,bad){
+  let cl;try{cl=SBC=SBC||window.supabase.createClient(String(SB.url).trim(),String(SB.key).trim(),{realtime:{params:{eventsPerSecond:40}}})}catch(e){setTimeout(bad,0);return}
+  let ch;try{ch=cl.channel('oc-'+room,{config:{broadcast:{self:false}}})}catch(e){setTimeout(bad,0);return}
+  ch.on('broadcast',{event:'m'},p=>{const d=p&&p.payload;if(d&&d.to===this.id&&d.o)this._in(d.o)});
+  let opened=0;
+  ch.subscribe(st=>{if(st==='SUBSCRIBED'){if(!opened){opened=1;ok()}}else if(!opened&&(st==='CHANNEL_ERROR'||st==='TIMED_OUT'))bad();else if(opened&&!this.dead&&(st==='CLOSED'||st==='CHANNEL_ERROR'))this.emit('disconnected')});
+  this.ch=ch;this.room=room}
+ _pub(to,o){try{if(!this.ch)return;const r=this.ch.send({type:'broadcast',event:'m',payload:{to,o}});if(r&&r.catch)r.catch(()=>{})}catch(e){}}
+ _in(d){if(!d)return;
+  if(d.t==='o'&&this.conns[d.c]){this._pub(d.f,{t:'a',f:this.id,c:d.c});return}
+  if(d.t==='a'){const c=this.conns[d.c];if(c&&c.opened)return}
+  super._in(d)}
+ connect(rid){
+  const cid=Math.random().toString(36).slice(2,9),c=new MqConn(this,rid,cid);this.conns[cid]=c;let n=0,tm=0;
+  const stop=()=>{clearInterval(tm)};
+  c.on('open',()=>{c.opened=1;stop()});
+  this._join(rid,()=>{const ping=()=>{if(c.opened||this.dead){stop();return}if(++n>6){stop();this.emit('error',{type:'peer-unavailable'});return}this._pub(rid,{t:'o',f:this.id,c:cid})};ping();tm=setInterval(ping,1500)},()=>this.emit('error',{type:'server-error'}));
+  return c}
+ destroy(){this.dead=1;try{const c=this.ch;if(c)setTimeout(()=>{try{SBC.removeChannel(c)}catch(e){}},150)}catch(e){}}}
 const olCode=()=>Array.from({length:5},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ'[ri(24)]).join('');
 const olHu=()=>OL.seats.filter(p=>p.hu);
 function olView(i){return{me:i,B:OL.B,bb:OL.bb,sb:OL.sb,hn:OL.hn,hand:OL.hand,pot:OL.pot,cur:OL.cur,minr:OL.minr,tc:OL.tc,act:OL.act,board:OL.board,show:OL.show,msg:OL.msg,d:OL.d,seats:OL.seats.map((p,j)=>({n:p.n,hu:p.hu,chips:p.chips,bet:p.bet,tot:p.tot,last:p.last,fold:p.fold,allin:p.allin,cards:(j==i||OL.show&&!p.fold)?p.h:(p.h.length?[0,0]:[])}))}}
@@ -1216,7 +1246,11 @@ function olHostReady(pr,code){const B=stake();if(P.cash<B){msg('NOT ENOUGH CASH'
  pr.on('connection',conn=>{OL.inc=(OL.inc||0)+1;if(OL.stage=='lobbyhost')olLobbyDraw();conn.on('data',m=>olHostMsg(conn,m));conn.on('close',()=>olDrop(conn));conn.on('error',()=>olDrop(conn))})}
 function olStartHost(){
  if(P.cash<100||stake()<100){msg('MIN BUY-IN $100');return}
- OL.name=($c('olname')&&$c('olname').value||'Player').slice(0,10)||'Player';OL.inc=0;const tr=OL.tr||'relay';OL.mode='hostinit';
+ OL.name=($c('olname')&&$c('olname').value||'Player').slice(0,10)||'Player';OL.inc=0;const tr=olTr();OL.mode='hostinit';
+ if(tr=='sb'){if(!SB_OK()){OL.mode='';olStatus('SUPABASE IS NOT SET UP YET\n\nCreate supabase-config.js next to this file with your project URL and key, or pick Relay / Direct.','BACK');return}
+  olLoadK('sb',()=>{const code=olCode()+'S';olStatus('Hosting: connecting to Supabase…');const pr=new SbPeer('oc'+code,{});let ok=0;
+   pr.on('open',()=>{if(OL.mode!='hostinit'){pr.destroy();return}ok=1;olHostReady(pr,code)});
+   pr.on('error',e=>{if(ok)return;pr.dead=1;try{pr.destroy()}catch(x){}OL.mode='';olStatus('COULD NOT REACH SUPABASE\n\nCheck the URL and key in supabase-config.js and your internet connection, or pick another connection type.','BACK')})},()=>{OL.mode='';olStatus('CANNOT LOAD THE SUPABASE LIBRARY (offline, or the CDN is blocked)','BACK')});return}
  olStatus('Hosting: loading…');
  if(tr=='relay'){olLoadK('mqtt',()=>{let bi=0;const tryB=()=>{if(OL.mode!='hostinit')return;const code=olCode()+(bi+1);olStatus('Hosting: connecting to relay server '+(bi+1)+'/'+MQ.brokers.length+'…');const pr=new MqPeer('oc'+code,{broker:bi});let ok=0;
    pr.on('open',()=>{if(OL.mode!='hostinit'){pr.destroy();return}ok=1;olHostReady(pr,code)});
@@ -1270,15 +1304,15 @@ async function olHand(){const pl=OL.seats;CS.busy=1;OL.hand=1;OL.hn++;OL.board=[
  olBroadcast()}
 // ----- client side
 function olJoin(){const code=($c('olcode').value||'').trim().toUpperCase();if(code.length<5){msg('ENTER THE ROOM CODE');return}const nm=($c('olname')&&$c('olname').value||'Player').slice(0,10)||'Player';OL.name=nm;OL.mode='client';OL.stage='joining';
- const relay=/^[A-Z]{5}[1-9]$/.test(code),bi=relay?+code.slice(-1)-1:0;olStatus('Step 1/3: loading…');
- olLoadK(relay?'mqtt':'peer',async()=>{if(OL.stage!='joining')return;let pr,ice=null;if(!relay)ice=await olIce();try{pr=relay?new MqPeer(undefined,{broker:bi}):new Peer(undefined,{config:ice})}catch(e){olStatus('NETWORK ERROR: '+e.message,'BACK');return}
+ const sb=/^[A-Z]{5}S$/.test(code),relay=sb||/^[A-Z]{5}[1-9]$/.test(code),bi=relay&&!sb?+code.slice(-1)-1:0;olStatus('Step 1/3: loading…');
+ olLoadK(sb?'sb':relay?'mqtt':'peer',async()=>{if(OL.stage!='joining')return;if(sb&&!SB_OK()){olStatus('SUPABASE IS NOT SET UP\n\nThis table uses Supabase, but supabase-config.js is missing or incomplete on this device.','BACK');OL.mode='';return}let pr,ice=null;if(!relay)ice=await olIce();try{pr=sb?new SbPeer(undefined,{}):relay?new MqPeer(undefined,{broker:bi}):new Peer(undefined,{config:ice})}catch(e){olStatus('NETWORK ERROR: '+e.message,'BACK');return}
   OL.peer=pr;olStatus('Step 1/3: reaching the '+(relay?'relay':'PeerJS')+' server…');let c=null,done=0;const t0=Date.now();
   const fail=(title,detail)=>{if(done||OL.stage=='lobbyclient'||OL.stage=='game')return;done=1;clearInterval(OL.poll);try{pr.destroy()}catch(e){}OL.peer=null;OL.mode='';OL.stage='joinfail';olStatus(title+'\n\n'+detail,'BACK')};
   const ics=()=>c&&c.peerConnection?c.peerConnection.iceConnectionState:'none';
   OL.poll=setInterval(()=>{if(done||OL.stage!='joining'){clearInterval(OL.poll);return}const el=(Date.now()-t0)/1000;
    if(c)olStatus('Step 2/3: contacting table '+code+'…\n'+(relay?'':'link state: '+ics()+' · ')+Math.round(el)+'s');
    if(el>30){const st=ics();fail(relay||st=='none'||st=='new'?'NO ANSWER FROM TABLE':'COULD NOT LINK THE DEVICES (ICE '+st+')',relay||st=='none'||st=='new'?"Check the room code, and make sure the host is still on the lobby screen of Hold'em Online.":'Both devices reached the server, but a direct connection could not be made. Ask the host to create the table with "Relay" instead of "Direct".')}},700);
-  pr.on('error',e=>{const ty=e&&e.type||'error';if(ty=='peer-unavailable')fail('TABLE NOT FOUND','No table with code '+code+' is open right now. Check the code and that the host is on the lobby screen.');else fail('CANNOT CONNECT ('+ty+')',relay?'Could not reach relay server '+(bi+1)+'. Try again, or ask the host to use "Direct".':'Could not reach the PeerJS server or the table.')});
+  pr.on('error',e=>{const ty=e&&e.type||'error';if(ty=='peer-unavailable')fail('TABLE NOT FOUND','No table with code '+code+' is open right now. Check the code and that the host is on the lobby screen.');else fail('CANNOT CONNECT ('+ty+')',sb?'Could not reach Supabase. Check supabase-config.js and your internet.':relay?'Could not reach relay server '+(bi+1)+'. Try again, or ask the host to use "Direct".':'Could not reach the PeerJS server or the table.')});
   pr.on('disconnected',()=>{});
   pr.on('open',()=>{if(OL.stage!='joining')return;olStatus('Step 2/3: contacting table '+code+'…');c=pr.connect((relay?'oc':'ocholdem-')+code,{reliable:true});OL.conn=c;
    c.on('open',()=>{olStatus('Step 3/3: linked! Asking to join…');olSend(c,{t:'join',name:nm})});
@@ -1311,7 +1345,7 @@ GM.holdemol={render(){const c=$c('cz-game');
  c.innerHTML=head("TEXAS HOLD'EM ONLINE",'Play friends on other devices · room code · up to 4 humans, AI fills empty seats · buy-in from your own cash · no house edge')+'<div id="olc"></div>';
  if(OL.mode&&(OL.stage=='lobbyhost'||OL.stage=='lobbyclient')){olLobbyDraw();return}
  if(OL.mode&&OL.stage=='game'&&OL.view){olDraw(OL.view);return}
- $c('olc').innerHTML=`<div style="margin-bottom:10px;color:#cfe;font-size:13px">Your name: <input id="olname" maxlength="10" value="${OL.name}" style="padding:6px 10px;border-radius:8px;border:1px solid #555;background:#111;color:#fff;width:140px"></div><div style="display:flex;flex-wrap:wrap;gap:14px;justify-content:center"><div class="felt" style="padding:16px;min-width:260px;flex:1"><div style="font-weight:800;color:#ffd24a;margin-bottom:6px">HOST A TABLE</div>${betBar('BUY-IN (everyone pays this)')}<div style="margin-top:8px;font-size:12px;color:#cfe;text-align:left"><label><input type="radio" name="oltr" value="relay" data-a="oltr" data-v="relay" ${OL.tr!="direct"?"checked":""}> Relay — works on most networks (recommended)</label><br><label><input type="radio" name="oltr" value="direct" data-a="oltr" data-v="direct" ${OL.tr=="direct"?"checked":""}> Direct (PeerJS) — only if both devices allow peer-to-peer</label></div><button class="act" data-a="olcreate" style="margin-top:10px">CREATE TABLE <span class="betv"></span></button></div><div class="felt" style="padding:16px;min-width:260px;flex:1"><div style="font-weight:800;color:#ffd24a;margin-bottom:6px">JOIN A FRIEND</div><input id="olcode" maxlength="6" placeholder="CODE" style="font:800 28px monospace;letter-spacing:6px;text-transform:uppercase;text-align:center;width:170px;padding:8px;border-radius:10px;border:1px solid #555;background:#111;color:#ffd24a"><div style="margin-top:10px"><button class="act" data-a="oljoin">JOIN TABLE</button></div></div></div><div style="margin-top:10px;color:#889;font-size:12px">Needs an internet connection (uses the free PeerJS server to link devices). Each device keeps its own cash, so play with friends you trust.</div>`;syncBet()},
+ $c('olc').innerHTML=`<div style="margin-bottom:10px;color:#cfe;font-size:13px">Your name: <input id="olname" maxlength="10" value="${OL.name}" style="padding:6px 10px;border-radius:8px;border:1px solid #555;background:#111;color:#fff;width:140px"></div><div style="display:flex;flex-wrap:wrap;gap:14px;justify-content:center"><div class="felt" style="padding:16px;min-width:260px;flex:1"><div style="font-weight:800;color:#ffd24a;margin-bottom:6px">HOST A TABLE</div>${betBar('BUY-IN (everyone pays this)')}<div style="margin-top:8px;font-size:12px;color:#cfe;text-align:left"><label><input type="radio" name="oltr" value="sb" data-a="oltr" data-v="sb" ${olTr()=="sb"?"checked":""}> Supabase — most reliable (recommended)</label><br><label><input type="radio" name="oltr" value="relay" data-a="oltr" data-v="relay" ${olTr()=="relay"?"checked":""}> Relay — free public servers, can be flaky</label><br><label><input type="radio" name="oltr" value="direct" data-a="oltr" data-v="direct" ${olTr()=="direct"?"checked":""}> Direct (PeerJS) — only if both devices allow peer-to-peer</label></div><button class="act" data-a="olcreate" style="margin-top:10px">CREATE TABLE <span class="betv"></span></button></div><div class="felt" style="padding:16px;min-width:260px;flex:1"><div style="font-weight:800;color:#ffd24a;margin-bottom:6px">JOIN A FRIEND</div><input id="olcode" maxlength="6" placeholder="CODE" style="font:800 28px monospace;letter-spacing:6px;text-transform:uppercase;text-align:center;width:170px;padding:8px;border-radius:10px;border:1px solid #555;background:#111;color:#ffd24a"><div style="margin-top:10px"><button class="act" data-a="oljoin">JOIN TABLE</button></div></div></div><div style="margin-top:10px;color:#889;font-size:12px">Needs an internet connection (uses Supabase, a free relay or PeerJS to link devices, depending on the option you pick). Each device keeps its own cash, so play with friends you trust.</div>`;syncBet()},
  act(a,v){if(a=='olcreate')olStartHost();else if(a=='oljoin')olJoin();else if(a=='olstart')olStartGame();else if(a=='oltr'){OL.tr=v}else if(a=='olleave')olLeave();else if(a=='olcancel'){if(OL.stage=='joinfail'||OL.stage=='joining'||!OL.mode)olCancel();else olCancel()}else if(a=='olact'){const m=v=='f'?{t:'f'}:v=='c'?{t:'c'}:{t:'r',to:+v};olSendAct(m)}},
  off(){if(OL.mode=='client'&&OL.buy){olSend(OL.conn,{t:'leave'});olRefund('')}else if(OL.mode=='host'&&!OL.hand)olCloseTable('')}};
 GAMES.push(['holdemol',"HOLD'EM ONLINE",'vs friends']);
