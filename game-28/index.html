@@ -86,7 +86,7 @@ ol.steps{margin:6px 0 8px 18px;padding:0;font-size:13px;line-height:1.5;color:#c
   <div id="hr"><div id="hMoney"></div><div id="hScore"></div><button id="hGarage">🏠 Garage (Esc)</button></div>
   <div id="pops"></div>
   <div id="hbot"><div><b id="spd">0</b> km/h</div><div id="hBattWrap"><i id="hBatt"></i></div></div>
-  <div id="tags"></div><div id="hFx"></div><div id="hWanted"></div><div id="hBustWrap"><i id="hBust"></i></div><div id="hLive"></div><div id="hBusted"></div>
+  <div id="tags"></div><div id="hFx"></div><div id="hWanted"></div><div id="hBustWrap"><i id="hBust"></i></div><div id="hLive"></div><div id="hRace" style="position:absolute;left:0;right:0;top:18%;text-align:center;font-size:clamp(30px,7vw,64px);font-weight:900;color:#fff;text-shadow:0 3px 10px #000;pointer-events:none;padding:0 12px"></div><div id="hBusted"></div>
   <div id="hHint"></div>
 </div>
 <div id="touch">
@@ -101,7 +101,7 @@ ol.steps{margin:6px 0 8px 18px;padding:0;font-size:13px;line-height:1.5;color:#c
   <button data-k="noh" style="right:84px;bottom:100px">NO-HAND</button>
 </div>
 <div id="menu"></div>
-<div id="ridebar"><button class="btn" data-a="ride" data-v="street">🏙️ Ride Streets</button><button class="btn" data-a="ride" data-v="trail">🌲 Ride Trails</button><button class="btn" data-a="ride" data-v="trail2">🏁 Follow the Trail (pays more!)</button></div>
+<div id="ridebar"><button class="btn" data-a="ride" data-v="street">🏙️ Ride Streets</button><button class="btn" data-a="ride" data-v="trail">🌲 Ride Trails</button><button class="btn" data-a="ride" data-v="race">🏁 Race vs CPU</button></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
@@ -198,7 +198,7 @@ const FAME=[[0,'Unknown'],[2000,'Local Rider'],[8000,'Street Famous'],[25000,'Pr
 const DEF={money:300,fame:0,best:0,brand:{name:'Rad Wheels',logo:'⚡',color:'#ff5a1f',color2:'#222a3a'},
   design:{style:'bmx',frame:'#ff5a1f',seat:'#151515',rim:'#ffd23f',fork:'#dddddd'},
   edesign:{style:'ebike',frame:'#2dd4bf',seat:'#151515',rim:'#ffffff',fork:'#cfd3da'},
-  up:{susp:0,tires:0,gears:0,frame:0,kit:0},eup:{motor:0,boost:0,battery:0,susp:0,tires:0,frame:0},owned:['own'],estyles:[],bike:'own',mode:'street'};
+  up:{susp:0,tires:0,gears:0,frame:0,kit:0},eup:{motor:0,boost:0,battery:0,susp:0,tires:0,frame:0},owned:['own'],estyles:[],cpuLvl:1,bike:'own',mode:'street'};
 let SAVE=JSON.parse(JSON.stringify(DEF));
 try{const s=JSON.parse(localStorage.getItem('bikebrand_v1')||'null');if(s){SAVE=Object.assign(SAVE,s);SAVE.brand=Object.assign({},DEF.brand,s.brand);SAVE.design=Object.assign({},DEF.design,s.design);SAVE.edesign=Object.assign({},DEF.edesign,s.edesign);SAVE.up=Object.assign({},DEF.up,s.up);SAVE.eup=Object.assign({},DEF.eup,s.eup);if(!Array.isArray(SAVE.owned))SAVE.owned=['own'];if(!Array.isArray(SAVE.estyles))SAVE.estyles=[]}}catch(e){}
 let saveT=0;
@@ -545,18 +545,18 @@ function buildStreet(){
   return W;
 }
 
-function buildTrail(follow){
-  const W=newWorld(follow?'trail2':'trail','#b9defa');W.coinValue=follow?100:30;const r=rng(follow?9:5),R=(a,b)=>a+(b-a)*r();
+function buildTrail(race){
+  const W=newWorld(race?'race':'trail','#b9defa');const r=rng(race?9:5),R=(a,b)=>a+(b-a)*r();
   const raw=(x,z)=>{const h=6*Math.sin(x*.011+1.3)*Math.cos(z*.013)+4*Math.sin((x+z)*.021)+2.2*Math.sin(x*.043)*Math.sin(z*.037)+3*Math.cos(x*.019-z*.007);return h*smooth(12,70,Math.hypot(x,z))};
   const N=170,path=[];
-  for(let i=0;i<N;i++){const t=i/N*TAU;path.push(follow?{x:330*Math.sin(t)+70*Math.sin(3*t),z:260*Math.sin(2*t)+55*Math.cos(3*t)-55}:{x:300*Math.sin(t)+40*Math.sin(3*t),z:180*Math.sin(2*t)+30*Math.sin(3*t)})}
+  for(let i=0;i<N;i++){const t=i/N*TAU;path.push(race?{x:330*Math.sin(t)+70*Math.sin(3*t),z:260*Math.sin(2*t)+55*Math.cos(3*t)-55}:{x:300*Math.sin(t)+40*Math.sin(3*t),z:180*Math.sin(2*t)+30*Math.sin(3*t)})}
   const tan=i=>{const a=path[(i+1)%N],b=path[(i+N-1)%N];return Math.atan2(a.x-b.x,a.z-b.z)};
   W.spawn={x:path[0].x,z:path[0].z,yaw:tan(0)};
   W.terrain=(x,z)=>{let h=raw(x,z);for(const f of W.flats){const dx=x-f.x,dz=z-f.z,d2=dx*dx+dz*dz;if(d2<f.r2){const m=smooth(0,1,(1-Math.sqrt(d2)/f.r)*1.7);h=lerp(h,f.base,m)}}return h};
   const pathDist=(x,z)=>{let m=1e9;for(let i=0;i<N;i++){const dx=x-path[i].x,dz=z-path[i].z,d=dx*dx+dz*dz;if(d<m)m=d}return Math.sqrt(m)};
   /* ramps along the trail (flat pads first so the terrain matches) */
   const defs=[];
-  for(let i=8;i<N-4;i+=8){
+  for(let i=8;i<N-4;i+=(race?12:8)){
     const yaw=tan(i),sz=SIZES(r),cx=path[i].x+Math.sin(yaw)*sz.len/2,cz=path[i].z+Math.cos(yaw)*sz.len/2,base=raw(cx,cz);
     W.flats.push({x:cx,z:cz,base,r:26,r2:676});defs.push({x:path[i].x,z:path[i].z,yaw,sz,base});
   }
@@ -587,32 +587,23 @@ function buildTrail(follow){
   const rm=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,0),mat('#8a8d93',0,1),rocks.length),dd=new THREE.Object3D();
   rocks.forEach((t,i)=>{dd.position.set(t.x,t.y+.3*t.s,t.z);dd.scale.set(t.s,t.s*.7,t.s);dd.rotation.y=i;dd.updateMatrix();rm.setMatrixAt(i,dd.matrix);W.circles.push({x:t.x,z:t.z,r:t.s*.95,h:1.5})});
   rm.castShadow=true;W.group.add(rm);
-  for(let i=2;i<N;i+=3){const p=path[i];if(defs.some(d=>Math.hypot(d.x-p.x,d.z-p.z)<24))continue;addCoin(W,p.x,W.terrain(p.x,p.z)+1.2,p.z)}
-  if(follow){
-    W.gates=[];W.gi=0;W.laps=0;
+  for(let i=2;i<N&&!race;i+=3){const p=path[i];if(defs.some(d=>Math.hypot(d.x-p.x,d.z-p.z)<24))continue;addCoin(W,p.x,W.terrain(p.x,p.z)+1.2,p.z)}
+  if(race){
+    const A=[0];for(let i=1;i<=N;i++){const a=path[i-1],c=path[i%N];A.push(A[i-1]+Math.hypot(c.x-a.x,c.z-a.z))}
+    W.pathPts=path;W.arc=A;W.L=A[N];W.gates=[];W.gA=[];W.gi=0;
     for(let i=6;i<N-2;i+=9){
       const p=path[i],yaw=tan(i),gy=W.groundY(p.x,p.z);
       const mt=new THREE.MeshBasicMaterial({color:'#ffb300',transparent:true,opacity:.55});
       const ring=new THREE.Mesh(new THREE.TorusGeometry(3.4,.3,8,28),mt);ring.position.set(p.x,gy+3.6,p.z);ring.rotation.y=yaw;
       const bm=new THREE.MeshBasicMaterial({color:'#3dff6a',transparent:true,opacity:.28,depthWrite:false});
       const beam=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.2,70,12,1,true),bm);beam.position.set(p.x,gy+35,p.z);
-      W.group.add(ring,beam);W.gates.push({x:p.x,z:p.z,y:gy+3.6,ring,beam,mt});
+      W.group.add(ring,beam);W.gates.push({x:p.x,z:p.z,y:gy+3.6,yaw,ring,beam,mt});W.gA.push(A[i]);
     }
     gateVisuals(W);
   }
   return W;
 }
 function gateVisuals(W){W.gates.forEach((g,i)=>{const on=i===W.gi;g.mt.color.set(on?'#3dff6a':'#ffb300');g.mt.opacity=on?1:.45;g.beam.visible=on;g.ring.scale.setScalar(on?1.15:1)})}
-function gateTick(W){
-  if(!W.gates)return;const g=W.gates[W.gi];if(!g)return;
-  const dx=B.x-g.x,dz=B.z-g.z;
-  if(dx*dx+dz*dz<36&&Math.abs(B.y+.8-g.y)<7){
-    const pay=400+60*W.gi;SAVE.money+=pay;SAVE.fame+=60;B.score+=60;W.gi++;
-    pop('🏁 Gate '+W.gi+'/'+W.gates.length+'  +'+fmt(pay),'gold');
-    if(W.gi>=W.gates.length){W.gi=0;W.laps++;const bonus=6000+1500*Math.min(W.laps,5);SAVE.money+=bonus;SAVE.fame+=800;B.score+=800;pop('🏆 Lap '+W.laps+' complete!  +'+fmt(bonus),'gold');toast('Lap complete! Keep following the trail for more cash')}
-    gateVisuals(W);saveSoon();
-  }
-}
 
 /* ================= game state ================= */
 let state='menu',world=null,B=null,K={},cur=SAVE.bike,hintT=0;
@@ -634,26 +625,27 @@ function toast(t){const e=$('toast');e.textContent=t;e.style.display='block';cle
 
 function startRide(mode,online){
   if(!online)netLeave();
-  policeReset();
+  policeReset();raceClear();
   SAVE.mode=mode;if(!ownedId(SAVE.bike))SAVE.bike='own';save();
   if(world){scene.remove(world.group);disposeGroup(world.group)}
-  world=mode==='street'?buildStreet():buildTrail(mode==='trail2');scene.add(world.group);
+  world=mode==='street'?buildStreet():buildTrail(mode==='race');scene.add(world.group);
   scene.background=new THREE.Color(HORIZON);scene.fog=new THREE.Fog(HORIZON,160,560);world.sky3d=makeSky();world.group.add(world.sky3d);
   if(B&&B.rig){scene.remove(B.rig.root);disposeGroup(B.rig.root)}
   const S=stats(SAVE.bike),rig=buildBike(modelDesc(SAVE.bike));scene.add(rig.root);
   B={rig,S,x:world.spawn.x,z:world.spawn.z,yaw:world.spawn.yaw,speed:0,vy:0,air:false,flip:0,spin:0,tab:0,noh:0,tabT:0,nohT:0,airT:0,w:0,wd:0,wheelT:0,wheelDist:0,charge:0,batt:S.batt,
     crashT:0,crashDir:1,combo:0,comboT:0,score:0,pitch:0,lean:0,steer:0,ws:0,cr:0,gvy:0,gvyP:0,camYaw:world.spawn.yaw,shake:0,t:0,coins:0};
-  if(online&&mode==='street'){B.x+=(Math.random()-.5)*8;B.z+=(Math.random()-.5)*8}
+  if(online&&(mode==='street'||mode==='race')){B.x+=(Math.random()-.5)*8;B.z+=(Math.random()-.5)*8}
   B.y=world.groundY(B.x,B.z);
+  if(mode==='race')raceInit(online?'online':'cpu');
   state='ride';$('menu').style.display='none';$('ridebar').style.display='none';$('hud').style.display='block';
   $('touch').style.display=matchMedia('(pointer:coarse)').matches?'block':'none';
   $('hBattWrap').style.display=S.motor?'block':'none';
   engStart();dustInit();
-  $('hHint').textContent='W gas · A/D steer · Q wheelie · Space hop (hold to charge) · In the air: W/S flip, A/D spin, X tabletop, Z no-hander · Shift boost · R respawn'+(mode==='street'?' · 🚨 Hit 60 km/h and the police chase you!':'')+(mode==='trail2'?' · 🏁 Ride through the green glowing gates in order: more cash for every gate, coin and lap!':'');
+  $('hHint').textContent='W gas · A/D steer · Q wheelie · Space hop (hold to charge) · In the air: W/S flip, A/D spin, X tabletop, Z no-hander · Shift boost · R respawn'+(mode==='street'?' · 🚨 Hit 60 km/h and the police chase you!':'')+(mode==='race'?' · 🏁 3 laps: ride through the green glowing gates in order. Finish first to win big!':'');
   hintT=9;camSnap();
 }
-function respawn(){B.x=world.spawn.x;B.z=world.spawn.z;B.yaw=world.spawn.yaw;B.speed=0;B.air=false;B.crashT=0;B.w=0;B.flip=B.spin=0;B.y=world.groundY(B.x,B.z);camSnap()}
-function goMenu(){netLeave();policeReset();engStop();dustClear();save();state='menu';$('hud').style.display='none';$('touch').style.display='none';$('menu').style.display='block';$('ridebar').style.display='flex';cur=SAVE.bike;setPreview(cur);renderMenu();resize()}
+function respawn(){let sp=world.spawn;const R=world.race;if(R&&world.gates&&R.passed>0){const G=world.gates.length,g=world.gates[(R.passed-1)%G];sp={x:g.x,z:g.z,yaw:g.yaw}}B.x=sp.x;B.z=sp.z;B.yaw=sp.yaw;B.speed=0;B.air=false;B.crashT=0;B.w=0;B.flip=B.spin=0;B.y=world.groundY(B.x,B.z);camSnap()}
+function goMenu(){netLeave();policeReset();raceClear();engStop();dustClear();save();state='menu';$('hud').style.display='none';$('touch').style.display='none';$('menu').style.display='block';$('ridebar').style.display='flex';cur=SAVE.bike;setPreview(cur);renderMenu();resize()}
 
 /* ================= physics ================= */
 function crash(reason){
@@ -701,6 +693,7 @@ function land(gy){
 function sim(dt){
   const S=B.S,W=world;B.t+=dt;B.comboT-=dt;if(B.comboT<=0)B.combo=0;
   B.shake=Math.max(0,B.shake-dt*1.5);
+  if(W.race&&(W.race.state==='lobby'||W.race.state==='count'||W.race.state==='wait')){B.speed=0;B.vy=0;B.air=false;B.y=W.groundY(B.x,B.z);B.w=0;B.crashT=0;return}
   if(B.crashT>0){
     B.crashT-=dt;B.speed=Math.max(0,B.speed-B.speed*3*dt);
     B.x+=Math.sin(B.yaw)*B.speed*dt;B.z+=Math.cos(B.yaw)*B.speed*dt;collide();B.y=W.groundY(B.x,B.z);
@@ -754,8 +747,7 @@ function sim(dt){
   }
   /* coins */
   for(const c of W.coins){if(!c.on)continue;const dx=B.x-c.x,dz=B.z-c.z,dy=B.y+.8-c.y;
-    if(dx*dx+dz*dz+dy*dy<5){c.on=false;c.m.visible=false;B.coins++;SAVE.money+=(W.coinValue||30);saveSoon();if(B.coins%10===0)pop('🪙 '+B.coins+' coins','gold')}}
-  gateTick(W);
+    if(dx*dx+dz*dz+dy*dy<5){c.on=false;c.m.visible=false;B.coins++;SAVE.money+=30;saveSoon();if(B.coins%10===0)pop('🪙 '+B.coins+' coins','gold')}}
 }
 
 /* ================= view ================= */
@@ -794,7 +786,8 @@ function view(dt){
   $('spd').textContent=Math.round(B.speed*3.6);$('hMoney').textContent=fmt(SAVE.money);
   $('hBrand').textContent=SAVE.brand.logo+' '+SAVE.brand.name;$('hFameBar').style.width=Math.round(fi.pct*100)+'%';
   $('hFameTxt').textContent='Fame: '+fi.name+' (x'+fi.mult.toFixed(1)+' cash)';
-  $('hScore').textContent='Score '+B.score.toLocaleString()+(B.combo>1?'  ·  Combo x'+B.combo:'')+'  ·  🪙 '+B.coins+(world.gates?'  ·  🏁 Gate '+(world.gi+1)+'/'+world.gates.length+'  ·  Laps '+world.laps:'');
+  $('hScore').textContent='Score '+B.score.toLocaleString()+(B.combo>1?'  ·  Combo x'+B.combo:'')+'  ·  🪙 '+B.coins;
+  if(world.race&&world.race.hud)$('hScore').textContent=world.race.hud;
   if(S.motor)$('hBatt').style.width=Math.round(B.batt/S.batt*100)+'%';
   let live='';
   if(B.air&&B.airT>.35)live='AIR '+B.airT.toFixed(1)+'s'+(Math.abs(B.flip)>1?'  ·  flip '+(Math.abs(B.flip)/TAU).toFixed(1):'')+(Math.abs(B.spin)>1?'  ·  spin '+Math.round(Math.abs(B.spin)*57.3)+'°':'');
@@ -859,8 +852,8 @@ function renderMenu(){
   const m=$('menu'),sc=m.scrollTop,fi=fameInfo();
   let h='<div class="top"><div class="logo">🚲 '+esc(GAME_NAME.toUpperCase())+'</div><div class="money">'+fmt(SAVE.money)+'</div></div>';
   h+='<div class="sub">'+esc(SAVE.brand.logo+' '+SAVE.brand.name)+' · Fame: '+fi.name+' (x'+fi.mult.toFixed(1)+' cash) · Best score '+SAVE.best.toLocaleString()+'<br>Riding: <b>'+esc(stats(SAVE.bike).name)+'</b></div>';
-  h+='<div class="tabs">'+[['design','🎨 My Bike'],['edesign','⚡ My E-Bike'],['shop','🛒 Shop'],['online','🌐 Online']].map(t=>'<button data-a="tab" data-v="'+t[0]+'" class="'+(tab===t[0]?'on':'')+'">'+t[1]+'</button>').join('')+'</div>';
-  h+=tab==='design'?designHtml():tab==='edesign'?eDesignHtml():tab==='shop'?shopHtml():onlineHtml();
+  h+='<div class="tabs">'+[['design','🎨 My Bike'],['edesign','⚡ My E-Bike'],['shop','🛒 Shop'],['race','🏁 Race'],['online','🌐 Online']].map(t=>'<button data-a="tab" data-v="'+t[0]+'" class="'+(tab===t[0]?'on':'')+'">'+t[1]+'</button>').join('')+'</div>';
+  h+=tab==='design'?designHtml():tab==='edesign'?eDesignHtml():tab==='shop'?shopHtml():tab==='race'?raceHtml():onlineHtml();
   h+='<div class="card"><h3>Controls</h3><p>W gas · S brake · A/D steer · <b>Q</b> wheelie (hold to lift the front wheel, let go to lower it, hold too long and you flip backwards; S helps pull it down) · <b>Space</b> hold &amp; release to hop. In the air: <b>W/S</b> backflip/frontflip, <b>A/D</b> spin, <b>X</b> tabletop, <b>Z</b> no-hander. <b>Shift</b> boost on motor bikes. <b>M</b> sound. Land upright, level and with hands on the bars. Chain tricks for combos (x5) to earn cash and brand fame. Grab 🪙 coins. Esc = garage. 🚨 In the city, reach 60 km/h and the police chase you: stay free for a few seconds to escape, get caught and you pay a fine.</p></div>';
   m.innerHTML=h;m.scrollTop=sc;
 }
@@ -885,6 +878,7 @@ $('menu').addEventListener('click',e=>{
   else if(a==='prev'){cur=v;setPreview(v)}
   else if(a==='shopcat'){shopCat=v;renderMenu()}
   else if(a==='ride'){startRide(v)}
+  else if(a==='cpulvl'){SAVE.cpuLvl=+v;save();renderMenu()}
   else if(a==='netpub'){goOnline('pub',v)}
   else if(a==='netpriv'){goOnline('priv',v,null,true)}
   else if(a==='netjoin'){joinByCode()}
@@ -1174,7 +1168,7 @@ let lastOnline=null,netMsg='',netCodeVal='';
 let SB_URL=SUPABASE_URL,SB_KEY=SUPABASE_ANON_KEY;
 try{const c=JSON.parse(localStorage.getItem('rideempire_sb')||'null');if(c&&c.url&&c.key&&/PASTE/i.test(SUPABASE_URL+SUPABASE_ANON_KEY)){SB_URL=c.url;SB_KEY=c.key}}catch(e){}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-const HEX=/^#[0-9a-f]{6}$/i,CODE_RE=/^[ST][A-HJ-NP-Z2-9]{5}$/,CODE_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const HEX=/^#[0-9a-f]{6}$/i,CODE_RE=/^[STR][A-HJ-NP-Z2-9]{5}$/,CODE_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 function netReady(){return !!(window.supabase&&SB_URL.startsWith('https://')&&!/PASTE/i.test(SB_URL+SB_KEY)&&SB_KEY.length>30)}
 function netWhyNot(){return window.supabase?'Online play is not set up yet. Open the Online tab in the garage to turn it on.':'Could not load the Supabase library. Check your internet connection and reload.'}
 function myMeta(){
@@ -1222,9 +1216,10 @@ function onState(p){
   const r=NET.remotes.get(p.id);if(!r)return;
   const n=v=>typeof v==='number'&&isFinite(v)?v:0;
   r.tx=clamp(n(p.x),-600,600);r.ty=clamp(n(p.y),-50,200);r.tz=clamp(n(p.z),-600,600);r.tyaw=n(p.yaw);
-  r.speed=clamp(n(p.sp),0,60);r.air=!!p.a;r.flip=clamp(n(p.f),-60,60);r.spin=clamp(n(p.s),-60,60);r.w=clamp(n(p.w),0,2);
+  r.speed=clamp(n(p.sp),0,100);r.rp=clamp(n(p.rp),-100,1e5);r.air=!!p.a;r.flip=clamp(n(p.f),-60,60);r.spin=clamp(n(p.s),-60,60);r.w=clamp(n(p.w),0,2);
   r.pitch=clamp(n(p.p),-1.5,1.5);r.steer=clamp(n(p.st),-1,1);r.tab=clamp(n(p.tb),0,1);r.noh=clamp(n(p.nh),0,1);
   r.c=!!p.c;r.crashT=r.c?.2:0;r.at=performance.now();
+  const RR=world&&world.race;if(p.fn&&RR&&RR.kind==='online'&&(RR.state==='go'||RR.state==='done')&&RR.ids.includes(p.id)&&!RR.fin.includes(p.id))RR.fin.push(p.id);
   if(!r.got){r.got=true;r.x=r.tx;r.y=r.ty;r.z=r.tz;r.yaw=r.tyaw}
 }
 function netCloseCh(){
@@ -1248,6 +1243,7 @@ function netConnect(name,cap){
     const fin=v=>{if(!done){done=true;clearTimeout(to);res(v)}};
     to=setTimeout(()=>fin('error'),9000);
     ch.on('broadcast',{event:'s'},p=>onState(p&&p.payload));
+    ch.on('broadcast',{event:'r'},p=>onRace(p&&p.payload));
     ch.on('presence',{event:'sync'},()=>{
       if(NET.ch!==ch)return;
       if(!done){
@@ -1272,7 +1268,7 @@ function netConnect(name,cap){
 async function goOnline(kind,mode,code,create){
   if(NET.busy)return;
   if(!netReady()){netMsg=netWhyNot();renderMenu();return}
-  if(kind==='priv'&&create&&!code)code=(mode==='street'?'S':'T')+Array.from(crypto.getRandomValues(new Uint8Array(5)),b=>CODE_ALPHA[b%32]).join('');
+  if(kind==='priv'&&create&&!code)code=(mode==='street'?'S':mode==='race'?'R':'T')+Array.from(crypto.getRandomValues(new Uint8Array(5)),b=>CODE_ALPHA[b%32]).join('');
   NET.busy=true;netMsg='Connecting…';renderMenu();
   netLeave();
   let ok='error',room='';
@@ -1308,7 +1304,7 @@ async function goOnline(kind,mode,code,create){
 function joinByCode(){
   const c=netCodeVal.trim().toUpperCase();
   if(!CODE_RE.test(c)){netMsg='That code does not look right. Codes are 6 characters.';renderMenu();return}
-  return goOnline('priv',c[0]==='S'?'street':'trail',c,false);
+  return goOnline('priv',c[0]==='S'?'street':c[0]==='R'?'race':'trail',c,false);
 }
 function updateNetHud(){
   const n=$('hNet'),c=$('hCopy');if(!n)return;
@@ -1323,7 +1319,7 @@ function netTick(dt){
   if(!NET.ch||NET.status!=='on')return;
   NET.sendT-=dt*1000;if(NET.sendT>0)return;
   const r=v=>Math.round(v*100)/100;
-  const pl={id:NET.id,x:r(B.x),y:r(B.y),z:r(B.z),yaw:r(B.yaw),sp:r(B.speed),a:B.air?1:0,f:r(B.flip),s:r(B.spin),w:r(B.w),p:r(B.pitch),st:r(B.steer),tb:r(B.tab),nh:r(B.noh),c:B.crashT>0?1:0};
+  const pl={id:NET.id,x:r(B.x),y:r(B.y),z:r(B.z),yaw:r(B.yaw),sp:r(B.speed),a:B.air?1:0,f:r(B.flip),s:r(B.spin),w:r(B.w),p:r(B.pitch),st:r(B.steer),tb:r(B.tab),nh:r(B.noh),c:B.crashT>0?1:0,rp:r(B.rp||0),fn:(world.race&&world.race.finished)?1:0};
   const sig=pl.x+','+pl.z+','+pl.yaw+','+pl.a+','+pl.c;
   NET.sendT=(sig===NET.lastSent&&!B.air)?1000:SEND_MS;   // idle riders send once a second
   NET.lastSent=sig;
@@ -1357,6 +1353,18 @@ function saveSbCfg(){
   try{localStorage.setItem('rideempire_sb',JSON.stringify({url:u,key:k}))}catch(e){}
   netMsg='Saved! Online play is on.';renderMenu();
 }
+function raceHtml(){
+  const lv=SAVE.cpuLvl==null?1:SAVE.cpuLvl,names=['Easy','Normal','Hard'];
+  let h='<div class="card"><h3>🤖 Race vs CPU</h3><p>3 laps against 3 CPU riders. Ride through the glowing gates in order. Prize money: <b>'+CPU_PRIZE.map((v,i)=>['1st','2nd','3rd','4th'][i]+' '+fmt(Math.round(v*CPU_MULT[lv]))).join(' · ')+'</b></p>'+
+    '<div class="chips">'+names.map((n,i)=>'<button class="btn'+(i===lv?'':' alt')+'" data-a="cpulvl" data-v="'+i+'">'+n+(i===lv?' ✓':'')+'</button>').join('')+'</div>'+
+    '<div style="margin-top:10px"><button class="btn" data-a="ride" data-v="race">🏁 Start race</button></div></div>';
+  if(!netReady())return h+'<div class="card"><h3>🌐 Online race</h3><p>'+esc(netWhyNot())+'</p></div>';
+  h+='<div class="card"><h3>🌐 Online race</h3><p>Race real players. The race starts about 10 seconds after a second rider joins, then again and again. Prizes: <b>1st '+fmt(ONLINE_PRIZE[0])+' · 2nd '+fmt(ONLINE_PRIZE[1])+' · 3rd '+fmt(ONLINE_PRIZE[2])+' · 4th '+fmt(ONLINE_PRIZE[3])+'</b>, and '+fmt(ONLINE_MIN)+' for finishing after that.</p>'+
+    '<div class="chips"><button class="btn" data-a="netpub" data-v="race">🌐 Public race</button><button class="btn alt" data-a="netpriv" data-v="race">🔒 Private race</button></div></div>';
+  h+='<div class="card"><h3>Join a private race</h3><div class="row"><input type="text" id="codeIn" maxlength="6" placeholder="e.g. R7K2QM" value="'+esc(netCodeVal)+'" style="text-transform:uppercase"><button class="btn" data-a="netjoin">Join</button></div></div>';
+  if(netMsg)h+='<div class="card"><p style="color:#ffd23f;margin:0">'+esc(netMsg)+'</p></div>';
+  return h;
+}
 function onlineHtml(){
   if(!netReady()){
     let h='<div class="card"><h3>🌐 Turn on online play</h3>';
@@ -1382,6 +1390,149 @@ function onlineHtml(){
   return h;
 }
 
+
+/* ================= racing (vs CPU and online) ================= */
+const RACE_LAPS=3,CPU_PRIZE=[20000,10000,5000,2000],CPU_MULT=[.6,1,1.6],CPU_NAMES=['Blaze','Volt','Rocket'];
+const ONLINE_PRIZE=[40000,22000,12000,7000],ONLINE_MIN=3000,ORD=['','1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th'];
+function raceClear(){
+  const R=world&&world.race;
+  if(R&&R.cpus)R.cpus.forEach(c=>{scene.remove(c.rig.root);disposeGroup(c.rig.root);if(c.tag)c.tag.remove()});
+  if(world)world.race=null;
+  const h=$('hRace');if(h){h.textContent='';h.style.pointerEvents='none'}
+}
+function gridPos(slot){
+  const sp=world.spawn,fx=Math.sin(sp.yaw),fz=Math.cos(sp.yaw),rx=Math.cos(sp.yaw),rz=-Math.sin(sp.yaw),row=Math.floor(slot/2),col=slot%2?2.6:-2.6;
+  return{x:sp.x-fx*row*3.8+rx*col,z:sp.z-fz*row*3.8+rz*col};
+}
+function placeOnGrid(slot){
+  const g=gridPos(slot);B.x=g.x;B.z=g.z;B.yaw=world.spawn.yaw;B.speed=0;B.vy=0;B.air=false;B.crashT=0;B.w=0;B.flip=B.spin=0;B.y=world.groundY(B.x,B.z);camSnap();
+}
+function raceInit(kind){
+  const W=world,R={kind,me:kind==='online'?NET.id:'me',laps:RACE_LAPS,state:'lobby',goAt:0,passed:0,finished:false,fin:[],ids:[],cpus:[],lobbyT:0,place:0,prize:0,msgT:0,firstFin:0,seq:null,goFlash:0,hud:'',startedAt:0,
+    lvl:clamp(SAVE.cpuLvl==null?1:SAVE.cpuLvl,0,2)};
+  W.race=R;W.gi=0;gateVisuals(W);B.rp=0;
+  if(kind==='cpu'){
+    const base=clamp(.6*B.S.top+4,9,30)*[.85,1,1.12][R.lvl];
+    for(let i=0;i<3;i++){
+      const col=['#e63946','#2a9d8f','#f4a261'][i],desc=cleanDesc({kind:'bike',wr:.34,wb:1.16,tw:.07,frame:col,seat:'#151515',rim:'#ffffff',fork:'#dddddd',jersey:col,motor:true,susp:3,bn:CPU_NAMES[i],logo:'🤖',bc:col});
+      const rig=buildBike(desc);scene.add(rig.root);
+      const tag=document.createElement('div');tag.className='tag';tag.style.color=col;tag.textContent='🤖 '+CPU_NAMES[i];tag.style.display='none';$('tags').appendChild(tag);
+      const gp=gridPos(i);
+      R.cpus.push({id:'cpu'+i,rig,tag,d:-Math.floor(i/2)*3.8,lane:i%2?2.6:-2.6,v:0,k:[1,1.03,.97][i],base,si:0,x:gp.x,y:W.groundY(gp.x,gp.z),z:gp.z,yaw:W.spawn.yaw,air:false,flip:0,spin:0,tab:0,noh:0,w:0,pitch:0,lean:0,steer:0,speed:0,crashT:0,crashDir:1,charge:0,ws:0,cr:0,c:false,fin:false});
+    }
+    placeOnGrid(3);R.state='count';R.goAt=performance.now()+5000;
+  }
+  return R;
+}
+function raceStartOnline(ids,ms,seq){
+  const R=world&&world.race;if(!R)return;
+  R.seq=seq||null;R.ids=ids;R.fin=[];R.passed=0;R.finished=false;R.firstFin=0;R.msgT=0;R.prize=0;R.place=0;world.gi=0;gateVisuals(world);B.rp=0;
+  const slot=ids.indexOf(NET.id);
+  if(slot>=0){placeOnGrid(slot);R.state='count';R.goAt=performance.now()+ms}else R.state='wait';
+}
+function raceResetOnline(){
+  const R=world&&world.race;if(!R)return;
+  R.state='lobby';R.seq=null;R.ids=[];R.fin=[];R.passed=0;R.finished=false;R.firstFin=0;R.lobbyT=0;R.msgT=0;R.waitT=0;world.gi=0;gateVisuals(world);B.rp=0;
+  placeOnGrid(Math.floor(Math.random()*10));
+}
+function netRaceSend(payload){
+  if(!NET.ch)return;
+  const pr=NET.ch.send({type:'broadcast',event:'r',payload:Object.assign({id:NET.id},payload)});if(pr&&pr.catch)pr.catch(()=>{});
+}
+function onRace(p){
+  const R=world&&world.race;if(!p||typeof p!=='object'||!R||R.kind!=='online'||typeof p.id!=='string')return;
+  if(p.k==='go'){
+    const lead=NET.ch&&presenceList(NET.ch)[0];if(!lead||lead.id!==p.id)return;
+    if(R.state==='go'||R.state==='count')return;
+    const ids=Array.isArray(p.ids)?p.ids.filter(x=>typeof x==='string'&&x.length<20).slice(0,MAX_PLAYERS):[];if(!ids.length)return;
+    raceStartOnline(ids,clamp(+p.in||5000,2000,9000),typeof p.n==='string'?p.n.slice(0,8):null);
+  }else if(p.k==='rs'){
+    if(R.state==='lobby'||(R.seq&&p.n===R.seq))raceResetOnline();
+  }
+}
+function raceFinish(R){
+  R.finished=true;R.fin.push(R.me);R.place=R.fin.length;R.state='done';R.msgT=8;
+  const prize=R.kind==='cpu'?Math.round((CPU_PRIZE[R.place-1]||1000)*CPU_MULT[R.lvl]):(ONLINE_PRIZE[R.place-1]||ONLINE_MIN);
+  R.prize=prize;SAVE.money+=prize;SAVE.fame+=Math.max(100,1000-(R.place-1)*300);B.score+=prize/10;if(B.score>SAVE.best)SAVE.best=B.score;save();
+  pop('🏁 '+(ORD[R.place]||R.place+'th')+' place!  +'+fmt(prize),'gold');
+}
+function raceProg(W,R){
+  const G=W.gates.length,L=W.L,A=W.gA;
+  if(R.finished)return(R.laps-1)*L+A[G-1];
+  const lapsDone=Math.floor(R.passed/G),gi=R.passed%G,g=W.gates[gi],Ap=gi>0?A[gi-1]:(lapsDone>0?A[G-1]-L:0),An=A[gi],seg=Math.max(1,An-Ap);
+  return lapsDone*L+Ap+seg*clamp(1-Math.hypot(B.x-g.x,B.z-g.z)/seg,0,.99);
+}
+function raceRanking(R){
+  const arr=[{id:R.me,prog:B.rp||0}];
+  if(R.kind==='cpu')R.cpus.forEach(c=>arr.push({id:c.id,prog:c.d}));
+  else R.ids.forEach(id=>{if(id===NET.id)return;const r=NET.remotes.get(id);if(r)arr.push({id,prog:r.rp||0})});
+  arr.sort((a,b)=>{const fa=R.fin.indexOf(a.id),fb=R.fin.indexOf(b.id);if(fa>=0&&fb>=0)return fa-fb;if(fa>=0)return-1;if(fb>=0)return 1;return b.prog-a.prog});
+  return arr;
+}
+function cpuStep(c,R,W,dt,running){
+  const L=W.L,G=W.gA.length,RT=(R.laps-1)*L+W.gA[G-1];
+  if(running&&!c.fin){
+    let tv=c.base*c.k;const gap=c.d-(B.rp||0);if(gap>60)tv*=.86;else if(gap<-45)tv*=1.1;
+    c.v+=(tv-c.v)*Math.min(1,dt*.9);c.d+=c.v*dt;
+    if(c.d>=RT){c.fin=true;R.fin.push(c.id)}
+  }else if(c.fin){c.v*=Math.max(0,1-dt*.7);c.d+=c.v*dt}
+  const dd=((c.d%L)+L)%L,A=W.arc;let i=c.si||0;if(A[i]>dd||A[i+1]<=dd)i=0;while(i<A.length-2&&A[i+1]<=dd)i++;c.si=i;
+  const P=W.pathPts,a=P[i],b=P[(i+1)%P.length],t=(dd-A[i])/Math.max(.001,A[i+1]-A[i]);
+  const yaw=Math.atan2(b.x-a.x,b.z-a.z),tx=a.x+(b.x-a.x)*t+Math.cos(yaw)*c.lane,tz=a.z+(b.z-a.z)*t-Math.sin(yaw)*c.lane,k=Math.min(1,8*dt);
+  c.x+=(tx-c.x)*k;c.z+=(tz-c.z)*k;c.y=W.groundY(c.x,c.z);
+  const da=wrapA(yaw-c.yaw);c.yaw+=da*k;c.steer=clamp(da*3,-1,1);c.speed=c.v;
+}
+function raceTick(dt){
+  const W=world,R=W&&W.race;if(!R||!B||!W.gates)return;
+  const now=performance.now(),hr=$('hRace'),G=W.gates.length;let msg='';
+  const online=R.kind==='online',list=(online&&NET.ch)?presenceList(NET.ch):[],leader=list.length&&list[0].id===NET.id;
+  const moving=online&&[...NET.remotes.values()].some(r=>r.got&&r.speed>3&&now-r.at<3000);
+  if(online&&NET.ch){
+    if(R.state==='lobby'){
+      if(list.length>=2&&!moving)R.lobbyT+=dt;else R.lobbyT=0;
+      if(leader&&R.lobbyT>=10){const ids=list.slice(0,MAX_PLAYERS).map(m=>m.id),n=Math.random().toString(36).slice(2,8);netRaceSend({k:'go',ids,in:5000,n});raceStartOnline(ids,5000,n)}
+    }else if(R.state==='wait'){
+      R.waitT=(R.waitT||0)+dt;if(!moving&&R.waitT>6)raceResetOnline();
+    }else if(R.state==='go'||R.state==='done'){
+      const alive=R.ids.filter(id=>id===NET.id||NET.remotes.has(id));
+      if(R.fin.length&&!R.firstFin)R.firstFin=now;
+      if((alive.length&&alive.every(id=>R.fin.includes(id)))||(R.firstFin&&now-R.firstFin>60000)||now-R.startedAt>240000){const n=R.seq;netRaceSend({k:'rs',n});raceResetOnline()}
+    }
+  }
+  if(R.state==='count'){const rem=R.goAt-now;if(rem<=0){R.state='go';R.startedAt=now;R.goFlash=1.2}else msg=String(Math.ceil(rem/1000))}
+  if(R.state==='go'||R.state==='done'){
+    if(!R.finished){
+      const g=W.gates[W.gi],dx=B.x-g.x,dz=B.z-g.z;
+      if(dx*dx+dz*dz<42&&Math.abs(B.y+.8-g.y)<8){
+        R.passed++;W.gi=R.passed%G;gateVisuals(W);
+        if(R.passed>=R.laps*G)raceFinish(R);else if(W.gi===0)pop('🏁 Lap '+(Math.floor(R.passed/G)+1)+' of '+R.laps,'gold');
+      }
+    }
+    B.rp=raceProg(W,R);
+    if(R.goFlash>0){R.goFlash-=dt;if(!R.finished)msg='GO!'}
+    const rk=raceRanking(R),pos=rk.findIndex(e=>e.id===R.me)+1;
+    R.hud=R.finished?'Finished '+(ORD[R.place]||R.place)+' · +'+fmt(R.prize):'Position '+pos+'/'+rk.length+' · Lap '+Math.min(R.laps,Math.floor(R.passed/G)+1)+'/'+R.laps+' · Gate '+(W.gi+1)+'/'+G;
+  }else R.hud='';
+  if(R.finished){
+    if(R.msgT>0){R.msgT-=dt;msg=(ORD[R.place]||R.place+'th')+' place!  +'+fmt(R.prize)}
+    else msg=R.kind==='cpu'?'Tap here or press Enter to race again':'Waiting for the race to finish…';
+  }
+  if(R.state==='lobby'&&online){
+    msg=moving?'Race in progress. You join the next one.':list.length<2?'Waiting for another rider…':(R.lobbyT>0?'Race starts in '+Math.max(1,Math.ceil(10-R.lobbyT))+'s':'Race starting soon…');
+  }else if(R.state==='wait')msg='Race in progress. You join the next one.';
+  hr.textContent=msg;hr.style.pointerEvents=(R.kind==='cpu'&&R.finished&&R.msgT<=0)?'auto':'none';
+  if(R.kind==='cpu'){
+    const running=R.state==='go'||R.state==='done';cam.updateMatrixWorld();
+    R.cpus.forEach(c=>{
+      cpuStep(c,R,W,dt,running);c.rig.root.visible=true;poseRig(c.rig,c,dt);
+      _tv.set(c.x,c.y+2.4,c.z).project(cam);
+      if(_tv.z<1&&Math.hypot(c.x-B.x,c.z-B.z)<160&&Math.abs(_tv.x)<1.1&&Math.abs(_tv.y)<1.1){c.tag.style.display='block';c.tag.style.left=((_tv.x*.5+.5)*innerWidth)+'px';c.tag.style.top=((-_tv.y*.5+.5)*innerHeight)+'px'}else c.tag.style.display='none';
+    });
+  }
+}
+$('hRace').addEventListener('click',()=>{const R=world&&world.race;if(R&&R.kind==='cpu'&&R.finished)startRide('race')});
+addEventListener('keydown',e=>{if(e.code==='Enter'&&state==='ride'){const R=world&&world.race;if(R&&R.kind==='cpu'&&R.finished)startRide('race')}});
+
 /* ================= loop ================= */
 function resize(){
   const W=innerWidth,H=innerHeight;renderer.setSize(W,H,false);
@@ -1400,6 +1551,7 @@ function frame(now){
   }else if(B){
     const n=Math.max(1,Math.ceil(dt/.017));if(!(wanted.bustedT>0))for(let i=0;i<n;i++)sim(dt/n);
     if(world.mode==='street')policeTick(dt);
+    raceTick(dt);
     view(dt);engTick();dustTick(dt);netTick(dt);renderer.render(scene,cam);
   }
 }
