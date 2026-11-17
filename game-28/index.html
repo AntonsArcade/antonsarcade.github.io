@@ -104,7 +104,7 @@ ol.steps{margin:6px 0 8px 18px;padding:0;font-size:13px;line-height:1.5;color:#c
 <div id="ridebar"><button class="btn" data-a="ride" data-v="street">🏙️ Ride Streets</button><button class="btn" data-a="ride" data-v="trail">🌲 Ride Trails</button></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
 <script id="game">
 'use strict';
 /* ================= ONLINE SETUP (Supabase) =================
@@ -113,8 +113,8 @@ ol.steps{margin:6px 0 8px 18px;padding:0;font-size:13px;line-height:1.5;color:#c
    3. Paste them below. (The anon key is meant to be public, it is fine on GitHub.
       NEVER paste the service_role key.)
    Online play uses Realtime Broadcast + Presence only: no tables or SQL needed. */
-const SUPABASE_URL='PASTE_YOUR_SUPABASE_URL_HERE';        // e.g. https://abcdxyz.supabase.co
-const SUPABASE_ANON_KEY='PASTE_YOUR_ANON_PUBLIC_KEY_HERE';
+const SUPABASE_URL='https://jxirgdjsarzijdozhocz.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_j1CcIe4Eq_1V_bFURZGwOw_qxnXdWcq';
 const MAX_PLAYERS=10;     // riders per server (the next server opens when one is full)
 const SEND_MS=170;        // how often your position is sent (~6 per second)
 const GAME_NAME='Ride Empire';   // change this to rename the game
@@ -140,10 +140,10 @@ const STYLES={
 };
 /* body styles for your brand's own e-bike */
 const ESTYLES={
-  ebike:{name:'E-Bike',kind:'bike',wr:.33,wb:1.15,tw:.045,turn:1,spin:1,top:0,susp:1,blurb:'City e-bike. Balanced and quick off the line.'},
-  emtb:{name:'E-MTB',kind:'bike',wr:.35,wb:1.18,tw:.07,turn:1,spin:1.05,top:1.5,susp:3,blurb:'Fat tyres and suspension. Great on trails.'},
-  emoto:{name:'E-Moto',kind:'moto',wr:.36,wb:1.3,tw:.08,turn:.95,spin:.95,top:6,susp:4,blurb:'Dirt-bike style with the highest top speed.'},
-  escoot:{name:'E-Scooter',kind:'scooter',wr:.13,wb:.95,tw:.035,turn:1.35,spin:1.3,top:-1,susp:0,blurb:'Tiny and nimble. Great for tricks.'}
+  ebike:{name:'E-Bike',kind:'bike',wr:.33,wb:1.15,tw:.045,turn:1,spin:1,top:0,susp:1,price:15000,blurb:'City e-bike. Balanced and quick off the line.'},
+  emtb:{name:'E-MTB',kind:'bike',wr:.35,wb:1.18,tw:.07,turn:1,spin:1.05,top:1.5,susp:3,price:22000,blurb:'Fat tyres and suspension. Great on trails.'},
+  emoto:{name:'E-Moto',kind:'moto',wr:.36,wb:1.3,tw:.08,turn:.95,spin:.95,top:26,susp:4,price:90000,blurb:'Dirt-bike style. Way faster than anything else you can build.'},
+  escoot:{name:'E-Scooter',kind:'scooter',wr:.13,wb:.95,tw:.035,turn:1.35,spin:1.3,top:-1,susp:0,price:12000,blurb:'Tiny and nimble. Great for tricks.'}
 };
 /* top = max speed in m/s (km/h = top x 3.6). boost = extra speed while holding Shift (motor vehicles). */
 const SHOP=[
@@ -198,9 +198,9 @@ const FAME=[[0,'Unknown'],[2000,'Local Rider'],[8000,'Street Famous'],[25000,'Pr
 const DEF={money:300,fame:0,best:0,brand:{name:'Rad Wheels',logo:'⚡',color:'#ff5a1f',color2:'#222a3a'},
   design:{style:'bmx',frame:'#ff5a1f',seat:'#151515',rim:'#ffd23f',fork:'#dddddd'},
   edesign:{style:'ebike',frame:'#2dd4bf',seat:'#151515',rim:'#ffffff',fork:'#cfd3da'},
-  up:{susp:0,tires:0,gears:0,frame:0,kit:0},eup:{motor:0,boost:0,battery:0,susp:0,tires:0,frame:0},owned:['own'],bike:'own',mode:'street'};
+  up:{susp:0,tires:0,gears:0,frame:0,kit:0},eup:{motor:0,boost:0,battery:0,susp:0,tires:0,frame:0},owned:['own'],estyles:[],bike:'own',mode:'street'};
 let SAVE=JSON.parse(JSON.stringify(DEF));
-try{const s=JSON.parse(localStorage.getItem('bikebrand_v1')||'null');if(s){SAVE=Object.assign(SAVE,s);SAVE.brand=Object.assign({},DEF.brand,s.brand);SAVE.design=Object.assign({},DEF.design,s.design);SAVE.edesign=Object.assign({},DEF.edesign,s.edesign);SAVE.up=Object.assign({},DEF.up,s.up);SAVE.eup=Object.assign({},DEF.eup,s.eup);if(!Array.isArray(SAVE.owned))SAVE.owned=['own']}}catch(e){}
+try{const s=JSON.parse(localStorage.getItem('bikebrand_v1')||'null');if(s){SAVE=Object.assign(SAVE,s);SAVE.brand=Object.assign({},DEF.brand,s.brand);SAVE.design=Object.assign({},DEF.design,s.design);SAVE.edesign=Object.assign({},DEF.edesign,s.edesign);SAVE.up=Object.assign({},DEF.up,s.up);SAVE.eup=Object.assign({},DEF.eup,s.eup);if(!Array.isArray(SAVE.owned))SAVE.owned=['own'];if(!Array.isArray(SAVE.estyles))SAVE.estyles=[]}}catch(e){}
 let saveT=0;
 function save(){try{localStorage.setItem('bikebrand_v1',JSON.stringify(SAVE))}catch(e){}}
 function saveSoon(){clearTimeout(saveT);saveT=setTimeout(save,800)}
@@ -210,7 +210,8 @@ function stats(id){
   id=id||SAVE.bike;
   if(id==='ownE'){
     const es=ESTYLES[SAVE.edesign.style]||ESTYLES.ebike,u=SAVE.eup;
-    return{name:SAVE.brand.name+' '+es.name,top:14+es.top+u.motor*3.6,accel:10+u.motor*1.4+u.frame*.8,boost:6+u.boost*3,batt:14+u.battery*4,
+    const mo=es.kind==='moto';
+    return{name:SAVE.brand.name+' '+es.name,top:14+es.top+u.motor*(mo?5:3.6),accel:10+u.motor*(mo?2:1.4)+u.frame*.8+(mo?5:0),boost:6+u.boost*3+(mo?6:0),batt:14+u.battery*4,
       turn:es.turn*(1+u.tires*.06),spin:es.spin*(1+u.frame*.07),susp:es.susp+u.susp,grip:1.1+u.tires*.1,motor:true,wr:es.wr,wb:es.wb,hop:1+(es.susp+u.susp)*.04};
   }
   const it=shopItem(id);
@@ -783,9 +784,10 @@ function view(dt){
 
 /* ================= garage UI ================= */
 let tab='design',shopCat='ebikes',sbUrlVal='',sbKeyVal='';
-const ownedId=id=>id==='own'||id==='ownE'||SAVE.owned.includes(id);
+const ownedStyle=()=>SAVE.estyles.includes(SAVE.edesign.style);
+const ownedId=id=>id==='own'||(id==='ownE'&&ownedStyle())||SAVE.owned.includes(id);
 function bar(l,v,m,t){return '<div class="bar"><span>'+l+'</span><b><i style="width:'+Math.min(100,Math.max(0,v/m*100))+'%"></i></b>'+(t?'<em>'+t+'</em>':'')+'</div>'}
-function statBars(S){return bar('Top speed',S.top,60,Math.round(S.top*3.6)+' km/h')+bar('Accel',S.accel,24)+(S.motor?bar('Boost',S.boost,22)+bar('Battery',S.batt,40):'')+bar('Suspension',S.susp,6)+bar('Handling',S.turn,1.8)}
+function statBars(S){return bar('Top speed',S.top,75,Math.round(S.top*3.6)+' km/h')+bar('Accel',S.accel,24)+(S.motor?bar('Boost',S.boost,22)+bar('Battery',S.batt,40):'')+bar('Suspension',S.susp,6)+bar('Handling',S.turn,1.8)}
 function colorGrid(pre,d,labels){
   return '<div class="colors">'+[['frame',labels[0]],['fork',labels[1]],['rim',labels[2]],['seat',labels[3]]].map(p=>'<div><input type="color" data-f="'+pre+'.'+p[0]+'" value="'+d[p[0]]+'">'+p[1]+'</div>').join('')+'</div>';
 }
@@ -814,8 +816,8 @@ function eDesignHtml(){
   let h='<div class="card"><h3>⚡ Your brand e-bike</h3><p>Build an electric ride for your brand. Your brand name and logo go on it. Then spend money on the motor, boost and battery to make it crazy fast.</p><div class="chips">'+
     Object.keys(ESTYLES).map(k=>'<button class="chip '+(d.style===k?'on':'')+'" data-a="estyle" data-v="'+k+'">'+ESTYLES[k].name+'</button>').join('')+'</div><p>'+es.blurb+'</p>'+
     colorGrid('edesign',d,labels)+
-    '<div style="margin-top:10px" class="row"><button class="btn alt" data-a="erand">🎲 Randomise</button>'+equipBtn('ownE','Ride my e-bike')+'</div></div>';
-  h+='<div class="card"><h3>Stats</h3>'+statBars(S)+'<p style="margin-top:6px">With max upgrades it reaches about '+Math.round((14+es.top+6*3.6+6+5*3)*3.6)+' km/h with boost.</p></div>'+upgCards(EUPG,SAVE.eup,'buyeup');
+    '<div style="margin-top:10px" class="row"><button class="btn alt" data-a="erand">🎲 Randomise</button>'+(ownedStyle()?equipBtn('ownE','Ride my e-bike'):'<button class="btn" data-a="buyestyle" '+(SAVE.money<es.price?'disabled':'')+'>🔒 Buy '+es.name+' '+fmt(es.price)+'</button>')+'</div></div>';
+  h+='<div class="card"><h3>Stats</h3>'+statBars(S)+'<p style="margin-top:6px">With max upgrades it reaches about '+Math.round((14+es.top+6*(es.kind==='moto'?5:3.6)+6+5*3+(es.kind==='moto'?6:0))*3.6)+' km/h with boost.</p></div>'+(ownedStyle()?upgCards(EUPG,SAVE.eup,'buyeup'):'<div class="card"><p style="margin:0">🔒 Buy this e-ride to unlock its upgrades.</p></div>');
   return h;
 }
 function shopHtml(){
@@ -853,6 +855,7 @@ $('menu').addEventListener('click',e=>{
     if(!u||l>=u.max)return;const c=u.costs[l];if(SAVE.money<c){toast('Not enough cash');return}
     SAVE.money-=c;lv[v]++;save();toast(u.name+' upgraded!');setPreviewOwn();renderMenu();
   }
+  else if(a==='buyestyle'){const es=ESTYLES[SAVE.edesign.style];if(!es||ownedStyle())return;if(SAVE.money<es.price){toast('Not enough cash');return}SAVE.money-=es.price;SAVE.estyles.push(SAVE.edesign.style);SAVE.bike='ownE';cur='ownE';save();setPreviewOwn();toast('Bought your brand '+es.name+'!');renderMenu()}
   else if(a==='buybike'){const b=shopItem(v);if(!b)return;if(SAVE.money<b.price){toast('Not enough cash');return}SAVE.money-=b.price;SAVE.owned.push(v);SAVE.bike=v;cur=v;save();setPreview(v);toast('Bought the '+b.name+'!');renderMenu()}
   else if(a==='equip'){if(!ownedId(v))return;SAVE.bike=v;cur=v;save();setPreview(v);renderMenu()}
   else if(a==='prev'){cur=v;setPreview(v)}
@@ -1105,7 +1108,7 @@ function policeTick(dt){
   }
   W.t+=dt;
   const heat=Math.min(5,1+Math.floor(W.t/25));
-  if(heat>W.heat){W.heat=heat;pop('🚨 Heat '+heat+'! More police!','bad')}
+  if(heat>W.heat){W.heat=heat;pop('🚨 More police!','bad')}
   W.spawnT-=dt;
   if(cops.length<Math.min(6,1+W.heat)&&W.spawnT<=0){W.spawnT=3;spawnCop()}
   const tgt=Math.max(14+W.heat*1.6,Math.min(B.S.top*.72,14+W.heat*7)),ph=Math.floor(performance.now()/130)%2;
@@ -1130,7 +1133,7 @@ function policeHud(){
   $('spd').style.color=st&&kph>=POLICE_KPH?'#ff6b6b':'';
   let t='';
   if(st){
-    if(wanted.on)t='🚨 '+'★'.repeat(wanted.heat)+'☆'.repeat(5-wanted.heat)+(wanted.onFoot?'  · officers on foot, keep moving!':wanted.lost>.5?'  · losing them…':'');
+    if(wanted.on)t='🚨 Police chase'+(wanted.onFoot?'  · officers on foot, keep moving!':wanted.lost>.5?'  · losing them…':'');
     else if(wanted.grace<=0&&kph>=POLICE_KPH-8)t='⚠ Police notice you at '+POLICE_KPH+' km/h';
   }
   const w=$('hWanted');if(w.textContent!==t)w.textContent=t;
