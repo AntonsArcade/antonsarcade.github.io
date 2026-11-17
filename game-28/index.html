@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Bike Brand Tycoon</title>
+<title>Ride Empire</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden;background:#141a28;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#fff;-webkit-user-select:none;user-select:none;touch-action:none}
@@ -64,6 +64,17 @@ input[type=color]{width:100%;height:36px;border:0;border-radius:8px;background:n
 #hHint{position:absolute;left:0;right:0;bottom:14px;text-align:center;font-size:13px;color:#ffeeb0;text-shadow:0 2px 4px #000;padding:0 150px}
 #touch{position:fixed;inset:0;pointer-events:none;display:none}
 #touch button{position:absolute;pointer-events:auto;width:62px;height:62px;border-radius:50%;border:2px solid #fff6;background:#0007;color:#fff;font-size:12px;font-weight:800;padding:0}
+#hWanted{position:absolute;left:0;right:0;top:12px;text-align:center;font-weight:900;font-size:22px;color:#fff;text-shadow:0 2px 6px #000;letter-spacing:1px}
+#hBustWrap{position:absolute;left:50%;top:48px;transform:translateX(-50%);width:220px;height:12px;border-radius:6px;background:#0009;overflow:hidden;display:none;border:1px solid #fff4}
+#hBust{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffd23f,#ff3b3b)}
+#hFx{position:absolute;inset:0;pointer-events:none}
+#hBusted{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:#000b;font-size:60px;font-weight:900;color:#ff6b6b;text-align:center;text-shadow:0 4px 12px #000}
+#hNet{margin-top:3px;font-size:12px;font-weight:700;color:#bfe3ff}
+#hCopy{pointer-events:auto;margin-top:4px;padding:5px 10px;border:0;border-radius:7px;background:#000a;color:#fff;font-weight:700;font-size:12px}
+#tags{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.tag{position:absolute;transform:translate(-50%,-100%);font-size:12px;font-weight:800;white-space:nowrap;padding:2px 8px;border-radius:10px;background:#000a;text-shadow:0 1px 2px #000}
+.bar em{font-style:normal;width:68px;text-align:right;color:#fff;font-size:11px}
+ol.steps{margin:6px 0 8px 18px;padding:0;font-size:13px;line-height:1.5;color:#c9d6f5}
 @media(max-aspect-ratio:1/1){#menu{top:auto;left:0;right:0;width:100%;height:58vh;border-right:0;border-top:1px solid #2a3350}#ridebar{width:100%}#hHint{padding:0 10px;bottom:150px}}
 </style>
 </head>
@@ -71,11 +82,11 @@ input[type=color]{width:100%;height:36px;border:0;border-radius:8px;background:n
 <canvas id="c"></canvas>
 <div id="toast"></div>
 <div id="hud">
-  <div id="hl"><div id="hBrand"></div><div id="hFame"><i id="hFameBar"></i></div><div id="hFameTxt"></div></div>
+  <div id="hl"><div id="hBrand"></div><div id="hFame"><i id="hFameBar"></i></div><div id="hFameTxt"></div><div id="hNet"></div><button id="hCopy" style="display:none">📋 Copy code</button></div>
   <div id="hr"><div id="hMoney"></div><div id="hScore"></div><button id="hGarage">🏠 Garage (Esc)</button></div>
   <div id="pops"></div>
   <div id="hbot"><div><b id="spd">0</b> km/h</div><div id="hBattWrap"><i id="hBatt"></i></div></div>
-  <div id="hLive"></div>
+  <div id="tags"></div><div id="hFx"></div><div id="hWanted"></div><div id="hBustWrap"><i id="hBust"></i></div><div id="hLive"></div><div id="hBusted"></div>
   <div id="hHint"></div>
 </div>
 <div id="touch">
@@ -93,8 +104,21 @@ input[type=color]{width:100%;height:36px;border:0;border-radius:8px;background:n
 <div id="ridebar"><button class="btn" data-a="ride" data-v="street">🏙️ Ride Streets</button><button class="btn" data-a="ride" data-v="trail">🌲 Ride Trails</button></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script id="game">
 'use strict';
+/* ================= ONLINE SETUP (Supabase) =================
+   1. Create a free project at https://supabase.com
+   2. Project Settings > API: copy the "Project URL" and the "anon public" key
+   3. Paste them below. (The anon key is meant to be public, it is fine on GitHub.
+      NEVER paste the service_role key.)
+   Online play uses Realtime Broadcast + Presence only: no tables or SQL needed. */
+const SUPABASE_URL='PASTE_YOUR_SUPABASE_URL_HERE';        // e.g. https://abcdxyz.supabase.co
+const SUPABASE_ANON_KEY='PASTE_YOUR_ANON_PUBLIC_KEY_HERE';
+const MAX_PLAYERS=10;     // riders per server (the next server opens when one is full)
+const SEND_MS=170;        // how often your position is sent (~6 per second)
+const GAME_NAME='Ride Empire';   // change this to rename the game
+
 /* ================= utils ================= */
 const $=id=>document.getElementById(id);
 const TAU=Math.PI*2;
@@ -108,31 +132,75 @@ const fmt=n=>'$'+Math.floor(n).toLocaleString();
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 /* ================= data & save ================= */
+const lum=h=>{const n=parseInt(h.slice(1),16);return(((n>>16)&255)*.299+((n>>8)&255)*.587+(n&255)*.114)/255};
 const STYLES={
   bmx:{name:'BMX',wr:.26,wb:.98,turn:1.25,top:-1,spin:1.2,susp:0,tw:.05,blurb:'Nimble and trick-happy. Spins fast.'},
   mtb:{name:'Mountain',wr:.34,wb:1.14,turn:1,top:0,spin:1,susp:1,tw:.065,blurb:'All-rounder with built-in suspension travel.'},
   road:{name:'Street Racer',wr:.33,wb:1.2,turn:.85,top:2,spin:.85,susp:0,tw:.032,blurb:'Fast and sleek, but slow to flip.'}
 };
-const EBIKES=[
-  {id:'volt',name:'Volt City',maker:'VoltRider',logo:'⚡',price:2800,top:12,accel:9,boost:6,batt:14,turn:1,spin:1,susp:1,wr:.31,wb:1.15,tw:.04,color:'#2dd4bf',accent:'#0b3b4a'},
-  {id:'trail',name:'Trailstorm E-MTB',maker:'Ridgeline',logo:'🌲',price:5500,top:14,accel:10.5,boost:8,batt:18,turn:1,spin:1,susp:3,wr:.34,wb:1.16,tw:.07,color:'#7bd13a',accent:'#1c3a12'},
-  {id:'apex',name:'Apex Moto-E',maker:'ApexWorks',logo:'🔥',price:11000,top:16,accel:13,boost:10,batt:22,turn:1.05,spin:1.05,susp:4,wr:.36,wb:1.25,tw:.08,color:'#ff3b3b',accent:'#2a0a0a',moto:true},
-  {id:'bolt',name:'Thunderbolt X',maker:'Gigawatt',logo:'🦅',price:25000,top:18,accel:17,boost:12,batt:30,turn:1.1,spin:1.1,susp:5,wr:.37,wb:1.28,tw:.09,color:'#ffd23f',accent:'#151515',moto:true}
+/* body styles for your brand's own e-bike */
+const ESTYLES={
+  ebike:{name:'E-Bike',kind:'bike',wr:.33,wb:1.15,tw:.045,turn:1,spin:1,top:0,susp:1,blurb:'City e-bike. Balanced and quick off the line.'},
+  emtb:{name:'E-MTB',kind:'bike',wr:.35,wb:1.18,tw:.07,turn:1,spin:1.05,top:1.5,susp:3,blurb:'Fat tyres and suspension. Great on trails.'},
+  emoto:{name:'E-Moto',kind:'moto',wr:.36,wb:1.3,tw:.08,turn:.95,spin:.95,top:6,susp:4,blurb:'Dirt-bike style with the highest top speed.'},
+  escoot:{name:'E-Scooter',kind:'scooter',wr:.13,wb:.95,tw:.035,turn:1.35,spin:1.3,top:-1,susp:0,blurb:'Tiny and nimble. Great for tricks.'}
+};
+/* top = max speed in m/s (km/h = top x 3.6). boost = extra speed while holding Shift (motor vehicles). */
+const SHOP=[
+  /* ---- pedal bikes ---- */
+  {id:'cruiser',cat:'bikes',name:'Beach Cruiser',maker:'Sunny Cycles',logo:'🌴',price:250,kind:'bike',top:8,accel:7,turn:1.05,spin:.9,susp:0,wr:.34,wb:1.2,tw:.06,color:'#2ec4b6',accent:'#f4f1de'},
+  {id:'bmxpro',cat:'bikes',name:'BMX Pro',maker:'Street Kings',logo:'👑',price:450,kind:'bike',top:9.5,accel:8,turn:1.35,spin:1.35,susp:1,wr:.26,wb:.98,tw:.05,color:'#ffb300',accent:'#151515'},
+  {id:'fixie',cat:'bikes',name:'Urban Fixie',maker:'Brakeless',logo:'🌀',price:700,kind:'bike',top:12,accel:10,turn:1.2,spin:1.1,susp:0,wr:.33,wb:1.15,tw:.03,color:'#ff6bd6',accent:'#222222'},
+  {id:'trials',cat:'bikes',name:'Trials Hopper',maker:'HopWorks',logo:'🐸',price:1100,kind:'bike',top:8.5,accel:8,turn:1.4,spin:1.4,susp:2,wr:.28,wb:1,tw:.06,color:'#f5f5f5',accent:'#e53935'},
+  {id:'dh',cat:'bikes',name:'Downhill Beast',maker:'Ridgeline',logo:'⛰️',price:1400,kind:'bike',top:11,accel:8.5,turn:1,spin:1,susp:4,wr:.35,wb:1.2,tw:.075,color:'#5ac85a',accent:'#1b2b1b'},
+  {id:'gravel',cat:'bikes',name:'Gravel Grinder',maker:'Roam',logo:'🪨',price:1800,kind:'bike',top:13.5,accel:9,turn:.95,spin:.95,susp:1,wr:.34,wb:1.18,tw:.04,color:'#9aa7b4',accent:'#222222'},
+  {id:'aero',cat:'bikes',name:'Aero Racer',maker:'Velocity',logo:'🏁',price:3200,kind:'bike',top:16,accel:9.5,turn:.85,spin:.85,susp:0,wr:.33,wb:1.2,tw:.028,color:'#2e86ff',accent:'#101820'},
+  /* ---- e-bikes ---- */
+  {id:'commuter',cat:'ebikes',name:'Metro Commuter',maker:'CityGlide',logo:'🏙️',price:1800,kind:'bike',motor:true,top:11,accel:8.5,boost:4,batt:12,turn:1,spin:1,susp:1,wr:.33,wb:1.17,tw:.035,color:'#c7d0e0',accent:'#2b3a55'},
+  {id:'volt',cat:'ebikes',name:'Volt City',maker:'VoltRider',logo:'⚡',price:2800,kind:'bike',motor:true,top:13,accel:9.5,boost:6,batt:14,turn:1,spin:1,susp:1,wr:.31,wb:1.15,tw:.04,color:'#2dd4bf',accent:'#0b3b4a'},
+  {id:'fat',cat:'ebikes',name:'Fatwheel E-Fat',maker:'BigRoll',logo:'🐻',price:3800,kind:'bike',motor:true,top:14,accel:10,boost:7,batt:16,turn:1,spin:1,susp:2,wr:.36,wb:1.2,tw:.11,color:'#ff9f1c',accent:'#1b1305'},
+  {id:'trail',cat:'ebikes',name:'Trailstorm E-MTB',maker:'Ridgeline',logo:'🌲',price:5500,kind:'bike',motor:true,top:16.5,accel:10.5,boost:9,batt:18,turn:1,spin:1,susp:3,wr:.34,wb:1.16,tw:.07,color:'#7bd13a',accent:'#1c3a12'},
+  {id:'turbo',cat:'ebikes',name:'Turbo Speedster',maker:'Velocity',logo:'💨',price:8000,kind:'bike',motor:true,top:20,accel:12,boost:10,batt:20,turn:.9,spin:.9,susp:1,wr:.33,wb:1.22,tw:.03,color:'#ef476f',accent:'#201018'},
+  {id:'enduro',cat:'ebikes',name:'Enduro E-MTB',maker:'Ridgeline',logo:'🏔️',price:12000,kind:'bike',motor:true,top:22,accel:12.5,boost:12,batt:22,turn:1,spin:1,susp:5,wr:.35,wb:1.2,tw:.075,color:'#118ab2',accent:'#08202b'},
+  /* ---- e-motos (100 km/h and up) ---- */
+  {id:'ember',cat:'emotos',name:'Ember 250',maker:'Torque Moto',logo:'🔥',price:6000,kind:'moto',motor:true,top:28,accel:12,boost:6,batt:22,turn:.95,spin:.95,susp:4,wr:.36,wb:1.3,tw:.08,color:'#e53935',accent:'#14151a'},
+  {id:'apex',cat:'emotos',name:'Apex Moto-E',maker:'ApexWorks',logo:'🏁',price:12000,kind:'moto',motor:true,top:31,accel:13,boost:8,batt:24,turn:.95,spin:.95,susp:4,wr:.36,wb:1.3,tw:.08,color:'#ff7a00',accent:'#16120a'},
+  {id:'ranger',cat:'emotos',name:'Ranger Rally',maker:'Dune Co',logo:'🏜️',price:20000,kind:'moto',motor:true,top:34,accel:13.5,boost:9,batt:26,turn:.95,spin:.95,susp:5,wr:.37,wb:1.32,tw:.085,color:'#f2c200',accent:'#1a1a1a'},
+  {id:'bolt',cat:'emotos',name:'Thunderbolt X',maker:'Gigawatt',logo:'🦅',price:32000,kind:'moto',motor:true,top:38,accel:15,boost:11,batt:28,turn:1,spin:1,susp:5,wr:.37,wb:1.32,tw:.085,color:'#ffd23f',accent:'#111111'},
+  {id:'phantom',cat:'emotos',name:'Phantom RR',maker:'NightForge',logo:'👻',price:60000,kind:'moto',motor:true,top:44,accel:17,boost:14,batt:32,turn:1.05,spin:1,susp:5,wr:.37,wb:1.34,tw:.085,color:'#6c63ff',accent:'#0b0a14'},
+  {id:'lightning',cat:'emotos',name:'Lightning Mk II',maker:'Gigawatt',logo:'⚡',price:110000,kind:'moto',motor:true,top:52,accel:20,boost:16,batt:38,turn:1.1,spin:1.05,susp:6,wr:.37,wb:1.34,tw:.09,color:'#35e0ff',accent:'#06121a'},
+  /* ---- e-scooters ---- */
+  {id:'kick',cat:'scooters',name:'City Kick',maker:'ScootCo',logo:'🛴',price:600,kind:'scooter',motor:true,top:8.5,accel:8,boost:0,batt:0,turn:1.4,spin:1.3,susp:0,wr:.13,wb:.95,tw:.035,color:'#8ecae6',accent:'#1a1a22'},
+  {id:'pro',cat:'scooters',name:'Scoot Pro',maker:'ScootCo',logo:'🛴',price:1500,kind:'scooter',motor:true,top:13,accel:10,boost:4,batt:10,turn:1.4,spin:1.3,susp:1,wr:.13,wb:.95,tw:.035,color:'#ff4d6d',accent:'#1a1a22'},
+  {id:'dual',cat:'scooters',name:'Dual-Motor GT',maker:'Zapp',logo:'⚡',price:4500,kind:'scooter',motor:true,top:19,accel:13,boost:8,batt:16,turn:1.3,spin:1.2,susp:2,wr:.14,wb:1,tw:.04,color:'#4cc9f0',accent:'#10151f'},
+  {id:'hyper',cat:'scooters',name:'Hyper Scoot X',maker:'Zapp',logo:'🚀',price:14000,kind:'scooter',motor:true,top:27,accel:17,boost:10,batt:22,turn:1.2,spin:1.2,susp:3,wr:.15,wb:1.05,tw:.045,color:'#b5179e',accent:'#14081a'}
 ];
+const shopItem=id=>SHOP.find(b=>b.id===id);
+/* upgrades for your own pedal bike */
 const UPG=[
   {id:'susp',name:'Suspension',max:5,costs:[250,600,1200,2200,4000],desc:'Softer landings: more forgiving flips and you survive bigger drops.'},
   {id:'tires',name:'Tires & Grip',max:5,costs:[120,300,600,1000,1800],desc:'Sharper turning and stronger braking.'},
   {id:'gears',name:'Gears & Drivetrain',max:5,costs:[150,350,700,1200,2000],desc:'Higher pedalling top speed.'},
   {id:'frame',name:'Lightweight Frame',max:5,costs:[200,450,900,1500,2600],desc:'Faster acceleration and faster flips and spins.'},
-  {id:'kit',name:'Conversion Kit (E-Bike)',max:3,costs:[1500,2800,4800],desc:'Stage 1: hub motor + battery, hold Shift to boost. Stage 2: bigger battery and more boost. Stage 3: high-torque motor.'}
+  {id:'kit',name:'Conversion Kit (E-Bike)',max:3,costs:[2500,6000,12000],desc:'Turns your bike electric. Stage 1: motor, battery and boost (Shift). Stage 2: much more speed and boost. Stage 3: a monster motor that makes your bike properly fast.'}
+];
+/* upgrades for your brand e-bike: max them out and it is seriously quick */
+const EUPG=[
+  {id:'motor',name:'Motor Power',max:6,costs:[1500,3500,8000,16000,30000,60000],desc:'More top speed and acceleration. Max level is crazy fast.'},
+  {id:'boost',name:'Boost Controller',max:5,costs:[1200,3000,7000,14000,26000],desc:'Hold Shift for a bigger speed burst. Every level adds more.'},
+  {id:'battery',name:'Battery Pack',max:5,costs:[800,2000,4500,9000,16000],desc:'A bigger battery means longer boosts.'},
+  {id:'susp',name:'Suspension',max:5,costs:[300,750,1500,2800,5000],desc:'Softer landings and bigger jumps.'},
+  {id:'tires',name:'Tires & Grip',max:5,costs:[150,400,800,1400,2400],desc:'Sharper turning and stronger braking.'},
+  {id:'frame',name:'Carbon Frame',max:5,costs:[250,600,1200,2000,3500],desc:'Faster acceleration and faster flips and spins.'}
 ];
 const LOGOS=['⚡','🔥','🦅','🐺','🌟','💀','🦁','🚀'];
 const FAME=[[0,'Unknown'],[2000,'Local Rider'],[8000,'Street Famous'],[25000,'Pro Brand'],[80000,'Global Icon'],[200000,'Legend']];
 const DEF={money:300,fame:0,best:0,brand:{name:'Rad Wheels',logo:'⚡',color:'#ff5a1f',color2:'#222a3a'},
   design:{style:'bmx',frame:'#ff5a1f',seat:'#151515',rim:'#ffd23f',fork:'#dddddd'},
-  up:{susp:0,tires:0,gears:0,frame:0,kit:0},owned:['own'],bike:'own',mode:'street'};
+  edesign:{style:'ebike',frame:'#2dd4bf',seat:'#151515',rim:'#ffffff',fork:'#cfd3da'},
+  up:{susp:0,tires:0,gears:0,frame:0,kit:0},eup:{motor:0,boost:0,battery:0,susp:0,tires:0,frame:0},owned:['own'],bike:'own',mode:'street'};
 let SAVE=JSON.parse(JSON.stringify(DEF));
-try{const s=JSON.parse(localStorage.getItem('bikebrand_v1')||'null');if(s){SAVE=Object.assign(SAVE,s);SAVE.brand=Object.assign({},DEF.brand,s.brand);SAVE.design=Object.assign({},DEF.design,s.design);SAVE.up=Object.assign({},DEF.up,s.up);}}catch(e){}
+try{const s=JSON.parse(localStorage.getItem('bikebrand_v1')||'null');if(s){SAVE=Object.assign(SAVE,s);SAVE.brand=Object.assign({},DEF.brand,s.brand);SAVE.design=Object.assign({},DEF.design,s.design);SAVE.edesign=Object.assign({},DEF.edesign,s.edesign);SAVE.up=Object.assign({},DEF.up,s.up);SAVE.eup=Object.assign({},DEF.eup,s.eup);if(!Array.isArray(SAVE.owned))SAVE.owned=['own']}}catch(e){}
 let saveT=0;
 function save(){try{localStorage.setItem('bikebrand_v1',JSON.stringify(SAVE))}catch(e){}}
 function saveSoon(){clearTimeout(saveT);saveT=setTimeout(save,800)}
@@ -140,17 +208,31 @@ function fameInfo(){let l=0;for(let i=0;i<FAME.length;i++)if(SAVE.fame>=FAME[i][
 
 function stats(id){
   id=id||SAVE.bike;
-  if(id==='own'){const st=STYLES[SAVE.design.style],u=SAVE.up;
-    return{name:SAVE.brand.name+' '+st.name,top:9+u.gears*1.1+st.top,accel:7+u.frame*.9,boost:[0,5,8,11][u.kit],batt:[0,8,12,18][u.kit],
-      turn:st.turn*(1+u.tires*.06),spin:st.spin*(1+u.frame*.07),susp:u.susp+st.susp,grip:1+u.tires*.1,motor:u.kit>0,wr:st.wr,wb:st.wb,hop:1+u.susp*.04}}
-  const e=EBIKES.find(b=>b.id===id);
-  return{name:e.name,top:e.top,accel:e.accel,boost:e.boost,batt:e.batt,turn:e.turn,spin:e.spin,susp:e.susp,grip:1.2,motor:true,wr:e.wr,wb:e.wb,hop:1+e.susp*.04};
+  if(id==='ownE'){
+    const es=ESTYLES[SAVE.edesign.style]||ESTYLES.ebike,u=SAVE.eup;
+    return{name:SAVE.brand.name+' '+es.name,top:14+es.top+u.motor*3.6,accel:10+u.motor*1.4+u.frame*.8,boost:6+u.boost*3,batt:14+u.battery*4,
+      turn:es.turn*(1+u.tires*.06),spin:es.spin*(1+u.frame*.07),susp:es.susp+u.susp,grip:1.1+u.tires*.1,motor:true,wr:es.wr,wb:es.wb,hop:1+(es.susp+u.susp)*.04};
+  }
+  const it=shopItem(id);
+  if(it)return{name:it.name,top:it.top,accel:it.accel,boost:it.boost||0,batt:it.batt||0,turn:it.turn,spin:it.spin,susp:it.susp,grip:1.15,motor:!!it.motor,wr:it.wr,wb:it.wb,hop:1+it.susp*.04};
+  const st=STYLES[SAVE.design.style]||STYLES.bmx,u=SAVE.up,k=u.kit;
+  return{name:SAVE.brand.name+' '+st.name,top:9+u.gears*1.1+st.top+[0,4,8,12][k],accel:7+u.frame*.9+[0,3,5,8][k],boost:[0,8,13,18][k],batt:[0,10,16,24][k],
+    turn:st.turn*(1+u.tires*.06),spin:st.spin*(1+u.frame*.07),susp:u.susp+st.susp,grip:1+u.tires*.1,motor:k>0,wr:st.wr,wb:st.wb,hop:1+u.susp*.04};
 }
 function modelDesc(id){
-  if(id==='own'){const st=STYLES[SAVE.design.style],d=SAVE.design,S=stats('own');
-    return{wr:st.wr,wb:st.wb,tw:st.tw,frame:d.frame,seat:d.seat,rim:d.rim,fork:d.fork,motor:SAVE.up.kit>0,susp:S.susp,brand:SAVE.brand,jersey:SAVE.brand.color2,moto:false}}
-  const e=EBIKES.find(b=>b.id===id);
-  return{wr:e.wr,wb:e.wb,tw:e.tw,frame:e.color,seat:'#111',rim:e.accent==='#151515'?'#ffffff':e.color,fork:'#222',motor:true,susp:e.susp,brand:{name:e.maker,logo:e.logo,color:e.accent==='#151515'?'#ffffff':e.accent},jersey:e.accent,moto:!!e.moto};
+  id=id||SAVE.bike;
+  if(id==='ownE'){
+    const es=ESTYLES[SAVE.edesign.style]||ESTYLES.ebike,d=SAVE.edesign,S=stats('ownE');
+    return{kind:es.kind,wr:es.wr,wb:es.wb,tw:es.tw,frame:d.frame,seat:d.seat,rim:d.rim,fork:d.fork,motor:true,susp:S.susp,brand:SAVE.brand,jersey:SAVE.brand.color2,moto:es.kind==='moto'};
+  }
+  const it=shopItem(id);
+  if(it){
+    const light=lum(it.color)>.6;
+    return{kind:it.kind,wr:it.wr,wb:it.wb,tw:it.tw,frame:it.color,seat:it.accent,rim:it.rim||(light?'#333333':'#f0f0f0'),fork:'#cfd3da',motor:!!it.motor,susp:it.susp,
+      brand:{name:it.maker,logo:it.logo,color:light?'#111111':'#ffffff'},jersey:it.accent,moto:it.kind==='moto'};
+  }
+  const st=STYLES[SAVE.design.style]||STYLES.bmx,d=SAVE.design,S=stats('own');
+  return{kind:'bike',wr:st.wr,wb:st.wb,tw:st.tw,frame:d.frame,seat:d.seat,rim:d.rim,fork:d.fork,motor:SAVE.up.kit>0,susp:S.susp,brand:SAVE.brand,jersey:SAVE.brand.color2,moto:false};
 }
 
 /* ================= three setup ================= */
@@ -158,6 +240,7 @@ const canvas=$('c');
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
 const mat=(c,m=.3,r=.7)=>new THREE.MeshStandardMaterial({color:c,metalness:m,roughness:r});
 
 /* preview (garage) scene */
@@ -194,32 +277,42 @@ function decalTex(b,w=512,h=128){
   x.font='900 '+(fs+4)+'px Arial,sans-serif';x.fillText(txt,92,h/2+3);
   return new THREE.CanvasTexture(c);
 }
-function buildBike(d){
-  const wr=d.wr,wb=d.wb,tw=d.tw||.05;
-  const root=new THREE.Group(),roll=new THREE.Group(),flip=new THREE.Group(),model=new THREE.Group();
-  root.add(roll);roll.add(flip);flip.add(model);
-  const mF=mat(d.frame,.5,.35),mFork=mat(d.fork,.8,.3),mSeat=mat(d.seat,.1,.8),mTire=mat('#141414',0,.95),mRim=mat(d.rim,.8,.25),mDark=mat('#2c2f38',.6,.4),mJer=mat(d.jersey||'#222a3a',0,.8),mSkin=mat('#e0b48c',0,.9);
-  const th=d.moto?.04:.022;
+/* a wheel: 'spoke' (bicycle), 'knob' (off-road, knobbly tyre) or 'solid' (scooter) */
+function wheelMesh(wr,tw,M,style){
+  const g=new THREE.Group();
+  if(style==='solid'){
+    const t=new THREE.Mesh(new THREE.CylinderGeometry(wr,wr,tw*1.8,18),M.tire);t.rotation.z=Math.PI/2;t.castShadow=true;g.add(t);
+    const hub=new THREE.Mesh(new THREE.CylinderGeometry(wr*.58,wr*.58,tw*2,12),M.rim);hub.rotation.z=Math.PI/2;g.add(hub);
+    const mk=new THREE.Mesh(new THREE.BoxGeometry(tw*2.2,wr*.4,.02),M.dark);mk.position.set(0,wr*.3,0);g.add(mk);
+    return g;
+  }
+  const t=new THREE.Mesh(new THREE.TorusGeometry(wr,tw,8,28),M.tire);t.rotation.y=Math.PI/2;t.castShadow=true;g.add(t);
+  const rm=new THREE.Mesh(new THREE.TorusGeometry(wr-tw*.85,.012,6,28),M.rim);rm.rotation.y=Math.PI/2;g.add(rm);
+  for(let k=0;k<4;k++){const s=new THREE.Mesh(new THREE.BoxGeometry(.008,(wr-tw)*1.9,.01),M.dark);s.rotation.x=k*Math.PI/4;g.add(s)}
+  if(style==='knob'){
+    const kg=new THREE.BoxGeometry(tw*1.5,.035,.06);
+    for(let k=0;k<18;k++){const a=k/18*TAU,r=wr+tw*.75,kn=new THREE.Mesh(kg,M.tire);kn.position.set(0,Math.cos(a)*r,Math.sin(a)*r);kn.rotation.x=a;g.add(kn)}
+  }
+  return g;
+}
+
+/* ---- pedal bike / e-bike frame ---- */
+function partsPedal(d,model,M){
+  const wr=d.wr,wb=d.wb,tw=d.tw||.05,th=.022;
   const R=V(0,wr,-wb/2),BB=V(0,wr*.8,-.08),ST=V(0,wr+.52,-.22),HT=V(0,wr+.5,wb/2-.2),HB=V(0,wr+.2,wb/2-.14);
-  [[R,BB],[R,ST],[BB,ST],[ST,HT],[BB,HB],[HT,HB]].forEach(p=>model.add(tube(p[0],p[1],th,mF)));
-  function wheel(){const g=new THREE.Group();
-    const t=new THREE.Mesh(new THREE.TorusGeometry(wr,tw,8,28),mTire);t.rotation.y=Math.PI/2;t.castShadow=true;g.add(t);
-    const rm=new THREE.Mesh(new THREE.TorusGeometry(wr-tw*.85,.012,6,28),mRim);rm.rotation.y=Math.PI/2;g.add(rm);
-    for(let k=0;k<4;k++){const s=new THREE.Mesh(new THREE.BoxGeometry(.008,(wr-tw)*1.9,.01),mDark);s.rotation.x=k*Math.PI/4;g.add(s)}
-    return g}
-  const rw=wheel();rw.position.copy(R);model.add(rw);
+  [[R,BB],[R,ST],[BB,ST],[ST,HT],[BB,HB],[HT,HB]].forEach(p=>model.add(tube(p[0],p[1],th,M.frame)));
+  const rw=wheelMesh(wr,tw,M,'spoke');rw.position.copy(R);model.add(rw);
   const steer=new THREE.Group();steer.position.copy(HT);model.add(steer);
   const FP=V(0,-.5,.2);
-  steer.add(tube(V(0,0,0),FP,.022,mFork));
-  if(d.susp>=1)steer.add(tube(V(0,-.25,.1),FP,.032,mat('#ffc400',.6,.3)));
-  const fw=wheel();fw.position.copy(FP);steer.add(fw);
-  steer.add(tube(V(0,0,0),V(0,.12,-.05),.02,mDark));
-  steer.add(tube(V(-.34,.12,-.05),V(.34,.12,-.05),.017,mDark));
-  if(d.moto){const hl=new THREE.Mesh(new THREE.SphereGeometry(.07,10,8),new THREE.MeshStandardMaterial({color:'#fff',emissive:'#ffffaa',emissiveIntensity:1}));hl.position.set(0,.05,.12);steer.add(hl)}
-  const seat=new THREE.Mesh(new THREE.BoxGeometry(.12,.05,.27),mSeat);seat.position.set(0,wr+.56,-.24);seat.castShadow=true;model.add(seat);
+  steer.add(tube(V(0,0,0),FP,.022,M.fork));
+  if(d.susp>=1)steer.add(tube(V(0,-.25,.1),FP,.032,M.yellow));
+  const fw=wheelMesh(wr,tw,M,'spoke');fw.position.copy(FP);steer.add(fw);
+  steer.add(tube(V(0,0,0),V(0,.12,-.05),.02,M.dark));
+  steer.add(tube(V(-.34,.12,-.05),V(.34,.12,-.05),.017,M.dark));
+  const seat=new THREE.Mesh(new THREE.BoxGeometry(.12,.05,.27),M.seat);seat.position.set(0,wr+.56,-.24);seat.castShadow=true;model.add(seat);
   const crank=new THREE.Group();crank.position.copy(BB);model.add(crank);
-  crank.add(tube(V(-.08,0,0),V(-.08,.17,0),.014,mDark));crank.add(tube(V(.08,0,0),V(.08,-.17,0),.014,mDark));
-  const p1=new THREE.Mesh(new THREE.BoxGeometry(.1,.02,.08),mDark);p1.position.set(-.12,.17,0);crank.add(p1);
+  crank.add(tube(V(-.08,0,0),V(-.08,.17,0),.014,M.dark));crank.add(tube(V(.08,0,0),V(.08,-.17,0),.014,M.dark));
+  const p1=new THREE.Mesh(new THREE.BoxGeometry(.1,.02,.08),M.dark);p1.position.set(-.12,.17,0);crank.add(p1);
   const p2=p1.clone();p2.position.set(.12,-.17,0);crank.add(p2);
   if(d.motor){
     const mo=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.17,14),mat('#2b2f3a',.7,.35));mo.rotation.z=Math.PI/2;mo.position.copy(BB);mo.castShadow=true;model.add(mo);
@@ -227,34 +320,120 @@ function buildBike(d){
     const mid=BB.clone().add(HB).multiplyScalar(.5),dir=HB.clone().sub(BB);
     const bat=new THREE.Mesh(new THREE.BoxGeometry(.12,.1,.46),mat('#1b2433',.5,.4));bat.position.copy(mid).add(V(0,.08,0));bat.quaternion.setFromUnitVectors(V(0,0,1),dir.clone().normalize());bat.castShadow=true;model.add(bat);
   }
-  if(d.susp>=2)model.add(tube(V(0,wr+.4,-.2),V(0,wr+.08,-wb/2+.04),.028,mat('#ffc400',.6,.3)));
+  if(d.susp>=2)model.add(tube(V(0,wr+.4,-.2),V(0,wr+.08,-wb/2+.04),.028,M.yellow));
   if(d.brand){
     const dm=new THREE.MeshBasicMaterial({map:decalTex(d.brand),transparent:true,side:THREE.DoubleSide,depthWrite:false});
     const mid=BB.clone().add(HB).multiplyScalar(.5),dir=HB.clone().sub(BB),ang=-Math.atan2(dir.y,dir.z);
-    [-1,1].forEach(sd=>{const g=new THREE.Group();g.position.set(sd*(th+.008),mid.y+(d.motor?.0:0),mid.z);g.rotation.x=ang;
+    [-1,1].forEach(sd=>{const g=new THREE.Group();g.position.set(sd*(th+.008),mid.y,mid.z);g.rotation.x=ang;
       const p=new THREE.Mesh(new THREE.PlaneGeometry(.5,.125),dm);p.rotation.y=sd*Math.PI/2;g.add(p);model.add(g)});
   }
-  /* rider */
-  function limb(r,m){const mesh=new THREE.Mesh(new THREE.CylinderGeometry(r,r,1,8),m);mesh.castShadow=true;model.add(mesh);return mesh}
-  const legs=[[limb(.055,mJer),limb(.045,mSkin)],[limb(.055,mJer),limb(.045,mSkin)]];
-  const arms=[[limb(.04,mJer),limb(.035,mSkin)],[limb(.04,mJer),limb(.035,mSkin)]];
-  const torso=limb(.11,mJer);place(torso,V(0,wr+.68,-.3),V(0,wr+1.1,0));
-  const head=new THREE.Mesh(new THREE.SphereGeometry(.1,12,10),mSkin);head.position.set(0,wr+1.27,.06);model.add(head);
-  const hel=new THREE.Mesh(new THREE.SphereGeometry(.125,12,8,0,TAU,0,Math.PI*.58),mat(d.frame,.3,.4));hel.position.set(0,wr+1.29,.05);hel.castShadow=true;model.add(hel);
   const BBy=wr*.8,BBz=-.08;
-  function updateRider(cr,noh){
-    const c=Math.cos(cr),s=Math.sin(cr);
-    const feet=[V(-.11,BBy+c*.17,BBz+s*.17),V(.11,BBy-c*.17,BBz-s*.17)];
+  return{steer,fw,rw,crank,rider:{hip:V(0,wr+.64,-.3),sh:V(0,wr+1.08,0),head:V(0,wr+1.27,.06),t0:V(0,wr+.68,-.3),t1:V(0,wr+1.1,0),
+    hand:V(.3,wr+.62,wb/2-.25),hup:V(.45,wr+1.5,.12),
+    feet:cr=>{const c=Math.cos(cr),s=Math.sin(cr);return[V(-.11,BBy+c*.17,BBz+s*.17),V(.11,BBy-c*.17,BBz-s*.17)]}}};
+}
+
+/* ---- electric dirt bike (e-moto) ---- */
+function partsMoto(d,model,M){
+  const wr=d.wr,wb=d.wb,tw=d.tw||.08;
+  const red=mat(d.frame,.35,.45),blk=mat(d.seat,.5,.5),spring=mat('#e53935',.6,.35);
+  const add=(geo,m,x,y,z)=>{const me=new THREE.Mesh(geo,m);me.position.set(x,y,z);me.castShadow=true;model.add(me);return me};
+  /* battery body, side panels, long tail seat, nose */
+  add(new THREE.BoxGeometry(.24,.44,.78),blk,0,wr+.34,.02);
+  [-1,1].forEach(s=>add(new THREE.BoxGeometry(.035,.32,.46),red,s*.13,wr+.36,.1));
+  const tail=add(new THREE.BoxGeometry(.28,.1,1.02),red,0,wr+.68,-.4);tail.rotation.x=.1;
+  add(new THREE.BoxGeometry(.2,.1,.6),blk,0,wr+.54,-.5);
+  add(new THREE.BoxGeometry(.3,.16,.5),red,0,wr+.7,.1);
+  /* swing arm, rear shock, rear wheel */
+  const R=V(0,wr,-wb/2),PV=V(0,wr*.62,-.1);
+  model.add(tube(PV,R,.05,blk));
+  model.add(tube(V(0,wr+.5,-.36),V(0,wr*.8,-.2),.038,spring));
+  const rw=wheelMesh(wr,tw,M,'knob');rw.position.copy(R);model.add(rw);
+  const rd=new THREE.Mesh(new THREE.CylinderGeometry(wr*.5,wr*.5,.012,16),M.dark);rd.rotation.z=Math.PI/2;rd.position.set(.07,0,0);rw.add(rd);
+  /* front end */
+  const HT=V(0,wr+.78,wb/2-.2),steer=new THREE.Group();steer.position.copy(HT);model.add(steer);
+  const FP=V(0,-.78,.2);
+  [-1,1].forEach(s=>{
+    steer.add(tube(V(s*.08,0,0),V(s*.08,FP.y+.22,FP.z-.03),.03,M.fork));
+    steer.add(tube(V(s*.08,FP.y+.22,FP.z-.03),V(s*.075,FP.y,FP.z),.036,blk));
+  });
+  const fw=wheelMesh(wr,tw,M,'knob');fw.position.copy(FP);steer.add(fw);
+  const fd=new THREE.Mesh(new THREE.CylinderGeometry(wr*.5,wr*.5,.012,16),M.dark);fd.rotation.z=Math.PI/2;fd.position.set(.07,0,0);fw.add(fd);
+  const fend=new THREE.Mesh(new THREE.BoxGeometry(.16,.04,.6),red);fend.position.set(0,FP.y+wr+.1,FP.z+.06);fend.rotation.x=-.1;fend.castShadow=true;steer.add(fend);
+  steer.add(tube(V(0,0,0),V(0,.12,-.04),.025,blk));
+  steer.add(tube(V(-.38,.12,-.04),V(.38,.12,-.04),.016,blk));
+  const hl=new THREE.Mesh(new THREE.SphereGeometry(.06,10,8),new THREE.MeshStandardMaterial({color:'#ffffff',emissive:'#ffffaa',emissiveIntensity:1}));hl.position.set(0,.04,.13);steer.add(hl);
+  const plate=new THREE.Mesh(new THREE.BoxGeometry(.2,.16,.02),blk);plate.position.set(0,.0,.16);steer.add(plate);
+  /* motor + glow ring, foot pegs */
+  const mo=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.24,14),mat('#23262e',.7,.35));mo.rotation.z=Math.PI/2;mo.position.set(0,wr*.62,-.1);mo.castShadow=true;model.add(mo);
+  const gl=new THREE.Mesh(new THREE.TorusGeometry(.09,.012,6,18),new THREE.MeshStandardMaterial({color:'#35e0ff',emissive:'#35e0ff',emissiveIntensity:1.2}));gl.rotation.y=Math.PI/2;gl.position.set(.125,wr*.62,-.1);model.add(gl);
+  [-1,1].forEach(s=>add(new THREE.BoxGeometry(.1,.025,.07),M.dark,s*.17,wr*.95,-.12));
+  /* brand decal on the side panels */
+  if(d.brand){
+    const dm=new THREE.MeshBasicMaterial({map:decalTex(d.brand),transparent:true,side:THREE.DoubleSide,depthWrite:false});
+    [-1,1].forEach(s=>{const p=new THREE.Mesh(new THREE.PlaneGeometry(.42,.105),dm);p.rotation.y=s*Math.PI/2;p.position.set(s*.155,wr+.36,.1);model.add(p)});
+  }
+  const pegY=wr*.95;
+  return{steer,fw,rw,crank:new THREE.Group(),rider:{hip:V(0,wr+.7,-.22),sh:V(0,wr+1.2,.1),head:V(0,wr+1.4,.16),t0:V(0,wr+.74,-.22),t1:V(0,wr+1.2,.1),
+    hand:V(.37,wr+.9,wb/2-.26),hup:V(.5,wr+1.5,.1),feet:()=>[V(-.17,pegY,-.12),V(.17,pegY,-.12)]}};
+}
+
+/* ---- e-scooter ---- */
+function partsScooter(d,model,M){
+  const wr=d.wr,wb=d.wb,tw=d.tw||.035,deckY=wr+.05;
+  const deck=new THREE.Mesh(new THREE.BoxGeometry(.17,.05,wb*.72),M.frame);deck.position.set(0,deckY,-.02);deck.castShadow=true;model.add(deck);
+  const tape=new THREE.Mesh(new THREE.BoxGeometry(.15,.01,wb*.6),mat('#1b1b1f',0,1));tape.position.set(0,deckY+.03,-.05);model.add(tape);
+  const R=V(0,wr,-wb/2+.02);
+  const rw=wheelMesh(wr,tw,M,'solid');rw.position.copy(R);model.add(rw);
+  const fend=new THREE.Mesh(new THREE.BoxGeometry(.12,.015,.3),M.dark);fend.position.set(0,wr*2+.03,R.z);model.add(fend);
+  /* battery box under the deck (decal goes on its sides) */
+  const bat=new THREE.Mesh(new THREE.BoxGeometry(.14,.1,.5),M.seat);bat.position.set(0,deckY-.075,-.02);bat.castShadow=true;model.add(bat);
+  const strip=new THREE.Mesh(new THREE.BoxGeometry(.145,.012,.5),new THREE.MeshStandardMaterial({color:'#35e0ff',emissive:'#35e0ff',emissiveIntensity:1.2}));strip.position.set(0,deckY-.03,-.02);model.add(strip);
+  if(d.brand){
+    const dm=new THREE.MeshBasicMaterial({map:decalTex(d.brand),transparent:true,side:THREE.DoubleSide,depthWrite:false});
+    [-1,1].forEach(s=>{const p=new THREE.Mesh(new THREE.PlaneGeometry(.46,.09),dm);p.rotation.y=s*Math.PI/2;p.position.set(s*.072,deckY-.085,-.02);model.add(p)});
+  }
+  const S0=V(0,deckY+.03,wb/2-.06),steer=new THREE.Group();steer.position.copy(S0);model.add(steer);
+  steer.add(tube(V(0,0,0),V(0,.95,-.09),.024,M.frame));
+  steer.add(tube(V(-.23,.95,-.09),V(.23,.95,-.09),.015,M.dark));
+  const FP=V(0,wr-S0.y,.05);
+  steer.add(tube(V(0,0,0),FP,.02,M.fork));
+  const fw=wheelMesh(wr,tw,M,'solid');fw.position.copy(FP);steer.add(fw);
+  const hl=new THREE.Mesh(new THREE.SphereGeometry(.035,8,6),new THREE.MeshStandardMaterial({color:'#ffffff',emissive:'#ffffaa',emissiveIntensity:1}));hl.position.set(0,.9,-.04);steer.add(hl);
+  const dk=deckY+.04;
+  return{steer,fw,rw,crank:new THREE.Group(),rider:{hip:V(0,.95,-.12),sh:V(0,1.42,.02),head:V(0,1.62,.06),t0:V(0,.98,-.12),t1:V(0,1.42,.02),
+    hand:V(.22,wr+.96,wb/2-.15),hup:V(.35,1.55,.1),feet:()=>[V(-.1,dk,-.24),V(.1,dk,.12)]}};
+}
+
+/* ---- the rider (shared by every vehicle) ---- */
+function addRider(model,sp,M,d){
+  function limb(r,m){const mesh=new THREE.Mesh(new THREE.CylinderGeometry(r,r,1,8),m);mesh.castShadow=true;model.add(mesh);return mesh}
+  const legs=[[limb(.055,M.jer),limb(.045,M.skin)],[limb(.055,M.jer),limb(.045,M.skin)]];
+  const arms=[[limb(.04,M.jer),limb(.035,M.skin)],[limb(.04,M.jer),limb(.035,M.skin)]];
+  const torso=limb(.11,M.jer);place(torso,sp.t0,sp.t1);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.1,12,10),M.skin);head.position.copy(sp.head);model.add(head);
+  const hel=new THREE.Mesh(new THREE.SphereGeometry(.125,12,8,0,TAU,0,Math.PI*.58),mat(d.frame,.3,.4));hel.position.set(sp.head.x,sp.head.y+.02,sp.head.z-.01);hel.castShadow=true;model.add(hel);
+  return function updateRider(cr,noh){
+    const feet=sp.feet(cr);
     [-1,1].forEach((sd,i)=>{
-      const hip=V(sd*.1,wr+.64,-.3),foot=feet[i],knee=hip.clone().add(foot).multiplyScalar(.5);knee.z+=.13;knee.x+=sd*.04;
+      const hip=V(sd*.1,sp.hip.y,sp.hip.z),foot=feet[i],knee=hip.clone().add(foot).multiplyScalar(.5);knee.z+=.13;knee.x+=sd*.04;
       place(legs[i][0],hip,knee);place(legs[i][1],knee,foot);
-      const sh=V(sd*.17,wr+1.08,0),h0=V(sd*.3,wr+.62,wb/2-.25),h1=V(sd*.45,wr+1.5,.12),hand=h0.clone().lerp(h1,noh);
+      const sh=V(sd*.17,sp.sh.y,sp.sh.z),h0=V(sd*sp.hand.x,sp.hand.y,sp.hand.z),h1=V(sd*sp.hup.x,sp.hup.y,sp.hup.z),hand=h0.clone().lerp(h1,noh);
       const el=sh.clone().add(hand).multiplyScalar(.5);el.y-=.06;el.x+=sd*.08;
       place(arms[i][0],sh,el);place(arms[i][1],el,hand);
     });
-  }
+  };
+}
+function buildBike(d){
+  const kind=d.kind||'bike';
+  const root=new THREE.Group(),roll=new THREE.Group(),flip=new THREE.Group(),model=new THREE.Group();
+  root.add(roll);roll.add(flip);flip.add(model);
+  const M={frame:mat(d.frame,.5,.35),fork:mat(d.fork,.8,.3),seat:mat(d.seat,.1,.8),tire:mat('#141414',0,.95),rim:mat(d.rim,.8,.25),dark:mat('#2c2f38',.6,.4),
+    jer:mat(d.jersey||'#222a3a',0,.8),skin:mat('#e0b48c',0,.9),yellow:mat('#ffc400',.6,.3)};
+  const P=kind==='moto'?partsMoto(d,model,M):kind==='scooter'?partsScooter(d,model,M):partsPedal(d,model,M);
+  const updateRider=addRider(model,P.rider,M,d);
   updateRider(0,0);
-  return{root,roll,flip,model,steer,fw,rw,crank,wr,wb,updateRider};
+  return{root,roll,flip,model,steer:P.steer,fw:P.fw,rw:P.rw,crank:P.crank,wr:d.wr,wb:d.wb,updateRider};
 }
 
 /* ================= world building ================= */
@@ -351,6 +530,7 @@ function buildStreet(){
     }
   }
   addTrees(W,trees);
+  addLamps(W);
   for(let i=-4;i<=4;i++)for(let j=-4;j<4;j++){
     if(r()<.5)addRamp(W,i*100+4,j*100+44,0,SIZES(r),0,'#c8a56a');
     if(r()<.5)addRamp(W,i*100-4,j*100+56,Math.PI,SIZES(r),0,'#c8a56a');
@@ -416,6 +596,7 @@ const KEYMAP={KeyW:'up',ArrowUp:'up',KeyS:'down',ArrowDown:'down',KeyA:'left',Ar
 addEventListener('keydown',e=>{
   if(e.code==='Escape'&&state==='ride'){goMenu();return}
   if(e.code==='KeyR'&&state==='ride'&&B)respawn();
+  if(e.code==='KeyM'){muted=!muted;toast(muted?'Sound off':'Sound on')}
   const k=KEYMAP[e.code];if(k){K[k]=true;if(state==='ride')e.preventDefault()}
 });
 addEventListener('keyup',e=>{const k=KEYMAP[e.code];if(k)K[k]=false});
@@ -427,24 +608,28 @@ document.querySelectorAll('#touch button').forEach(b=>{const k=b.dataset.k;
 function pop(text,cls){const d=document.createElement('div');d.className='pop '+(cls||'good');d.textContent=text;const p=$('pops');p.appendChild(d);while(p.children.length>4)p.removeChild(p.firstChild);setTimeout(()=>d.remove(),2000)}
 function toast(t){const e=$('toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',1800)}
 
-function startRide(mode){
-  SAVE.mode=mode;SAVE.bike=cur;save();
+function startRide(mode,online){
+  if(!online)netLeave();
+  policeReset();
+  SAVE.mode=mode;if(!ownedId(SAVE.bike))SAVE.bike='own';save();
   if(world){scene.remove(world.group);disposeGroup(world.group)}
   world=mode==='street'?buildStreet():buildTrail();scene.add(world.group);
-  scene.background=new THREE.Color(world.sky);scene.fog=new THREE.Fog(world.sky,140,520);
+  scene.background=new THREE.Color(HORIZON);scene.fog=new THREE.Fog(HORIZON,160,560);world.sky3d=makeSky();world.group.add(world.sky3d);
   if(B&&B.rig){scene.remove(B.rig.root);disposeGroup(B.rig.root)}
   const S=stats(SAVE.bike),rig=buildBike(modelDesc(SAVE.bike));scene.add(rig.root);
   B={rig,S,x:world.spawn.x,z:world.spawn.z,yaw:world.spawn.yaw,speed:0,vy:0,air:false,flip:0,spin:0,tab:0,noh:0,tabT:0,nohT:0,airT:0,w:0,wd:0,wheelT:0,wheelDist:0,charge:0,batt:S.batt,
     crashT:0,crashDir:1,combo:0,comboT:0,score:0,pitch:0,lean:0,steer:0,ws:0,cr:0,gvy:0,gvyP:0,camYaw:world.spawn.yaw,shake:0,t:0,coins:0};
+  if(online&&mode==='street'){B.x+=(Math.random()-.5)*8;B.z+=(Math.random()-.5)*8}
   B.y=world.groundY(B.x,B.z);
   state='ride';$('menu').style.display='none';$('ridebar').style.display='none';$('hud').style.display='block';
   $('touch').style.display=matchMedia('(pointer:coarse)').matches?'block':'none';
   $('hBattWrap').style.display=S.motor?'block':'none';
-  $('hHint').textContent='W gas · A/D steer · Q wheelie · Space hop (hold to charge) · In the air: W/S flip, A/D spin, X tabletop, Z no-hander · Shift boost · R respawn';
+  engStart();dustInit();
+  $('hHint').textContent='W gas · A/D steer · Q wheelie · Space hop (hold to charge) · In the air: W/S flip, A/D spin, X tabletop, Z no-hander · Shift boost · R respawn'+(mode==='street'?' · 🚨 Hit 60 km/h and the police chase you!':'');
   hintT=9;camSnap();
 }
 function respawn(){B.x=world.spawn.x;B.z=world.spawn.z;B.yaw=world.spawn.yaw;B.speed=0;B.air=false;B.crashT=0;B.w=0;B.flip=B.spin=0;B.y=world.groundY(B.x,B.z);camSnap()}
-function goMenu(){save();state='menu';$('hud').style.display='none';$('touch').style.display='none';$('menu').style.display='block';$('ridebar').style.display='flex';cur=SAVE.bike;setPreview(cur);renderMenu();resize()}
+function goMenu(){netLeave();policeReset();engStop();dustClear();save();state='menu';$('hud').style.display='none';$('touch').style.display='none';$('menu').style.display='block';$('ridebar').style.display='flex';cur=SAVE.bike;setPreview(cur);renderMenu();resize()}
 
 /* ================= physics ================= */
 function crash(reason){
@@ -482,7 +667,7 @@ function landTricks(){
 }
 function land(gy){
   const S=B.S,fe=Math.abs(wrapA(B.flip)),se=Math.abs(wrapA(B.spin)),tol=.85+.13*S.susp,vl=-B.vy;
-  B.y=gy;B.air=false;
+  B.y=gy;B.air=false;B.dust=Math.max(B.dust||0,clamp(vl/10,0,1.5));
   const ok=fe<tol&&se<tol+.25&&B.tab<.4&&B.noh<.45;
   if(!ok){crash(B.tab>=.4?'Landed sideways!':B.noh>=.45?'Hands off the bars!':'Bad landing!');B.flip=B.spin=0;B.tab=B.noh=0;return}
   if(vl>15+3*S.susp){B.speed*=.55;pop('Hard landing — upgrade suspension','bad');B.shake=.5}
@@ -550,11 +735,11 @@ function sim(dt){
 
 /* ================= view ================= */
 function camSnap(){const d=7;cam.position.set(B.x-Math.sin(B.yaw)*d,B.y+3.2,B.z-Math.cos(B.yaw)*d);cam.lookAt(B.x,B.y+1.3,B.z)}
-function view(dt){
-  const rig=B.rig,S=B.S;
+function poseRig(rig,B,dt){
   rig.root.position.set(B.x,B.y,B.z);rig.root.rotation.y=B.yaw;
   const pivY=B.air?.65:0,pivZ=B.air?0:-rig.wb/2;
-  rig.flip.position.set(0,pivY,pivZ);rig.model.position.set(0,-pivY,-pivZ);
+  const bob=(!B.air&&!(B.crashT>0))?Math.sin(B.ws*1.7)*.012*clamp(B.speed/12,0,1.5):0;
+  rig.flip.position.set(0,pivY,pivZ);rig.model.position.set(0,-pivY+bob,-pivZ);
   B.lean=lerp(B.lean,B.steer*clamp(B.speed/12,0,1)*.4,Math.min(1,8*dt));
   if(B.crashT>0){
     rig.flip.rotation.x=0;rig.roll.rotation.y=0;rig.roll.rotation.z=B.crashDir*clamp((1.4-B.crashT)*4,0,1.45);
@@ -566,12 +751,16 @@ function view(dt){
   B.ws+=B.speed/rig.wr*dt;rig.rw.rotation.x=B.ws;rig.fw.rotation.x=B.ws;
   rig.steer.rotation.y=lerp(rig.steer.rotation.y,B.steer*.35,Math.min(1,10*dt));
   if(B.speed>.5&&!B.air)B.cr+=B.speed*1.6*dt;rig.crank.rotation.x=B.cr;rig.updateRider(B.cr,B.noh);
+}
+function view(dt){
+  const S=B.S;poseRig(B.rig,B,dt);
   /* camera */
   B.camYaw+=wrapA(B.yaw-B.camYaw)*Math.min(1,4*dt);
   const d=7+B.speed*.08,h=3+B.speed*.03,tx=B.x-Math.sin(B.camYaw)*d,tz=B.z-Math.cos(B.camYaw)*d,ty=Math.max(B.y+h,world.groundY(tx,tz)+1.2);
   const k=Math.min(1,8*dt);cam.position.x=lerp(cam.position.x,tx,k);cam.position.y=lerp(cam.position.y,ty,k);cam.position.z=lerp(cam.position.z,tz,k);
   if(B.shake>0){cam.position.x+=(Math.random()-.5)*B.shake*.4;cam.position.y+=(Math.random()-.5)*B.shake*.4}
   cam.lookAt(B.x,B.y+1.3,B.z);
+  if(world.sky3d)world.sky3d.position.copy(cam.position);
   const fov=62+clamp(B.speed*.55,0,24);if(Math.abs(cam.fov-fov)>.05){cam.fov=lerp(cam.fov,fov,.1);cam.updateProjectionMatrix()}
   sun.position.set(B.x+60,B.y+90,B.z+40);sun.target.position.set(B.x,B.y,B.z);
   world.coins.forEach(c=>{if(c.on)c.m.rotation.y+=dt*3});
@@ -587,62 +776,584 @@ function view(dt){
   else if(!B.air&&B.wheelT>.2)live=(B.w>.95?'⚠ LET GO! ':'')+'WHEELIE '+Math.round(B.wheelDist)+'m';
   else if(!B.air&&B.charge>0)live='▮'.repeat(Math.round(B.charge/.6*10));
   $('hLive').textContent=live;
+  policeHud();
   if(hintT>0){hintT-=dt;if(hintT<=0)$('hHint').textContent=''}
+  if(NET.ch)remotesView(dt);
 }
 
 /* ================= garage UI ================= */
-let tab='design';
-function bar(l,v,m){return '<div class="bar"><span>'+l+'</span><b><i style="width:'+Math.min(100,v/m*100)+'%"></i></b></div>'}
+let tab='design',shopCat='ebikes',sbUrlVal='',sbKeyVal='';
+const ownedId=id=>id==='own'||id==='ownE'||SAVE.owned.includes(id);
+function bar(l,v,m,t){return '<div class="bar"><span>'+l+'</span><b><i style="width:'+Math.min(100,Math.max(0,v/m*100))+'%"></i></b>'+(t?'<em>'+t+'</em>':'')+'</div>'}
+function statBars(S){return bar('Top speed',S.top,60,Math.round(S.top*3.6)+' km/h')+bar('Accel',S.accel,24)+(S.motor?bar('Boost',S.boost,22)+bar('Battery',S.batt,40):'')+bar('Suspension',S.susp,6)+bar('Handling',S.turn,1.8)}
+function colorGrid(pre,d,labels){
+  return '<div class="colors">'+[['frame',labels[0]],['fork',labels[1]],['rim',labels[2]],['seat',labels[3]]].map(p=>'<div><input type="color" data-f="'+pre+'.'+p[0]+'" value="'+d[p[0]]+'">'+p[1]+'</div>').join('')+'</div>';
+}
+function upgCards(list,lv,act){
+  return list.map(u=>{
+    const l=lv[u.id],maxed=l>=u.max,cost=maxed?0:u.costs[l];
+    return '<div class="card"><div class="row"><h3>'+u.name+'</h3><span style="font-size:12px;color:#9fb0d8">Lv '+l+'/'+u.max+'</span></div><div class="pips">'+Array.from({length:u.max},(_,i)=>'<i class="'+(i<l?'on':'')+'"></i>').join('')+'</div><p>'+u.desc+'</p>'+
+      '<button class="btn" data-a="'+act+'" data-v="'+u.id+'" '+(maxed||SAVE.money<cost?'disabled':'')+'>'+(maxed?'MAX':(u.id==='kit'&&l===0?'Install ':'Upgrade ')+fmt(cost))+'</button></div>';
+  }).join('');
+}
+function equipBtn(id,label){return SAVE.bike===id?'<span style="font-size:12px;color:#6dff9a">✔ Equipped</span>':'<button class="btn" data-a="equip" data-v="'+id+'">'+label+'</button>'}
+function designHtml(){
+  const d=SAVE.design,b=SAVE.brand,S=stats('own');
+  let h='<div class="card"><h3>Your brand</h3><label class="f">Brand name</label><input type="text" maxlength="18" data-f="brand.name" value="'+esc(b.name)+'">';
+  h+='<label class="f">Logo</label><div class="chips">'+LOGOS.map(l=>'<button class="chip '+(b.logo===l?'on':'')+'" data-a="logo" data-v="'+l+'">'+l+'</button>').join('')+'</div>';
+  h+='<div class="colors" style="margin-top:8px"><div><input type="color" data-f="brand.color" value="'+b.color+'">Brand colour</div><div><input type="color" data-f="brand.color2" value="'+b.color2+'">Jersey</div></div></div>';
+  h+='<div class="card"><h3>🚲 Your bike</h3><div class="chips">'+Object.keys(STYLES).map(k=>'<button class="chip '+(d.style===k?'on':'')+'" data-a="style" data-v="'+k+'">'+STYLES[k].name+'</button>').join('')+'</div><p>'+STYLES[d.style].blurb+'</p>'+
+    colorGrid('design',d,['Frame','Fork','Rims','Seat'])+
+    '<div style="margin-top:10px" class="row"><button class="btn alt" data-a="rand">🎲 Randomise</button>'+equipBtn('own','Ride my bike')+'</div></div>';
+  h+='<div class="card"><h3>Stats</h3>'+statBars(S)+'</div>'+upgCards(UPG,SAVE.up,'buyup');
+  return h;
+}
+function eDesignHtml(){
+  const d=SAVE.edesign,es=ESTYLES[d.style]||ESTYLES.ebike,S=stats('ownE');
+  const labels=es.kind==='moto'?['Body','Fork','Rims','Panels']:es.kind==='scooter'?['Deck','Fork','Wheel hubs','Battery box']:['Frame','Fork','Rims','Seat'];
+  let h='<div class="card"><h3>⚡ Your brand e-bike</h3><p>Build an electric ride for your brand. Your brand name and logo go on it. Then spend money on the motor, boost and battery to make it crazy fast.</p><div class="chips">'+
+    Object.keys(ESTYLES).map(k=>'<button class="chip '+(d.style===k?'on':'')+'" data-a="estyle" data-v="'+k+'">'+ESTYLES[k].name+'</button>').join('')+'</div><p>'+es.blurb+'</p>'+
+    colorGrid('edesign',d,labels)+
+    '<div style="margin-top:10px" class="row"><button class="btn alt" data-a="erand">🎲 Randomise</button>'+equipBtn('ownE','Ride my e-bike')+'</div></div>';
+  h+='<div class="card"><h3>Stats</h3>'+statBars(S)+'<p style="margin-top:6px">With max upgrades it reaches about '+Math.round((14+es.top+6*3.6+6+5*3)*3.6)+' km/h with boost.</p></div>'+upgCards(EUPG,SAVE.eup,'buyeup');
+  return h;
+}
+function shopHtml(){
+  const cats=[['bikes','🚲 Bikes'],['ebikes','🔋 E-Bikes'],['emotos','🏍️ E-Motos'],['scooters','🛴 Scooters']];
+  let h='<div class="chips" style="margin-bottom:10px">'+cats.map(c=>'<button class="chip '+(shopCat===c[0]?'on':'')+'" data-a="shopcat" data-v="'+c[0]+'">'+c[1]+'</button>').join('')+'</div>';
+  SHOP.filter(i=>i.cat===shopCat).sort((a,b)=>a.price-b.price).forEach(e=>{
+    const owned=SAVE.owned.includes(e.id),eq=SAVE.bike===e.id,S=stats(e.id);
+    h+='<div class="card"><div class="row"><h3>'+e.logo+' '+esc(e.name)+'</h3><span style="font-size:12px;color:#9fb0d8">'+esc(e.maker)+'</span></div>'+statBars(S)+
+      '<div class="row" style="margin-top:8px"><button class="btn alt" data-a="prev" data-v="'+e.id+'">👁 Preview</button>'+
+      (owned?'<button class="btn" data-a="equip" data-v="'+e.id+'" '+(eq?'disabled':'')+'>'+(eq?'Equipped':'Ride')+'</button>':'<button class="btn" data-a="buybike" data-v="'+e.id+'" '+(SAVE.money<e.price?'disabled':'')+'>Buy '+fmt(e.price)+'</button>')+'</div></div>';
+  });
+  return h;
+}
 function renderMenu(){
   const m=$('menu'),sc=m.scrollTop,fi=fameInfo();
-  let h='<div class="top"><div class="logo">🚲 BIKE BRAND TYCOON</div><div class="money">'+fmt(SAVE.money)+'</div></div>';
-  h+='<div class="sub">'+esc(SAVE.brand.logo+' '+SAVE.brand.name)+' · Fame: '+fi.name+' (x'+fi.mult.toFixed(1)+' cash) · Best score '+SAVE.best.toLocaleString()+'</div>';
-  h+='<div class="tabs">'+[['design','🎨 Design'],['upg','🔧 Upgrades'],['ebike','⚡ E-Bikes']].map(t=>'<button data-a="tab" data-v="'+t[0]+'" class="'+(tab===t[0]?'on':'')+'">'+t[1]+'</button>').join('')+'</div>';
-  if(tab==='design'){
-    const d=SAVE.design,b=SAVE.brand;
-    h+='<div class="card"><h3>Your brand</h3><label class="f">Brand name</label><input type="text" maxlength="18" data-f="brand.name" value="'+esc(b.name)+'">';
-    h+='<label class="f">Logo</label><div class="chips">'+LOGOS.map(l=>'<button class="chip '+(b.logo===l?'on':'')+'" data-a="logo" data-v="'+l+'">'+l+'</button>').join('')+'</div>';
-    h+='<div class="colors" style="margin-top:8px"><div><input type="color" data-f="brand.color" value="'+b.color+'">Brand colour</div><div><input type="color" data-f="brand.color2" value="'+b.color2+'">Jersey</div></div></div>';
-    h+='<div class="card"><h3>Bike style</h3><div class="chips">'+Object.keys(STYLES).map(k=>'<button class="chip '+(d.style===k?'on':'')+'" data-a="style" data-v="'+k+'">'+STYLES[k].name+'</button>').join('')+'</div><p>'+STYLES[d.style].blurb+'</p>';
-    h+='<div class="colors"><div><input type="color" data-f="design.frame" value="'+d.frame+'">Frame</div><div><input type="color" data-f="design.fork" value="'+d.fork+'">Fork</div><div><input type="color" data-f="design.rim" value="'+d.rim+'">Rims</div><div><input type="color" data-f="design.seat" value="'+d.seat+'">Seat</div></div>';
-    h+='<div style="margin-top:10px" class="row"><button class="btn alt" data-a="rand">🎲 Randomise</button>'+(SAVE.bike!=='own'?'<button class="btn" data-a="equip" data-v="own">Ride my bike</button>':'<span style="font-size:12px;color:#6dff9a">✔ Riding your own bike</span>')+'</div></div>';
-  }else if(tab==='upg'){
-    const S=stats('own');
-    h+='<div class="card"><h3>Your bike stats</h3>'+bar('Top speed',S.top,15)+bar('Accel',S.accel,12)+bar('Boost',S.boost,11)+bar('Suspension',S.susp,6)+bar('Handling',S.turn,1.8)+'</div>';
-    UPG.forEach(u=>{const l=SAVE.up[u.id],maxed=l>=u.max,cost=maxed?0:u.costs[l];
-      h+='<div class="card"><div class="row"><h3>'+u.name+'</h3><span style="font-size:12px;color:#9fb0d8">Lv '+l+'/'+u.max+'</span></div><div class="pips">'+Array.from({length:u.max},(_,i)=>'<i class="'+(i<l?'on':'')+'"></i>').join('')+'</div><p>'+u.desc+'</p>'+
-        '<button class="btn" data-a="buyup" data-v="'+u.id+'" '+(maxed||SAVE.money<cost?'disabled':'')+'>'+(maxed?'MAX':(u.id==='kit'&&l===0?'Install ':'Upgrade ')+fmt(cost))+'</button></div>'});
-  }else{
-    h+='<div class="card"><div class="row"><h3>'+esc(SAVE.brand.name)+' (yours)</h3><button class="btn '+(SAVE.bike==='own'?'alt':'')+'" data-a="equip" data-v="own" '+(SAVE.bike==='own'?'disabled':'')+'>'+(SAVE.bike==='own'?'Equipped':'Ride')+'</button></div><p>Your custom bike. Upgrades only apply to this one.</p></div>';
-    EBIKES.forEach(e=>{const owned=SAVE.owned.includes(e.id),eq=SAVE.bike===e.id;
-      h+='<div class="card"><div class="row"><h3>'+e.logo+' '+e.name+'</h3><span style="font-size:12px;color:#9fb0d8">'+e.maker+'</span></div>'+
-        bar('Top speed',e.top,18)+bar('Accel',e.accel,17)+bar('Boost',e.boost,12)+bar('Battery',e.batt,30)+bar('Suspension',e.susp,5)+
-        '<div class="row" style="margin-top:8px"><button class="btn alt" data-a="prev" data-v="'+e.id+'">👁 Preview</button>'+
-        (owned?'<button class="btn" data-a="equip" data-v="'+e.id+'" '+(eq?'disabled':'')+'>'+(eq?'Equipped':'Ride')+'</button>':'<button class="btn" data-a="buybike" data-v="'+e.id+'" '+(SAVE.money<e.price?'disabled':'')+'>Buy '+fmt(e.price)+'</button>')+'</div></div>'});
-  }
-  h+='<div class="card"><h3>Controls</h3><p>W gas · S brake · A/D steer · <b>Q</b> wheelie (hold to lift the front wheel, let go to lower it, hold too long and you flip backwards; S helps pull it down) · <b>Space</b> hold &amp; release to hop. In the air: <b>W/S</b> backflip/frontflip, <b>A/D</b> spin, <b>X</b> tabletop, <b>Z</b> no-hander. <b>Shift</b> boost on e-bikes. Land upright, level and with hands on the bars. Chain tricks for combos (x5) to earn cash and brand fame. Grab 🪙 coins. Esc = garage.</p></div>';
+  let h='<div class="top"><div class="logo">🚲 '+esc(GAME_NAME.toUpperCase())+'</div><div class="money">'+fmt(SAVE.money)+'</div></div>';
+  h+='<div class="sub">'+esc(SAVE.brand.logo+' '+SAVE.brand.name)+' · Fame: '+fi.name+' (x'+fi.mult.toFixed(1)+' cash) · Best score '+SAVE.best.toLocaleString()+'<br>Riding: <b>'+esc(stats(SAVE.bike).name)+'</b></div>';
+  h+='<div class="tabs">'+[['design','🎨 My Bike'],['edesign','⚡ My E-Bike'],['shop','🛒 Shop'],['online','🌐 Online']].map(t=>'<button data-a="tab" data-v="'+t[0]+'" class="'+(tab===t[0]?'on':'')+'">'+t[1]+'</button>').join('')+'</div>';
+  h+=tab==='design'?designHtml():tab==='edesign'?eDesignHtml():tab==='shop'?shopHtml():onlineHtml();
+  h+='<div class="card"><h3>Controls</h3><p>W gas · S brake · A/D steer · <b>Q</b> wheelie (hold to lift the front wheel, let go to lower it, hold too long and you flip backwards; S helps pull it down) · <b>Space</b> hold &amp; release to hop. In the air: <b>W/S</b> backflip/frontflip, <b>A/D</b> spin, <b>X</b> tabletop, <b>Z</b> no-hander. <b>Shift</b> boost on motor bikes. <b>M</b> sound. Land upright, level and with hands on the bars. Chain tricks for combos (x5) to earn cash and brand fame. Grab 🪙 coins. Esc = garage. 🚨 In the city, reach 60 km/h and the police chase you: stay free for a few seconds to escape, get caught and you pay a fine.</p></div>';
   m.innerHTML=h;m.scrollTop=sc;
 }
+function setPreviewOwn(){const id=tab==='edesign'?'ownE':'own';cur=id;setPreview(id)}
 $('menu').addEventListener('click',e=>{
   const t=e.target.closest('[data-a]');if(!t||t.disabled)return;const a=t.dataset.a,v=t.dataset.v;
-  if(a==='tab'){tab=v;renderMenu()}
+  const rc=()=>'#'+Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0');
+  if(a==='tab'){tab=v;cur=v==='design'?'own':v==='edesign'?'ownE':SAVE.bike;setPreview(cur);renderMenu()}
   else if(a==='logo'){SAVE.brand.logo=v;save();setPreviewOwn();renderMenu()}
   else if(a==='style'){SAVE.design.style=v;save();setPreviewOwn();renderMenu()}
-  else if(a==='rand'){const rc=()=>'#'+Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0');SAVE.design.frame=rc();SAVE.design.rim=rc();SAVE.design.seat=rc();SAVE.design.fork=rc();save();setPreviewOwn();renderMenu()}
-  else if(a==='buyup'){const u=UPG.find(x=>x.id===v),l=SAVE.up[v];if(l>=u.max)return;const c=u.costs[l];if(SAVE.money<c){toast('Not enough cash');return}
-    SAVE.money-=c;SAVE.up[v]++;save();toast(u.name+' upgraded!');if(cur==='own')setPreview('own');renderMenu()}
-  else if(a==='buybike'){const b=EBIKES.find(x=>x.id===v);if(SAVE.money<b.price){toast('Not enough cash');return}SAVE.money-=b.price;SAVE.owned.push(v);SAVE.bike=v;cur=v;save();setPreview(v);toast('Bought the '+b.name+'!');renderMenu()}
-  else if(a==='equip'){SAVE.bike=v;cur=v;save();setPreview(v);renderMenu()}
+  else if(a==='estyle'){SAVE.edesign.style=v;save();setPreviewOwn();renderMenu()}
+  else if(a==='rand'){['frame','rim','seat','fork'].forEach(k=>SAVE.design[k]=rc());save();setPreviewOwn();renderMenu()}
+  else if(a==='erand'){['frame','rim','seat','fork'].forEach(k=>SAVE.edesign[k]=rc());save();setPreviewOwn();renderMenu()}
+  else if(a==='buyup'||a==='buyeup'){
+    const list=a==='buyup'?UPG:EUPG,lv=a==='buyup'?SAVE.up:SAVE.eup,u=list.find(x=>x.id===v),l=lv[v];
+    if(!u||l>=u.max)return;const c=u.costs[l];if(SAVE.money<c){toast('Not enough cash');return}
+    SAVE.money-=c;lv[v]++;save();toast(u.name+' upgraded!');setPreviewOwn();renderMenu();
+  }
+  else if(a==='buybike'){const b=shopItem(v);if(!b)return;if(SAVE.money<b.price){toast('Not enough cash');return}SAVE.money-=b.price;SAVE.owned.push(v);SAVE.bike=v;cur=v;save();setPreview(v);toast('Bought the '+b.name+'!');renderMenu()}
+  else if(a==='equip'){if(!ownedId(v))return;SAVE.bike=v;cur=v;save();setPreview(v);renderMenu()}
   else if(a==='prev'){cur=v;setPreview(v)}
+  else if(a==='shopcat'){shopCat=v;renderMenu()}
   else if(a==='ride'){startRide(v)}
+  else if(a==='netpub'){goOnline('pub',v)}
+  else if(a==='netpriv'){goOnline('priv',v,null,true)}
+  else if(a==='netjoin'){joinByCode()}
+  else if(a==='netrejoin'&&lastOnline){goOnline(lastOnline.kind,lastOnline.mode,lastOnline.code,lastOnline.create)}
+  else if(a==='savecfg'){saveSbCfg()}
 });
 $('ridebar').addEventListener('click',e=>{const t=e.target.closest('[data-a="ride"]');if(t)startRide(t.dataset.v)});
-function setPreviewOwn(){cur='own';SAVE.bike='own';setPreview('own')}
 $('menu').addEventListener('input',e=>{
+  const id=e.target.id;
+  if(id==='codeIn'){netCodeVal=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);e.target.value=netCodeVal;return}
+  if(id==='sbUrl'){sbUrlVal=e.target.value;return}
+  if(id==='sbKey'){sbKeyVal=e.target.value;return}
   const f=e.target.dataset.f;if(!f)return;const p=f.split('.');SAVE[p[0]][p[1]]=e.target.value;saveSoon();
-  clearTimeout(setPreviewOwn.t);setPreviewOwn.t=setTimeout(()=>{setPreviewOwn()},120);
+  clearTimeout(setPreviewOwn.t);setPreviewOwn.t=setTimeout(setPreviewOwn,120);
 });
 $('hGarage').addEventListener('click',goMenu);
+
+/* ================= realism: sky, dust, sound ================= */
+const HORIZON='#d8ecff';
+function makeSky(){
+  const R=700,geo=new THREE.SphereGeometry(R,24,14),pos=geo.attributes.position,cols=new Float32Array(pos.count*3);
+  const top=new THREE.Color('#2f6fd0'),mid=new THREE.Color('#79b4f0'),hor=new THREE.Color(HORIZON),c=new THREE.Color();
+  for(let i=0;i<pos.count;i++){
+    const y=clamp(pos.getY(i)/R,-.2,1);
+    if(y<.25)c.copy(hor).lerp(mid,clamp(y/.25,0,1));else c.copy(mid).lerp(top,clamp((y-.25)/.75,0,1));
+    cols[i*3]=c.r;cols[i*3+1]=c.g;cols[i*3+2]=c.b;
+  }
+  geo.setAttribute('color',new THREE.BufferAttribute(cols,3));
+  const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide,fog:false,depthWrite:false}));
+  m.frustumCulled=false;m.renderOrder=-10;
+  const sd=new THREE.Mesh(new THREE.SphereGeometry(26,12,8),new THREE.MeshBasicMaterial({color:'#fff6d8',fog:false}));
+  sd.position.set(60,90,40).normalize().multiplyScalar(620);m.add(sd);
+  return m;
+}
+const dust={list:[],i:0,acc:0,geo:null};
+function dustClear(){dust.list.forEach(p=>{scene.remove(p.m);p.m.material.dispose()});dust.list=[];if(dust.geo){dust.geo.dispose();dust.geo=null}}
+function dustInit(){
+  dustClear();dust.geo=new THREE.SphereGeometry(.14,6,5);
+  for(let k=0;k<40;k++){
+    const m=new THREE.Mesh(dust.geo,new THREE.MeshBasicMaterial({color:'#b09878',transparent:true,opacity:0,depthWrite:false}));
+    m.visible=false;scene.add(m);dust.list.push({m,vx:0,vy:0,vz:0,life:0,max:1,s:1});
+  }
+}
+function dustEmit(x,y,z,vx,vy,vz,life,s,col){
+  if(!dust.list.length)return;
+  const p=dust.list[dust.i++%dust.list.length];
+  p.m.position.set(x,y,z);p.vx=vx;p.vy=vy;p.vz=vz;p.life=p.max=life;p.s=s;p.m.material.color.set(col);p.m.visible=true;
+}
+function dustTick(dt){
+  if(!B||!dust.list.length)return;
+  const trail=world.mode==='trail',col=trail?'#a88c66':'#c9c9c9',fx=Math.sin(B.yaw),fz=Math.cos(B.yaw),h=B.rig.wb/2;
+  if(B.crashT<=0&&!B.air){
+    const skid=K.down&&B.speed>8,kick=trail&&B.speed>5,burn=B.w>.3&&B.speed>4;
+    if(skid||kick||burn){
+      dust.acc+=dt*(skid?60:burn?30:clamp(B.speed*1.5,0,30));
+      while(dust.acc>=1){dust.acc--;dustEmit(B.x-fx*h+(Math.random()-.5)*.3,B.y+.1,B.z-fz*h+(Math.random()-.5)*.3,(Math.random()-.5)*1.2-fx,Math.random()*1.2+.4,(Math.random()-.5)*1.2-fz,.7+Math.random()*.4,.6,col)}
+    }
+  }
+  if(B.dust>0){
+    for(let k=0;k<Math.round(B.dust*10);k++){const a=Math.random()*TAU,s=2+Math.random()*3*B.dust;dustEmit(B.x,B.y+.1,B.z,Math.cos(a)*s,Math.random()*2.2,Math.sin(a)*s,.8,.9,col)}
+    B.dust=0;
+  }
+  for(const p of dust.list){
+    if(p.life<=0){if(p.m.visible)p.m.visible=false;continue}
+    p.life-=dt;p.m.position.x+=p.vx*dt;p.m.position.y+=p.vy*dt;p.m.position.z+=p.vz*dt;p.vy-=.5*dt;
+    const k=1-p.life/p.max;p.m.scale.setScalar(p.s*(.6+k*2));p.m.material.opacity=Math.max(0,1-k)*.45;
+  }
+}
+let engA=null,muted=false;
+function engStart(){
+  try{
+    if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==='suspended')AC.resume();
+    engStop();
+    const o=AC.createOscillator(),g=AC.createGain(),f=AC.createBiquadFilter();
+    o.type='sawtooth';g.gain.value=0;f.type='lowpass';f.frequency.value=900;
+    o.connect(f);f.connect(g);g.connect(AC.destination);o.start();
+    const len=AC.sampleRate,buf=AC.createBuffer(1,len,AC.sampleRate),da=buf.getChannelData(0);
+    for(let i=0;i<len;i++)da[i]=Math.random()*2-1;
+    const n=AC.createBufferSource();n.buffer=buf;n.loop=true;
+    const nf=AC.createBiquadFilter(),ng=AC.createGain();nf.type='lowpass';nf.frequency.value=500;ng.gain.value=0;
+    n.connect(nf);nf.connect(ng);ng.connect(AC.destination);n.start();
+    engA={o,g,n,nf,ng};
+  }catch(e){engA=null}
+}
+function engStop(){try{if(engA){engA.o.stop();engA.n.stop();engA.g.disconnect();engA.ng.disconnect()}}catch(e){}engA=null}
+function engTick(){
+  if(!engA||!B)return;
+  try{
+    const sp=B.speed,t=AC.currentTime,on=!muted&&B.crashT<=0,mot=B.S.motor,boost=K.boost&&mot&&B.batt>0&&K.up;
+    engA.o.frequency.setTargetAtTime(70+sp*(boost?11:7),t,.08);
+    engA.g.gain.setTargetAtTime(on&&mot&&!B.air?clamp(sp/20,0,1)*.045+(K.up?.015:0):0,t,.1);
+    engA.nf.frequency.setTargetAtTime(300+sp*35,t,.1);
+    engA.ng.gain.setTargetAtTime(on?clamp(sp/45,0,1)*.12:0,t,.1);
+  }catch(e){}
+}
+function addLamps(W){
+  const pts=[];
+  for(let a=-4;a<=4;a++)for(let k=-5;k<=4;k++)for(const sd of[-1,1]){const s=k*100+50,o=a*100+sd*9.5;pts.push([o,s],[s,o])}
+  const n=pts.length;
+  const pole=new THREE.InstancedMesh(new THREE.CylinderGeometry(.1,.14,7.5,6),mat('#4a4e57',.6,.5),n);
+  const head=new THREE.InstancedMesh(new THREE.BoxGeometry(1.1,.18,.4),new THREE.MeshStandardMaterial({color:'#fff3c4',emissive:'#ffe9a0',emissiveIntensity:.6}),n);
+  const d=new THREE.Object3D();
+  pts.forEach((p,i)=>{
+    d.position.set(p[0],3.75,p[1]);d.updateMatrix();pole.setMatrixAt(i,d.matrix);
+    d.position.set(p[0],7.5,p[1]);d.updateMatrix();head.setMatrixAt(i,d.matrix);
+    W.circles.push({x:p[0],z:p[1],r:.3,h:8});
+  });
+  pole.castShadow=true;W.group.add(pole,head);
+}
+
+/* ================= police ================= */
+const POLICE_KPH=60;
+let cops=[];
+const wanted={onFoot:false,on:false,heat:0,t:0,bust:0,lost:0,fast:0,grace:0,spawnT:0,bustedT:0,dn:999};
+let AC=null,sirenOsc=null,sirenGain=null;
+function sirenStart(){
+  try{
+    if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==='suspended')AC.resume();
+    if(sirenOsc)return;
+    sirenOsc=AC.createOscillator();sirenGain=AC.createGain();
+    sirenOsc.type='triangle';sirenGain.gain.value=0;
+    sirenOsc.connect(sirenGain);sirenGain.connect(AC.destination);sirenOsc.start();
+  }catch(e){sirenOsc=null;sirenGain=null}
+}
+function sirenStop(){try{if(sirenOsc){sirenOsc.stop();sirenOsc.disconnect();sirenGain.disconnect()}}catch(e){}sirenOsc=null;sirenGain=null}
+function sirenTick(dn,t){
+  if(!sirenOsc)return;
+  try{
+    sirenOsc.frequency.setTargetAtTime((Math.floor(t*2.2)%2)?980:720,AC.currentTime,.03);
+    sirenGain.gain.setTargetAtTime(clamp(1-dn/220,0,1)*.07,AC.currentTime,.1);
+  }catch(e){}
+}
+function buildCop(){
+  const g=new THREE.Group();
+  const add=(geo,m,x,y,z)=>{const me=new THREE.Mesh(geo,m);me.position.set(x,y,z);me.castShadow=true;g.add(me);return me};
+  add(new THREE.BoxGeometry(1.9,.75,4.4),mat('#f2f2f5',.3,.5),0,.7,0);
+  add(new THREE.BoxGeometry(1.93,.3,4.43),mat('#16161d',.3,.6),0,.7,0);
+  add(new THREE.BoxGeometry(1.6,.6,2.1),mat('#1e2c3e',.5,.3),0,1.3,-.2);
+  const red=new THREE.MeshStandardMaterial({color:'#ff2020',emissive:'#ff0000',emissiveIntensity:1});
+  const blue=new THREE.MeshStandardMaterial({color:'#2050ff',emissive:'#0040ff',emissiveIntensity:1});
+  add(new THREE.BoxGeometry(.7,.16,.32),red,-.4,1.68,-.2);
+  add(new THREE.BoxGeometry(.7,.16,.32),blue,.4,1.68,-.2);
+  const wg=new THREE.CylinderGeometry(.38,.38,.28,12);wg.rotateZ(Math.PI/2);
+  const wm=mat('#111',0,.95);
+  [[-1,1.35],[1,1.35],[-1,-1.35],[1,-1.35]].forEach(p=>add(wg,wm,p[0]*.95,.38,p[1]));
+  return{g,red,blue};
+}
+function copHeading(c){return c.axis==='x'?(c.dir>0?Math.PI/2:-Math.PI/2):(c.dir>0?0:Math.PI)}
+function copPos(c){if(c.axis==='x'){c.x=c.u;c.z=c.line+c.off}else{c.z=c.u;c.x=c.line+c.off}}
+function spawnCop(){
+  for(let k=0;k<14;k++){
+    const ax=Math.random()<.5,pa=ax?B.x:B.z,pl=ax?B.z:B.x;
+    const li=clamp(Math.round(pl/100)+(Math.random()<.5?0:(Math.random()<.5?-1:1)),-4,4),line=li*100;
+    const u=clamp(pa+(Math.random()<.5?-1:1)*(60+Math.random()*90),-470,470);
+    const x=ax?u:line,z=ax?line:u,d=Math.hypot(x-B.x,z-B.z);
+    if(d<65||d>170)continue;
+    if(cops.some(c=>Math.hypot(c.x-x,c.z-z)<25))continue;
+    const cc=buildCop();scene.add(cc.g);
+    const c={g:cc.g,red:cc.red,blue:cc.blue,axis:ax?'x':'z',line,u,off:0,dir:(pa-u)>=0?1:-1,spd:10,x,z,y:world.groundY(x,z),yaw:0,d,skip:null};
+    c.yaw=copHeading(c);cops.push(c);return;
+  }
+}
+function segDist(ax,az,bx,bz,px,pz){
+  const dx=bx-ax,dz=bz-az,l2=dx*dx+dz*dz;
+  let t=l2?((px-ax)*dx+(pz-az)*dz)/l2:0;t=clamp(t,0,1);
+  return Math.hypot(px-(ax+dx*t),pz-(az+dz*t));
+}
+/* at an intersection: pick the road that passes closest to the rider */
+function copTurn(c,m){
+  copPos(c);
+  const ax=c.axis==='x',I=m*100,sx=ax?I:c.line,sz=ax?c.line:I,si=Math.round(sx/100),sj=Math.round(sz/100);
+  const back=ax?[-c.dir,0]:[0,-c.dir];
+  let best=null,bs=1e18;
+  for(const d of [[1,0],[-1,0],[0,1],[0,-1]]){
+    if(d[0]===back[0]&&d[1]===back[1])continue;
+    const ei=si+d[0],ej=sj+d[1];
+    const okEdge=d[0]!==0?(Math.abs(sj)<=4&&Math.abs(ei)<=5):(Math.abs(si)<=4&&Math.abs(ej)<=5);
+    if(!okEdge)continue;
+    const ex=ei*100,ez=ej*100;
+    const sc=(segDist(sx,sz,ex,ez,B.x,B.z)+.25*Math.hypot(ex-B.x,ez-B.z))*(1+Math.random()*.2);
+    if(sc<bs){bs=sc;best=d}
+  }
+  if(!best){c.dir=-c.dir;return}
+  const nax=best[0]!==0,ndir=nax?best[0]:best[1];
+  if(nax===ax){c.dir=ndir;return}
+  if(nax){c.line=sz;c.off=clamp(c.z-sz,-6,6);c.u=c.x;c.skip=sx}
+  else{c.line=sx;c.off=clamp(c.x-sx,-6,6);c.u=c.z;c.skip=sz}
+  c.axis=nax?'x':'z';c.dir=ndir;
+}
+function updateCop(c,dt,tgt){
+  const ax=c.axis==='x',pA=ax?B.x:B.z,pL=ax?B.z:B.x;
+  const far=Math.hypot(c.x-B.x,c.z-B.z);
+  const want=tgt*(far>90?1.18:1)*(far>200?1.15:1);
+  c.spd+=(want-c.spd)*Math.min(1,1.6*dt);
+  const dLat=pL-c.line,near=Math.abs(pA-c.u)<45&&Math.abs(dLat)<16;
+  c.off+=clamp((near?clamp(dLat,-6,6):0)-c.off,-7*dt,7*dt);
+  const pu=c.u;c.u+=c.dir*c.spd*dt;
+  if(c.skip!==null&&Math.abs(c.u-c.skip)>12)c.skip=null;
+  const fp=Math.floor(pu/100),fn=Math.floor(c.u/100);
+  if(fp!==fn){const m=c.dir>0?fn:fp;if(c.skip!==null&&m*100===c.skip)c.skip=null;else copTurn(c,m)}
+  copPos(c);
+  c.y+=(world.groundY(c.x,c.z)-c.y)*Math.min(1,12*dt);
+}
+function policeClear(){
+  cops.forEach(c=>{scene.remove(c.g);disposeGroup(c.g)});cops=[];
+  wanted.on=false;wanted.bust=0;wanted.lost=0;wanted.fast=0;wanted.dn=999;sirenStop();
+}
+function policeReset(){
+  policeClear();
+  Object.assign(wanted,{heat:0,t:0,grace:0,spawnT:0,bustedT:0});
+  const b=$('hBusted');if(b)b.style.display='none';
+  const f=$('hFx');if(f)f.style.boxShadow='none';
+}
+function policeStart(){
+  Object.assign(wanted,{on:true,heat:1,t:0,bust:0,lost:0,fast:0,spawnT:0});
+  spawnCop();spawnCop();sirenStart();
+  pop('🚨 Police are chasing you!','bad');
+}
+function policeBust(){
+  const fine=Math.min(Math.floor(SAVE.money),Math.round(100*wanted.heat+SAVE.money*.05));
+  SAVE.money-=fine;B.combo=0;B.speed=0;save();
+  wanted.bustedT=2.6;wanted.grace=12;sirenStop();
+  const el=$('hBusted');el.innerHTML='🚔 BUSTED!<div style="font-size:26px;margin-top:8px;color:#fff">Fine: -'+fmt(fine)+'</div>';el.style.display='flex';
+}
+function policeEscape(){
+  const h=wanted.heat,bonus=250*h+Math.round(wanted.t*5);
+  SAVE.money+=bonus;SAVE.fame+=400*h;B.score+=400*h;if(B.score>SAVE.best)SAVE.best=B.score;saveSoon();
+  pop('🚓 You lost the police!  +'+fmt(bonus),'gold');
+  policeClear();wanted.grace=12;
+}
+function policeTick(dt){
+  const W=wanted;
+  if(W.bustedT>0){
+    W.bustedT-=dt;
+    if(W.bustedT<=0){$('hBusted').style.display='none';policeClear();respawn()}
+    return;
+  }
+  if(W.grace>0)W.grace-=dt;
+  const kph=B.speed*3.6;
+  if(!W.on){
+    if(W.grace<=0&&kph>=POLICE_KPH){W.fast+=dt;if(W.fast>=.8)policeStart()}else W.fast=Math.max(0,W.fast-dt);
+    return;
+  }
+  W.t+=dt;
+  const heat=Math.min(5,1+Math.floor(W.t/25));
+  if(heat>W.heat){W.heat=heat;pop('🚨 Heat '+heat+'! More police!','bad')}
+  W.spawnT-=dt;
+  if(cops.length<Math.min(6,1+W.heat)&&W.spawnT<=0){W.spawnT=3;spawnCop()}
+  const tgt=Math.max(14+W.heat*1.6,Math.min(B.S.top*.72,14+W.heat*7)),ph=Math.floor(performance.now()/130)%2;
+  let dn=1e9,touching=false,onFoot=false;
+  for(const c of cops){
+    updateCop(c,dt,tgt);
+    c.yaw+=wrapA(copHeading(c)-c.yaw)*Math.min(1,7*dt);
+    c.g.position.set(c.x,c.y,c.z);c.g.rotation.y=c.yaw;
+    c.red.emissiveIntensity=ph?2:.15;c.blue.emissiveIntensity=ph?.15:2;
+    c.d=Math.hypot(c.x-B.x,c.z-B.z);if(c.d<dn)dn=c.d;
+    if(c.d<6.5&&Math.abs(c.y-B.y)<3.2)touching=true;
+    else if(B.speed<4&&c.d<56&&Math.abs(c.y-B.y)<6)onFoot=true;
+  }
+  W.dn=dn;W.onFoot=onFoot;sirenTick(dn,performance.now()/1000);
+  W.bust=clamp(W.bust+(touching?dt*(dn<3.5?1.6:.9):onFoot?dt*.5:-dt*.6),0,1.2);
+  if(W.bust>=1){policeBust();return}
+  if(dn>150)W.lost+=dt;else W.lost=Math.max(0,W.lost-dt*2);
+  if(W.lost>=6)policeEscape();
+}
+function policeHud(){
+  const st=world&&world.mode==='street',kph=B.speed*3.6;
+  $('spd').style.color=st&&kph>=POLICE_KPH?'#ff6b6b':'';
+  let t='';
+  if(st){
+    if(wanted.on)t='🚨 '+'★'.repeat(wanted.heat)+'☆'.repeat(5-wanted.heat)+(wanted.onFoot?'  · officers on foot, keep moving!':wanted.lost>.5?'  · losing them…':'');
+    else if(wanted.grace<=0&&kph>=POLICE_KPH-8)t='⚠ Police notice you at '+POLICE_KPH+' km/h';
+  }
+  const w=$('hWanted');if(w.textContent!==t)w.textContent=t;
+  $('hBustWrap').style.display=wanted.on&&wanted.bust>.02?'block':'none';
+  $('hBust').style.width=Math.min(100,wanted.bust*100)+'%';
+  let fx='none';
+  if(wanted.on&&wanted.dn<140){const ph=Math.floor(performance.now()/260)%2,a=clamp(1-wanted.dn/140,.15,.7);fx='inset 0 0 120px 10px '+(ph?'rgba(255,40,40,':'rgba(60,110,255,')+a.toFixed(2)+')'}
+  $('hFx').style.boxShadow=fx;
+}
+
+/* ================= online (Supabase Realtime) ================= */
+const NET={sb:null,ch:null,id:Math.random().toString(36).slice(2,10),room:'',code:'',kind:'',mode:'',remotes:new Map(),sendT:0,status:'off',count:1,closing:null,busy:false,lastSent:''};
+let lastOnline=null,netMsg='',netCodeVal='';
+let SB_URL=SUPABASE_URL,SB_KEY=SUPABASE_ANON_KEY;
+try{const c=JSON.parse(localStorage.getItem('rideempire_sb')||'null');if(c&&c.url&&c.key&&/PASTE/i.test(SUPABASE_URL+SUPABASE_ANON_KEY)){SB_URL=c.url;SB_KEY=c.key}}catch(e){}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const HEX=/^#[0-9a-f]{6}$/i,CODE_RE=/^[ST][A-HJ-NP-Z2-9]{5}$/,CODE_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+function netReady(){return !!(window.supabase&&SB_URL.startsWith('https://')&&!/PASTE/i.test(SB_URL+SB_KEY)&&SB_KEY.length>30)}
+function netWhyNot(){return window.supabase?'Online play is not set up yet. Open the Online tab in the garage to turn it on.':'Could not load the Supabase library. Check your internet connection and reload.'}
+function myMeta(){
+  const d=modelDesc(SAVE.bike);
+  return{id:NET.id,t:Date.now(),d:{kind:d.kind||'bike',wr:d.wr,wb:d.wb,tw:d.tw,frame:d.frame,seat:d.seat,rim:d.rim,fork:d.fork,jersey:d.jersey,motor:!!d.motor,susp:d.susp,moto:!!d.moto,logo:d.brand.logo,bc:d.brand.color,bn:d.brand.name}};
+}
+/* everything from other players is untrusted: clamp numbers, validate colours, trim text */
+function cleanDesc(d){
+  if(!d||typeof d!=='object')return null;
+  const col=(v,f)=>typeof v==='string'&&HEX.test(v)?v:f;
+  const num=(v,a,b,f)=>typeof v==='number'&&isFinite(v)?clamp(v,a,b):f;
+  return{kind:['bike','moto','scooter'].includes(d.kind)?d.kind:'bike',wr:num(d.wr,.1,.45,.3),wb:num(d.wb,.9,1.4,1.1),tw:num(d.tw,.02,.1,.05),frame:col(d.frame,'#ff5a1f'),seat:col(d.seat,'#151515'),rim:col(d.rim,'#ffd23f'),fork:col(d.fork,'#dddddd'),jersey:col(d.jersey,'#222a3a'),
+    motor:!!d.motor,susp:Math.round(num(d.susp,0,6,0)),moto:!!d.moto,
+    brand:{name:String(d.bn==null?'Rider':d.bn).slice(0,18),logo:typeof d.logo==='string'?Array.from(d.logo).slice(0,2).join(''):'⚡',color:col(d.bc,'#ffffff')}};
+}
+function presenceList(ch){
+  const st=ch.presenceState(),out=[];
+  for(const k in st){const arr=st[k],m=arr&&arr[arr.length-1];if(m&&typeof m.id==='string')out.push(m)}
+  out.sort((a,b)=>((+a.t||0)-(+b.t||0))||(a.id<b.id?-1:1));
+  return out;
+}
+function netDropRemote(r){if(r.rig){scene.remove(r.rig.root);disposeGroup(r.rig.root)}if(r.tag)r.tag.remove()}
+function netSync(ch){
+  const list=presenceList(ch);NET.count=Math.max(1,list.length);
+  const seen=new Set();
+  for(const m of list){
+    if(m.id===NET.id)continue;
+    seen.add(m.id);
+    const desc=cleanDesc(m.d);if(!desc)continue;
+    const key=JSON.stringify(desc),old=NET.remotes.get(m.id);
+    if(old&&old.key===key)continue;
+    if(old)netDropRemote(old);
+    const rig=buildBike(desc);rig.root.visible=false;scene.add(rig.root);
+    const tag=document.createElement('div');tag.className='tag';tag.style.color=desc.brand.color;
+    tag.textContent=desc.brand.logo+' '+desc.brand.name;tag.style.display='none';$('tags').appendChild(tag);
+    const nr={id:m.id,key,rig,tag,got:false,at:0,x:0,y:0,z:0,yaw:0,tx:0,ty:0,tz:0,tyaw:0,air:false,flip:0,spin:0,tab:0,noh:0,w:0,pitch:0,lean:0,steer:0,speed:0,crashT:0,crashDir:1,charge:0,ws:0,cr:0,c:false};
+    if(old)Object.assign(nr,{got:old.got,at:old.at,x:old.x,y:old.y,z:old.z,yaw:old.yaw,tx:old.tx,ty:old.ty,tz:old.tz,tyaw:old.tyaw});
+    NET.remotes.set(m.id,nr);
+  }
+  NET.remotes.forEach((r,id)=>{if(!seen.has(id)){netDropRemote(r);NET.remotes.delete(id)}});
+  updateNetHud();
+}
+function onState(p){
+  if(!p||typeof p!=='object'||p.id===NET.id)return;
+  const r=NET.remotes.get(p.id);if(!r)return;
+  const n=v=>typeof v==='number'&&isFinite(v)?v:0;
+  r.tx=clamp(n(p.x),-600,600);r.ty=clamp(n(p.y),-50,200);r.tz=clamp(n(p.z),-600,600);r.tyaw=n(p.yaw);
+  r.speed=clamp(n(p.sp),0,60);r.air=!!p.a;r.flip=clamp(n(p.f),-60,60);r.spin=clamp(n(p.s),-60,60);r.w=clamp(n(p.w),0,2);
+  r.pitch=clamp(n(p.p),-1.5,1.5);r.steer=clamp(n(p.st),-1,1);r.tab=clamp(n(p.tb),0,1);r.noh=clamp(n(p.nh),0,1);
+  r.c=!!p.c;r.crashT=r.c?.2:0;r.at=performance.now();
+  if(!r.got){r.got=true;r.x=r.tx;r.y=r.ty;r.z=r.tz;r.yaw=r.tyaw}
+}
+function netCloseCh(){
+  const ch=NET.ch,sb=NET.sb;
+  const p=(ch&&sb)?Promise.resolve().then(()=>sb.removeChannel(ch)).catch(()=>{}):Promise.resolve();
+  NET.ch=null;NET.closing=p;return p;
+}
+function netLeave(){
+  netCloseCh();
+  NET.remotes.forEach(r=>netDropRemote(r));NET.remotes.clear();
+  NET.room='';NET.code='';NET.kind='';NET.status='off';NET.count=1;NET.lastSent='';
+  const n=$('hNet');if(n)n.textContent='';
+  const c=$('hCopy');if(c)c.style.display='none';
+}
+/* resolves 'ok' | 'full' | 'error' */
+function netConnect(name,cap){
+  return new Promise(res=>{
+    const ch=NET.sb.channel(name,{config:{broadcast:{self:false},presence:{key:NET.id}}});
+    NET.ch=ch;
+    let done=false,to=null;
+    const fin=v=>{if(!done){done=true;clearTimeout(to);res(v)}};
+    to=setTimeout(()=>fin('error'),9000);
+    ch.on('broadcast',{event:'s'},p=>onState(p&&p.payload));
+    ch.on('presence',{event:'sync'},()=>{
+      if(NET.ch!==ch)return;
+      if(!done){
+        const rank=presenceList(ch).findIndex(m=>m.id===NET.id);
+        if(rank<0)return;
+        if(cap&&rank>=cap){fin('full');return}
+        fin('ok');
+      }
+      netSync(ch);
+    });
+    ch.subscribe(async st=>{
+      if(st==='SUBSCRIBED'){
+        try{await ch.track(myMeta())}catch(e){}
+        if(done&&NET.ch===ch){NET.status='on';updateNetHud()}
+      }else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'||st==='CLOSED'){
+        if(!done)fin('error');
+        else if(NET.ch===ch){NET.status='lost';updateNetHud()}
+      }
+    });
+  });
+}
+async function goOnline(kind,mode,code,create){
+  if(NET.busy)return;
+  if(!netReady()){netMsg=netWhyNot();renderMenu();return}
+  if(kind==='priv'&&create&&!code)code=(mode==='street'?'S':'T')+Array.from(crypto.getRandomValues(new Uint8Array(5)),b=>CODE_ALPHA[b%32]).join('');
+  NET.busy=true;netMsg='Connecting…';renderMenu();
+  netLeave();
+  let ok='error',room='';
+  try{
+    await NET.closing;
+    NET.sb=NET.sb||window.supabase.createClient(SB_URL,SB_KEY,{realtime:{params:{eventsPerSecond:10}}});
+    if(kind==='pub'){
+      for(let n=1;n<=10;n++){
+        room='pub-'+mode+'-'+n;ok=await netConnect(room,MAX_PLAYERS);
+        if(ok==='ok'){
+          await sleep(300);
+          const rank=NET.ch?presenceList(NET.ch).findIndex(m=>m.id===NET.id):0;
+          if(rank>=MAX_PLAYERS)ok='full';else break;
+        }
+        await netCloseCh();
+        if(ok==='error')break;
+      }
+    }else{
+      room='priv-'+code;ok=await netConnect(room,MAX_PLAYERS);
+      if(ok==='ok'&&!create){for(let i=0;i<8&&NET.count<2;i++)await sleep(200);if(NET.count<2)ok='none'}
+    }
+  }catch(e){ok='error'}
+  NET.busy=false;
+  if(ok!=='ok'){
+    netLeave();
+    netMsg=ok==='full'?'That server is full.':ok==='none'?'No server found with that code.':'Could not connect. Check the Supabase URL and anon key.';
+    renderMenu();return;
+  }
+  NET.room=room;NET.kind=kind;NET.mode=mode;NET.code=kind==='priv'?code:'';NET.status='on';
+  lastOnline={kind,mode,code:NET.code,create:!!create};
+  netMsg='';startRide(mode,true);updateNetHud();
+}
+function joinByCode(){
+  const c=netCodeVal.trim().toUpperCase();
+  if(!CODE_RE.test(c)){netMsg='That code does not look right. Codes are 6 characters.';renderMenu();return}
+  return goOnline('priv',c[0]==='S'?'street':'trail',c,false);
+}
+function updateNetHud(){
+  const n=$('hNet'),c=$('hCopy');if(!n)return;
+  if(!NET.ch||!NET.kind){n.textContent='';c.style.display='none';return}
+  const lab=NET.kind==='pub'?'🌐 Public #'+NET.room.split('-').pop():'🔒 Private '+NET.code;
+  n.textContent=lab+' · '+NET.count+(NET.count===1?' rider':' riders')+(NET.status==='lost'?' · reconnecting…':'');
+  c.style.display=NET.kind==='priv'?'inline-block':'none';
+}
+$('hCopy').addEventListener('click',()=>{try{navigator.clipboard.writeText(NET.code);toast('Code copied: '+NET.code)}catch(e){toast('Code: '+NET.code)}});
+addEventListener('beforeunload',()=>{try{netLeave()}catch(e){}});
+function netTick(dt){
+  if(!NET.ch||NET.status!=='on')return;
+  NET.sendT-=dt*1000;if(NET.sendT>0)return;
+  const r=v=>Math.round(v*100)/100;
+  const pl={id:NET.id,x:r(B.x),y:r(B.y),z:r(B.z),yaw:r(B.yaw),sp:r(B.speed),a:B.air?1:0,f:r(B.flip),s:r(B.spin),w:r(B.w),p:r(B.pitch),st:r(B.steer),tb:r(B.tab),nh:r(B.noh),c:B.crashT>0?1:0};
+  const sig=pl.x+','+pl.z+','+pl.yaw+','+pl.a+','+pl.c;
+  NET.sendT=(sig===NET.lastSent&&!B.air)?1000:SEND_MS;   // idle riders send once a second
+  NET.lastSent=sig;
+  const pr=NET.ch.send({type:'broadcast',event:'s',payload:pl});
+  if(pr&&pr.catch)pr.catch(()=>{});
+}
+const _tv=new THREE.Vector3();
+function remotesView(dt){
+  cam.updateMatrixWorld();
+  const now=performance.now();
+  NET.remotes.forEach(r=>{
+    const live=r.got&&now-r.at<8000;
+    r.rig.root.visible=live;
+    if(!live){r.tag.style.display='none';return}
+    const age=Math.min(.3,(now-r.at)/1000);
+    const ex=r.tx+(r.c?0:Math.sin(r.tyaw)*r.speed*age),ez=r.tz+(r.c?0:Math.cos(r.tyaw)*r.speed*age),k=Math.min(1,10*dt);
+    if(Math.hypot(ex-r.x,ez-r.z)>25){r.x=ex;r.z=ez;r.y=r.ty}else{r.x+=(ex-r.x)*k;r.z+=(ez-r.z)*k;r.y+=(r.ty-r.y)*k}
+    r.yaw+=wrapA(r.tyaw-r.yaw)*k;
+    poseRig(r.rig,r,dt);
+    _tv.set(r.x,r.y+2.4,r.z).project(cam);
+    const dist=Math.hypot(r.x-B.x,r.z-B.z);
+    if(_tv.z<1&&dist<160&&Math.abs(_tv.x)<1.1&&Math.abs(_tv.y)<1.1){
+      r.tag.style.display='block';r.tag.style.left=((_tv.x*.5+.5)*innerWidth)+'px';r.tag.style.top=((-_tv.y*.5+.5)*innerHeight)+'px';
+    }else r.tag.style.display='none';
+  });
+}
+function saveSbCfg(){
+  const u=sbUrlVal.trim().replace(/\/+$/,''),k=sbKeyVal.trim();
+  if(!/^https:\/\/[a-z0-9-]+\.supabase\.(co|in)$/i.test(u)||k.length<30){netMsg='Those do not look right. The URL looks like https://abcdxyz.supabase.co and the key is a long piece of text.';renderMenu();return}
+  SB_URL=u;SB_KEY=k;NET.sb=null;
+  try{localStorage.setItem('rideempire_sb',JSON.stringify({url:u,key:k}))}catch(e){}
+  netMsg='Saved! Online play is on.';renderMenu();
+}
+function onlineHtml(){
+  if(!netReady()){
+    let h='<div class="card"><h3>🌐 Turn on online play</h3>';
+    if(!window.supabase)return h+'<p>'+esc(netWhyNot())+'</p></div>';
+    h+='<p>You only do this once, it takes about 3 minutes and it is free.</p><ol class="steps">'+
+      '<li>Go to <b>supabase.com</b> and sign up.</li>'+
+      '<li>Press <b>New project</b>. Type any name and a password, then press Create. Wait a minute while it sets up.</li>'+
+      '<li>Open <b>Project Settings</b> (the gear), then <b>API Keys</b> (or <b>API</b>).</li>'+
+      '<li>Copy the <b>Project URL</b> and the <b>anon</b> (also called <b>publishable</b>) key.</li>'+
+      '<li>Paste them in the boxes below and press <b>Save</b>.</li></ol>'+
+      '<label class="f">Project URL</label><input type="text" id="sbUrl" placeholder="https://abcdxyz.supabase.co" value="'+esc(sbUrlVal)+'">'+
+      '<label class="f">Anon / publishable key</label><input type="text" id="sbKey" placeholder="long text of letters and numbers" value="'+esc(sbKeyVal)+'">'+
+      '<div style="margin-top:10px"><button class="btn" data-a="savecfg">Save</button></div>'+
+      '<p style="margin-top:10px">This saves on this device only. To let everyone who plays your game on GitHub use it, send the URL and key to Claude and it goes into the game file.</p>';
+    if(netMsg)h+='<p style="color:#ffd23f">'+esc(netMsg)+'</p>';
+    return h+'</div>';
+  }
+  let h='<div class="card"><h3>🌐 Public server</h3><p>Ride with other players. Up to '+MAX_PLAYERS+' riders per server; if one is full you are moved to the next.</p><div class="chips"><button class="btn" data-a="netpub" data-v="street">🏙️ Streets</button><button class="btn" data-a="netpub" data-v="trail">🌲 Trails</button></div></div>';
+  h+='<div class="card"><h3>🔒 Private server</h3><p>Create a server and share its code. Only people with the code can join.</p><div class="chips"><button class="btn" data-a="netpriv" data-v="street">🏙️ New streets</button><button class="btn" data-a="netpriv" data-v="trail">🌲 New trails</button></div></div>';
+  h+='<div class="card"><h3>Join with a code</h3><div class="row"><input type="text" id="codeIn" maxlength="6" placeholder="e.g. S7K2QM" value="'+esc(netCodeVal)+'" style="text-transform:uppercase"><button class="btn" data-a="netjoin">Join</button></div></div>';
+  if(lastOnline)h+='<div class="card"><div class="row"><span style="font-size:13px">Last: '+(lastOnline.kind==='pub'?'Public '+lastOnline.mode:'Private '+esc(lastOnline.code))+'</span><button class="btn alt" data-a="netrejoin">↩ Rejoin</button></div></div>';
+  if(netMsg)h+='<div class="card"><p style="color:#ffd23f;margin:0">'+esc(netMsg)+'</p></div>';
+  return h;
+}
 
 /* ================= loop ================= */
 function resize(){
@@ -660,8 +1371,9 @@ function frame(now){
     if(prev){prev.root.rotation.y+=dt*.5;prev.rw.rotation.x+=dt*3;prev.fw.rotation.x+=dt*3;prev.crank.rotation.x+=dt*2;prev.updateRider(prev.crank.rotation.x,0)}
     renderer.render(prevScene,prevCam);
   }else if(B){
-    const n=Math.max(1,Math.ceil(dt/.017));for(let i=0;i<n;i++)sim(dt/n);
-    view(dt);renderer.render(scene,cam);
+    const n=Math.max(1,Math.ceil(dt/.017));if(!(wanted.bustedT>0))for(let i=0;i<n;i++)sim(dt/n);
+    if(world.mode==='street')policeTick(dt);
+    view(dt);engTick();dustTick(dt);netTick(dt);renderer.render(scene,cam);
   }
 }
 setPreview(SAVE.bike);renderMenu();resize();requestAnimationFrame(frame);
