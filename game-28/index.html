@@ -198,7 +198,7 @@ const FAME=[[0,'Unknown'],[2000,'Local Rider'],[8000,'Street Famous'],[25000,'Pr
 const DEF={money:300,fame:0,best:0,brand:{name:'Rad Wheels',logo:'⚡',color:'#ff5a1f',color2:'#222a3a'},
   design:{style:'bmx',frame:'#ff5a1f',seat:'#151515',rim:'#ffd23f',fork:'#dddddd'},
   edesign:{style:'ebike',frame:'#2dd4bf',seat:'#151515',rim:'#ffffff',fork:'#cfd3da'},
-  up:{susp:0,tires:0,gears:0,frame:0,kit:0},eup:{motor:0,boost:0,battery:0,susp:0,tires:0,frame:0},owned:['own'],estyles:[],cpuLvl:1,bike:'own',mode:'street'};
+  up:{susp:0,tires:0,gears:0,frame:0,kit:0},eup:{motor:0,boost:0,battery:0,susp:0,tires:0,frame:0},owned:['own'],estyles:[],cpuLvl:1,weather:'clear',playerName:'',bike:'own',mode:'street'};
 let SAVE=JSON.parse(JSON.stringify(DEF));
 try{const s=JSON.parse(localStorage.getItem('bikebrand_v1')||'null');if(s){SAVE=Object.assign(SAVE,s);SAVE.brand=Object.assign({},DEF.brand,s.brand);SAVE.design=Object.assign({},DEF.design,s.design);SAVE.edesign=Object.assign({},DEF.edesign,s.edesign);SAVE.up=Object.assign({},DEF.up,s.up);SAVE.eup=Object.assign({},DEF.eup,s.eup);if(!Array.isArray(SAVE.owned))SAVE.owned=['own'];if(!Array.isArray(SAVE.estyles))SAVE.estyles=[]}}catch(e){}
 let saveT=0;
@@ -258,7 +258,8 @@ function setPreview(id){if(prev){prevScene.remove(prev.root);disposeGroup(prev.r
 /* ride scene */
 const scene=new THREE.Scene();
 const cam=new THREE.PerspectiveCamera(62,1,.1,1000);
-scene.add(new THREE.HemisphereLight(0xffffff,0x556655,.85));
+const hemi=new THREE.HemisphereLight(0xffffff,0x556655,.85);scene.add(hemi);
+const headlight=new THREE.SpotLight(0xfff2d0,0,48,.55,.6,1);headlight.visible=false;scene.add(headlight,headlight.target);
 const sun=new THREE.DirectionalLight(0xffffff,1.15);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
 {const c=sun.shadow.camera;c.left=-45;c.right=45;c.top=45;c.bottom=-45;c.near=1;c.far=260}
 sun.shadow.bias=-.0006;scene.add(sun,sun.target);
@@ -629,7 +630,7 @@ function startRide(mode,online){
   SAVE.mode=mode;if(!ownedId(SAVE.bike))SAVE.bike='own';save();
   if(world){scene.remove(world.group);disposeGroup(world.group)}
   world=mode==='street'?buildStreet():buildTrail(mode==='race');scene.add(world.group);
-  scene.background=new THREE.Color(HORIZON);scene.fog=new THREE.Fog(HORIZON,160,560);world.sky3d=makeSky();world.group.add(world.sky3d);
+  applyWeather(SAVE.weather);
   if(B&&B.rig){scene.remove(B.rig.root);disposeGroup(B.rig.root)}
   const S=stats(SAVE.bike),rig=buildBike(modelDesc(SAVE.bike));scene.add(rig.root);
   B={rig,S,x:world.spawn.x,z:world.spawn.z,yaw:world.spawn.yaw,speed:0,vy:0,air:false,flip:0,spin:0,tab:0,noh:0,tabT:0,nohT:0,airT:0,w:0,wd:0,wheelT:0,wheelDist:0,charge:0,batt:S.batt,
@@ -641,11 +642,11 @@ function startRide(mode,online){
   $('touch').style.display=matchMedia('(pointer:coarse)').matches?'block':'none';
   $('hBattWrap').style.display=S.motor?'block':'none';
   engStart();dustInit();
-  $('hHint').textContent='W gas · A/D steer · Q wheelie · Space hop (hold to charge) · In the air: W/S flip, A/D spin, X tabletop, Z no-hander · Shift boost · R respawn'+(mode==='street'?' · 🚨 Hit 60 km/h and the police chase you!':'')+(mode==='race'?' · 🏁 3 laps: ride through the green glowing gates in order. Finish first to win big!':'');
+  $('hHint').textContent='W gas · A/D steer · Q wheelie · Space hop (hold to charge) · In the air: W/S flip, A/D spin, X tabletop, Z no-hander · Shift boost · R respawn'+(mode==='street'?' · 🚨 Hit 60 km/h and the police chase you!':'')+(mode==='race'?' · 🏁 1 lap: ride through the green glowing gates in order. Finish first to win big!':'');
   hintT=9;camSnap();
 }
 function respawn(){let sp=world.spawn;const R=world.race;if(R&&world.gates&&R.passed>0){const G=world.gates.length,g=world.gates[(R.passed-1)%G];sp={x:g.x,z:g.z,yaw:g.yaw}}B.x=sp.x;B.z=sp.z;B.yaw=sp.yaw;B.speed=0;B.air=false;B.crashT=0;B.w=0;B.flip=B.spin=0;B.y=world.groundY(B.x,B.z);camSnap()}
-function goMenu(){netLeave();policeReset();raceClear();engStop();dustClear();save();state='menu';$('hud').style.display='none';$('touch').style.display='none';$('menu').style.display='block';$('ridebar').style.display='flex';cur=SAVE.bike;setPreview(cur);renderMenu();resize()}
+function goMenu(){netLeave();policeReset();raceClear();renderer.toneMappingExposure=1.15;rain.visible=false;headlight.visible=false;if(tab==='race')setTimeout(lbLoad,900);engStop();dustClear();save();state='menu';$('hud').style.display='none';$('touch').style.display='none';$('menu').style.display='block';$('ridebar').style.display='flex';cur=SAVE.bike;setPreview(cur);renderMenu();resize()}
 
 /* ================= physics ================= */
 function crash(reason){
@@ -779,7 +780,9 @@ function view(dt){
   cam.lookAt(B.x,B.y+1.3,B.z);
   if(world.sky3d)world.sky3d.position.copy(cam.position);
   const fov=62+clamp(B.speed*.55,0,24);if(Math.abs(cam.fov-fov)>.05){cam.fov=lerp(cam.fov,fov,.1);cam.updateProjectionMatrix()}
-  sun.position.set(B.x+60,B.y+90,B.z+40);sun.target.position.set(B.x,B.y,B.z);
+  sun.position.set(B.x+wx.sunDir[0],B.y+wx.sunDir[1],B.z+wx.sunDir[2]);sun.target.position.set(B.x,B.y,B.z);
+  if(headlight.visible){const hx=Math.sin(B.yaw),hz=Math.cos(B.yaw);headlight.position.set(B.x+hx*.8,B.y+1.3,B.z+hz*.8);headlight.target.position.set(B.x+hx*14,B.y+.2,B.z+hz*14)}
+  rainTick(dt);
   world.coins.forEach(c=>{if(c.on)c.m.rotation.y+=dt*3});
   /* HUD */
   const fi=fameInfo();
@@ -854,6 +857,7 @@ function renderMenu(){
   h+='<div class="sub">'+esc(SAVE.brand.logo+' '+SAVE.brand.name)+' · Fame: '+fi.name+' (x'+fi.mult.toFixed(1)+' cash) · Best score '+SAVE.best.toLocaleString()+'<br>Riding: <b>'+esc(stats(SAVE.bike).name)+'</b></div>';
   h+='<div class="tabs">'+[['design','🎨 My Bike'],['edesign','⚡ My E-Bike'],['shop','🛒 Shop'],['race','🏁 Race'],['online','🌐 Online']].map(t=>'<button data-a="tab" data-v="'+t[0]+'" class="'+(tab===t[0]?'on':'')+'">'+t[1]+'</button>').join('')+'</div>';
   h+=tab==='design'?designHtml():tab==='edesign'?eDesignHtml():tab==='shop'?shopHtml():tab==='race'?raceHtml():onlineHtml();
+  h+='<div class="card"><h3>🌦️ Weather</h3><div class="chips">'+Object.keys(WEATHER).map(k=>'<button class="btn'+((SAVE.weather||'clear')===k?'':' alt')+'" data-a="weather" data-v="'+k+'">'+WEATHER[k].name+'</button>').join('')+'</div><p style="margin-top:8px">Applies the next time you ride. Everyone sees their own weather.</p></div>';
   h+='<div class="card"><h3>Controls</h3><p>W gas · S brake · A/D steer · <b>Q</b> wheelie (hold to lift the front wheel, let go to lower it, hold too long and you flip backwards; S helps pull it down) · <b>Space</b> hold &amp; release to hop. In the air: <b>W/S</b> backflip/frontflip, <b>A/D</b> spin, <b>X</b> tabletop, <b>Z</b> no-hander. <b>Shift</b> boost on motor bikes. <b>M</b> sound. Land upright, level and with hands on the bars. Chain tricks for combos (x5) to earn cash and brand fame. Grab 🪙 coins. Esc = garage. 🚨 In the city, reach 60 km/h and the police chase you: stay free for a few seconds to escape, get caught and you pay a fine.</p></div>';
   m.innerHTML=h;m.scrollTop=sc;
 }
@@ -861,7 +865,7 @@ function setPreviewOwn(){const id=tab==='edesign'?'ownE':'own';cur=id;setPreview
 $('menu').addEventListener('click',e=>{
   const t=e.target.closest('[data-a]');if(!t||t.disabled)return;const a=t.dataset.a,v=t.dataset.v;
   const rc=()=>'#'+Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0');
-  if(a==='tab'){tab=v;cur=v==='design'?'own':v==='edesign'?'ownE':SAVE.bike;setPreview(cur);renderMenu()}
+  if(a==='tab'){tab=v;cur=v==='design'?'own':v==='edesign'?'ownE':SAVE.bike;setPreview(cur);renderMenu();if(v==='race')lbLoad()}
   else if(a==='logo'){SAVE.brand.logo=v;save();setPreviewOwn();renderMenu()}
   else if(a==='style'){SAVE.design.style=v;save();setPreviewOwn();renderMenu()}
   else if(a==='estyle'){SAVE.edesign.style=v;save();setPreviewOwn();renderMenu()}
@@ -878,6 +882,8 @@ $('menu').addEventListener('click',e=>{
   else if(a==='prev'){cur=v;setPreview(v)}
   else if(a==='shopcat'){shopCat=v;renderMenu()}
   else if(a==='ride'){startRide(v)}
+  else if(a==='weather'){SAVE.weather=WEATHER[v]?v:'clear';save();renderMenu()}
+  else if(a==='lbrefresh'){lbLoad()}
   else if(a==='cpulvl'){SAVE.cpuLvl=+v;save();renderMenu()}
   else if(a==='netpub'){goOnline('pub',v)}
   else if(a==='netpriv'){goOnline('priv',v,null,true)}
@@ -889,6 +895,7 @@ $('ridebar').addEventListener('click',e=>{const t=e.target.closest('[data-a="rid
 $('menu').addEventListener('input',e=>{
   const id=e.target.id;
   if(id==='codeIn'){netCodeVal=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);e.target.value=netCodeVal;return}
+  if(id==='pname'){SAVE.playerName=e.target.value.replace(/[^\p{L}\p{N} _.\-]/gu,'').slice(0,16);saveSoon();return}
   if(id==='sbUrl'){sbUrlVal=e.target.value;return}
   if(id==='sbKey'){sbKeyVal=e.target.value;return}
   const f=e.target.dataset.f;if(!f)return;const p=f.split('.');SAVE[p[0]][p[1]]=e.target.value;saveSoon();
@@ -898,9 +905,18 @@ $('hGarage').addEventListener('click',goMenu);
 
 /* ================= realism: sky, dust, sound ================= */
 const HORIZON='#d8ecff';
-function makeSky(){
+const WEATHER={
+  clear:{name:'☀️ Clear',hor:'#d8ecff',mid:'#79b4f0',top:'#2f6fd0',hemi:[0xffffff,0x556655,.85],sun:['#ffffff',1.15],sunDir:[60,90,40],disc:'#fff6d8',fog:[160,560],exp:1.15,head:0},
+  sunset:{name:'🌇 Sunset',hor:'#ffb27a',mid:'#e07f78',top:'#3f3f8f',hemi:[0xffd9b0,0x554455,.7],sun:['#ff9a55',1.05],sunDir:[110,28,40],disc:'#ffd08a',fog:[120,520],exp:1.2,head:0},
+  night:{name:'🌙 Night',hor:'#1c2547',mid:'#10183a',top:'#04061a',hemi:[0x6677aa,0x1a2030,.45],sun:['#9fb4ff',.5],sunDir:[-60,90,40],disc:'#e6ecff',fog:[50,380],exp:1.1,head:2.6,stars:true},
+  rain:{name:'🌧️ Rain',hor:'#929daa',mid:'#707b89',top:'#4b5461',hemi:[0xcfd8e4,0x445055,.7],sun:['#d6dde6',.5],sunDir:[60,90,40],disc:null,fog:[30,300],exp:1.05,head:0,rain:true},
+  fog:{name:'🌫️ Fog',hor:'#cdd6d9',mid:'#bcc6ca',top:'#9fabb2',hemi:[0xffffff,0x667070,.8],sun:['#ffffff',.6],sunDir:[60,90,40],disc:null,fog:[10,170],exp:1.1,head:0}
+};
+let wx=WEATHER.clear;
+function makeSky(w){
+  w=w||WEATHER.clear;
   const R=700,geo=new THREE.SphereGeometry(R,24,14),pos=geo.attributes.position,cols=new Float32Array(pos.count*3);
-  const top=new THREE.Color('#2f6fd0'),mid=new THREE.Color('#79b4f0'),hor=new THREE.Color(HORIZON),c=new THREE.Color();
+  const top=new THREE.Color(w.top),mid=new THREE.Color(w.mid),hor=new THREE.Color(w.hor),c=new THREE.Color();
   for(let i=0;i<pos.count;i++){
     const y=clamp(pos.getY(i)/R,-.2,1);
     if(y<.25)c.copy(hor).lerp(mid,clamp(y/.25,0,1));else c.copy(mid).lerp(top,clamp((y-.25)/.75,0,1));
@@ -909,9 +925,43 @@ function makeSky(){
   geo.setAttribute('color',new THREE.BufferAttribute(cols,3));
   const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide,fog:false,depthWrite:false}));
   m.frustumCulled=false;m.renderOrder=-10;
-  const sd=new THREE.Mesh(new THREE.SphereGeometry(26,12,8),new THREE.MeshBasicMaterial({color:'#fff6d8',fog:false}));
-  sd.position.set(60,90,40).normalize().multiplyScalar(620);m.add(sd);
+  if(w.disc){
+    const sd=new THREE.Mesh(new THREE.SphereGeometry(w.stars?18:26,12,8),new THREE.MeshBasicMaterial({color:w.disc,fog:false}));
+    sd.position.set(w.sunDir[0],w.sunDir[1],w.sunDir[2]).normalize().multiplyScalar(620);m.add(sd);
+  }
+  if(w.stars){
+    const n=380,sp=new Float32Array(n*3);
+    for(let i=0;i<n;i++){const u=Math.random()*TAU,v=.12+Math.random()*.88,r=Math.sqrt(1-v*v)*640;sp[i*3]=Math.cos(u)*r;sp[i*3+1]=v*640;sp[i*3+2]=Math.sin(u)*r}
+    const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.BufferAttribute(sp,3));
+    const st=new THREE.Points(sg,new THREE.PointsMaterial({color:'#ffffff',size:2.2,sizeAttenuation:false,fog:false,depthWrite:false}));st.frustumCulled=false;m.add(st);
+  }
   return m;
+}
+/* rain */
+const RAIN_N=1100,rainPos=new Float32Array(RAIN_N*6),rainDrops=[];
+for(let i=0;i<RAIN_N;i++)rainDrops.push({x:Math.random()*60-30,y:Math.random()*40-12,z:Math.random()*60-30});
+const rain=new THREE.LineSegments(new THREE.BufferGeometry(),new THREE.LineBasicMaterial({color:'#bcd0ea',transparent:true,opacity:.55,fog:false}));
+rain.geometry.setAttribute('position',new THREE.BufferAttribute(rainPos,3));rain.frustumCulled=false;rain.visible=false;scene.add(rain);
+function rainTick(dt){
+  if(!rain.visible)return;
+  const cx=cam.position.x,cy=cam.position.y,cz=cam.position.z;
+  for(let i=0;i<RAIN_N;i++){
+    const d=rainDrops[i];d.y-=34*dt;d.x+=3*dt;
+    if(d.y<-12)d.y+=40;
+    const x=cx+((((d.x-cx+30)%60)+60)%60)-30,z=cz+((((d.z-cz+30)%60)+60)%60)-30,y=cy+d.y;
+    rainPos[i*6]=x;rainPos[i*6+1]=y;rainPos[i*6+2]=z;rainPos[i*6+3]=x+.1;rainPos[i*6+4]=y+.95;rainPos[i*6+5]=z;
+  }
+  rain.geometry.attributes.position.needsUpdate=true;
+}
+function applyWeather(key){
+  const w=WEATHER[key]||WEATHER.clear;wx=w;
+  scene.background=new THREE.Color(w.hor);scene.fog=new THREE.Fog(w.hor,w.fog[0],w.fog[1]);
+  hemi.color.set(w.hemi[0]);hemi.groundColor.set(w.hemi[1]);hemi.intensity=w.hemi[2];
+  sun.color.set(w.sun[0]);sun.intensity=w.sun[1];
+  renderer.toneMappingExposure=w.exp;
+  headlight.intensity=w.head;headlight.visible=w.head>0;
+  rain.visible=!!w.rain;
+  world.sky3d=makeSky(w);world.group.add(world.sky3d);
 }
 const dust={list:[],i:0,acc:0,geo:null};
 function dustClear(){dust.list.forEach(p=>{scene.remove(p.m);p.m.material.dispose()});dust.list=[];if(dust.geo){dust.geo.dispose();dust.geo=null}}
@@ -1355,15 +1405,15 @@ function saveSbCfg(){
 }
 function raceHtml(){
   const lv=SAVE.cpuLvl==null?1:SAVE.cpuLvl,names=['Easy','Normal','Hard'];
-  let h='<div class="card"><h3>🤖 Race vs CPU</h3><p>3 laps against 3 CPU riders. Ride through the glowing gates in order. Prize money: <b>'+CPU_PRIZE.map((v,i)=>['1st','2nd','3rd','4th'][i]+' '+fmt(Math.round(v*CPU_MULT[lv]))).join(' · ')+'</b></p>'+
+  let h='<div class="card"><h3>🤖 Race vs CPU</h3><p>1 lap against 3 CPU riders. Ride through the glowing gates in order. Prize money: <b>'+CPU_PRIZE.map((v,i)=>['1st','2nd','3rd','4th'][i]+' '+fmt(Math.round(v*CPU_MULT[lv]))).join(' · ')+'</b></p>'+
     '<div class="chips">'+names.map((n,i)=>'<button class="btn'+(i===lv?'':' alt')+'" data-a="cpulvl" data-v="'+i+'">'+n+(i===lv?' ✓':'')+'</button>').join('')+'</div>'+
     '<div style="margin-top:10px"><button class="btn" data-a="ride" data-v="race">🏁 Start race</button></div></div>';
-  if(!netReady())return h+'<div class="card"><h3>🌐 Online race</h3><p>'+esc(netWhyNot())+'</p></div>';
+  if(!netReady())return h+'<div class="card"><h3>🌐 Online race</h3><p>'+esc(netWhyNot())+'</p></div>'+leaderboardHtml();
   h+='<div class="card"><h3>🌐 Online race</h3><p>Race real players. The race starts about 10 seconds after a second rider joins, then again and again. Prizes: <b>1st '+fmt(ONLINE_PRIZE[0])+' · 2nd '+fmt(ONLINE_PRIZE[1])+' · 3rd '+fmt(ONLINE_PRIZE[2])+' · 4th '+fmt(ONLINE_PRIZE[3])+'</b>, and '+fmt(ONLINE_MIN)+' for finishing after that.</p>'+
     '<div class="chips"><button class="btn" data-a="netpub" data-v="race">🌐 Public race</button><button class="btn alt" data-a="netpriv" data-v="race">🔒 Private race</button></div></div>';
   h+='<div class="card"><h3>Join a private race</h3><div class="row"><input type="text" id="codeIn" maxlength="6" placeholder="e.g. R7K2QM" value="'+esc(netCodeVal)+'" style="text-transform:uppercase"><button class="btn" data-a="netjoin">Join</button></div></div>';
   if(netMsg)h+='<div class="card"><p style="color:#ffd23f;margin:0">'+esc(netMsg)+'</p></div>';
-  return h;
+  return h+leaderboardHtml();
 }
 function onlineHtml(){
   if(!netReady()){
@@ -1391,8 +1441,44 @@ function onlineHtml(){
 }
 
 
+
+/* ================= leaderboard (Supabase table race_times) ================= */
+let PID='';try{PID=localStorage.getItem('rideempire_pid')||'';if(!PID){PID=Array.from(crypto.getRandomValues(new Uint8Array(8)),b=>b.toString(16).padStart(2,'0')).join('');localStorage.setItem('rideempire_pid',PID)}}catch(e){PID=Math.random().toString(36).slice(2,18)}
+const LB={rows:null,msg:'',busy:false};
+const myName=()=>((SAVE.playerName||'').trim()||SAVE.brand.name||'Rider').slice(0,16);
+function getSb(){if(!netReady())return null;NET.sb=NET.sb||window.supabase.createClient(SB_URL,SB_KEY,{realtime:{params:{eventsPerSecond:10}}});return NET.sb}
+async function lbLoad(){
+  const sb=getSb();if(!sb||LB.busy)return;
+  LB.busy=true;LB.msg='Loading…';if(tab==='race'&&state==='menu')renderMenu();
+  try{
+    const res=await sb.from('race_times').select('player_id,name,bike,time_ms').order('time_ms',{ascending:true}).limit(200);
+    if(res.error)throw res.error;
+    const seen=new Set(),rows=[];
+    for(const r of res.data||[]){
+      if(!r||typeof r.player_id!=='string'||seen.has(r.player_id))continue;seen.add(r.player_id);
+      rows.push({pid:r.player_id,name:String(r.name||'Rider').slice(0,16),bike:String(r.bike||'').slice(0,40),ms:+r.time_ms||0});
+      if(rows.length>=10)break;
+    }
+    LB.rows=rows;LB.msg=rows.length?'':'No times yet. Be the first!';
+  }catch(e){LB.rows=null;LB.msg='The leaderboard is not set up yet.'}
+  LB.busy=false;if(tab==='race'&&state==='menu')renderMenu();
+}
+async function lbSubmit(ms){
+  const sb=getSb();if(!sb||!(ms>=5000&&ms<=900000))return;
+  try{await sb.from('race_times').insert({player_id:PID,name:myName(),bike:stats(SAVE.bike).name.slice(0,40),time_ms:Math.round(ms)})}catch(e){}
+}
+function leaderboardHtml(){
+  let h='<div class="card"><h3>🏆 Fastest laps</h3><label class="f">Your racing name (shown on the leaderboard)</label><input type="text" id="pname" maxlength="16" placeholder="'+esc(SAVE.brand.name)+'" value="'+esc(SAVE.playerName||'')+'">';
+  if(!netReady())return h+'<p style="margin-top:8px">Turn on online play to see the leaderboard.</p></div>';
+  if(LB.rows&&LB.rows.length){
+    h+='<div style="margin-top:10px">'+LB.rows.map((r,i)=>'<div style="display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid #ffffff18;'+(r.pid===PID?'color:#ffd23f;font-weight:800':'')+'"><span>'+(['🥇','🥈','🥉'][i]||(i+1)+'.')+' '+esc(r.name)+' <small style="opacity:.6">'+esc(r.bike)+'</small></span><b>'+fmtTime(r.ms)+'</b></div>').join('')+'</div>';
+  }
+  if(LB.msg)h+='<p style="margin-top:8px">'+esc(LB.msg)+'</p>';
+  return h+'<div style="margin-top:8px"><button class="btn alt" data-a="lbrefresh">↻ Refresh</button></div></div>';
+}
+
 /* ================= racing (vs CPU and online) ================= */
-const RACE_LAPS=3,CPU_PRIZE=[20000,10000,5000,2000],CPU_MULT=[.6,1,1.6],CPU_NAMES=['Blaze','Volt','Rocket'];
+const RACE_LAPS=1,CPU_PRIZE=[20000,10000,5000,2000],CPU_MULT=[.6,1,1.6],CPU_NAMES=['Blaze','Volt','Rocket'];
 const ONLINE_PRIZE=[40000,22000,12000,7000],ONLINE_MIN=3000,ORD=['','1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th'];
 function raceClear(){
   const R=world&&world.race;
@@ -1450,11 +1536,13 @@ function onRace(p){
     if(R.state==='lobby'||(R.seq&&p.n===R.seq))raceResetOnline();
   }
 }
+function fmtTime(ms){const m=Math.floor(ms/60000),sec=(ms%60000)/1000;return m+':'+sec.toFixed(2).padStart(5,'0')}
 function raceFinish(R){
+  R.timeMs=Math.max(0,performance.now()-R.startedAt);lbSubmit(R.timeMs);
   R.finished=true;R.fin.push(R.me);R.place=R.fin.length;R.state='done';R.msgT=8;
   const prize=R.kind==='cpu'?Math.round((CPU_PRIZE[R.place-1]||1000)*CPU_MULT[R.lvl]):(ONLINE_PRIZE[R.place-1]||ONLINE_MIN);
   R.prize=prize;SAVE.money+=prize;SAVE.fame+=Math.max(100,1000-(R.place-1)*300);B.score+=prize/10;if(B.score>SAVE.best)SAVE.best=B.score;save();
-  pop('🏁 '+(ORD[R.place]||R.place+'th')+' place!  +'+fmt(prize),'gold');
+  pop('🏁 '+(ORD[R.place]||R.place+'th')+' place!  +'+fmt(prize)+'  ·  '+fmtTime(R.timeMs),'gold');
 }
 function raceProg(W,R){
   const G=W.gates.length,L=W.L,A=W.gA;
@@ -1514,7 +1602,7 @@ function raceTick(dt){
     R.hud=R.finished?'Finished '+(ORD[R.place]||R.place)+' · +'+fmt(R.prize):'Position '+pos+'/'+rk.length+' · Lap '+Math.min(R.laps,Math.floor(R.passed/G)+1)+'/'+R.laps+' · Gate '+(W.gi+1)+'/'+G;
   }else R.hud='';
   if(R.finished){
-    if(R.msgT>0){R.msgT-=dt;msg=(ORD[R.place]||R.place+'th')+' place!  +'+fmt(R.prize)}
+    if(R.msgT>0){R.msgT-=dt;msg=(ORD[R.place]||R.place+'th')+' place!  +'+fmt(R.prize)+'  ·  '+fmtTime(R.timeMs)}
     else msg=R.kind==='cpu'?'Tap here or press Enter to race again':'Waiting for the race to finish…';
   }
   if(R.state==='lobby'&&online){
