@@ -1222,7 +1222,7 @@ function netReady(){return !!(window.supabase&&SB_URL.startsWith('https://')&&!/
 function netWhyNot(){return window.supabase?'Online play is not set up yet. Open the Online tab in the garage to turn it on.':'Could not load the Supabase library. Check your internet connection and reload.'}
 function myMeta(){
   const d=modelDesc(SAVE.bike);
-  return{id:NET.id,t:Date.now(),d:{kind:d.kind||'bike',wr:d.wr,wb:d.wb,tw:d.tw,frame:d.frame,seat:d.seat,rim:d.rim,fork:d.fork,jersey:d.jersey,motor:!!d.motor,susp:d.susp,moto:!!d.moto,logo:d.brand.logo,bc:d.brand.color,bn:d.brand.name}};
+  return{id:NET.id,t:Date.now(),d:{kind:d.kind||'bike',wr:d.wr,wb:d.wb,tw:d.tw,frame:d.frame,seat:d.seat,rim:d.rim,fork:d.fork,jersey:d.jersey,motor:!!d.motor,susp:d.susp,moto:!!d.moto,logo:d.brand.logo,bc:d.brand.color,bn:(SAVE.brand.name||'Rider').slice(0,16)}};
 }
 /* everything from other players is untrusted: clamp numbers, validate colours, trim text */
 function cleanDesc(d){
