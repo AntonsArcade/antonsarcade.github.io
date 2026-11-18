@@ -173,52 +173,126 @@ const SHOP=[
   {id:'kick',cat:'scooters',name:'City Kick',maker:'ScootCo',logo:'🛴',price:600,kind:'scooter',motor:true,top:8.5,accel:8,boost:0,batt:0,turn:1.4,spin:1.3,susp:0,wr:.13,wb:.95,tw:.035,color:'#8ecae6',accent:'#1a1a22'},
   {id:'pro',cat:'scooters',name:'Scoot Pro',maker:'ScootCo',logo:'🛴',price:1500,kind:'scooter',motor:true,top:13,accel:10,boost:4,batt:10,turn:1.4,spin:1.3,susp:1,wr:.13,wb:.95,tw:.035,color:'#ff4d6d',accent:'#1a1a22'},
   {id:'dual',cat:'scooters',name:'Dual-Motor GT',maker:'Zapp',logo:'⚡',price:4500,kind:'scooter',motor:true,top:19,accel:13,boost:8,batt:16,turn:1.3,spin:1.2,susp:2,wr:.14,wb:1,tw:.04,color:'#4cc9f0',accent:'#10151f'},
-  {id:'hyper',cat:'scooters',name:'Hyper Scoot X',maker:'Zapp',logo:'🚀',price:14000,kind:'scooter',motor:true,top:27,accel:17,boost:10,batt:22,turn:1.2,spin:1.2,susp:3,wr:.15,wb:1.05,tw:.045,color:'#b5179e',accent:'#14081a'}
+  {id:'hyper',cat:'scooters',name:'Hyper Scoot X',maker:'Zapp',logo:'🚀',price:14000,kind:'scooter',motor:true,top:27,accel:17,boost:10,batt:22,turn:1.2,spin:1.2,susp:3,wr:.15,wb:1.05,tw:.045,color:'#b5179e',accent:'#14081a'},
+  /* ---- more bikes ---- */
+  {id:'folding',cat:'bikes',name:'Pocket Folder',maker:'Foldwise',logo:'🧳',price:350,kind:'bike',motor:false,top:8.5,accel:7.5,boost:0,batt:0,turn:1.2,spin:1.1,susp:0,wr:0.2,wb:0.9,tw:0.04,color:'#ffd166',accent:'#2b2b2b'},
+  {id:'chopper',cat:'bikes',name:'Lowrider Chopper',maker:'Hogwild',logo:'🦴',price:550,kind:'bike',motor:false,top:8,accel:7,boost:0,batt:0,turn:0.8,spin:0.8,susp:0,wr:0.3,wb:1.4,tw:0.06,color:'#c1121f',accent:'#111111'},
+  {id:'djump',cat:'bikes',name:'Dirt Jumper',maker:'Street Kings',logo:'🪂',price:1300,kind:'bike',motor:false,top:10,accel:8.5,boost:0,batt:0,turn:1.3,spin:1.4,susp:2,wr:0.28,wb:1,tw:0.06,color:'#8338ec',accent:'#f5f5f5'},
+  {id:'slope',cat:'bikes',name:'Slope Machine',maker:'HopWorks',logo:'🎿',price:1700,kind:'bike',motor:false,top:10.5,accel:9,boost:0,batt:0,turn:1.3,spin:1.45,susp:3,wr:0.28,wb:1.02,tw:0.06,color:'#00b4d8',accent:'#0b132b'},
+  {id:'cx',cat:'bikes',name:'Cyclocross Cutter',maker:'Roam',logo:'🍂',price:2300,kind:'bike',motor:false,top:14.5,accel:9.5,boost:0,batt:0,turn:0.95,spin:0.95,susp:1,wr:0.33,wb:1.18,tw:0.035,color:'#e07a1f',accent:'#2a1a0a'},
+  {id:'endped',cat:'bikes',name:'Enduro Slayer',maker:'Ridgeline',logo:'🗡️',price:2800,kind:'bike',motor:false,top:13,accel:9,boost:0,batt:0,turn:1,spin:1,susp:5,wr:0.35,wb:1.2,tw:0.075,color:'#6a994e',accent:'#1b2b1b'},
+  {id:'carbonc',cat:'bikes',name:'Carbon Climber',maker:'Alpine Labs',logo:'🗻',price:4200,kind:'bike',motor:false,top:15.5,accel:10,boost:0,batt:0,turn:0.9,spin:0.9,susp:1,wr:0.33,wb:1.2,tw:0.028,color:'#2b2d42',accent:'#ef233c'},
+  {id:'tt',cat:'bikes',name:'Time Trial Rocket',maker:'Velocity',logo:'🚀',price:5200,kind:'bike',motor:false,top:18,accel:10.5,boost:0,batt:0,turn:0.75,spin:0.75,susp:0,wr:0.33,wb:1.22,tw:0.026,color:'#f72585',accent:'#111111'},
+  {id:'velo',cat:'bikes',name:'Velodrome Pro',maker:'Velocity',logo:'🏟️',price:7500,kind:'bike',motor:false,top:19.5,accel:11.5,boost:0,batt:0,turn:0.8,spin:0.8,susp:0,wr:0.33,wb:1.2,tw:0.025,color:'#ffffff',accent:'#1d3557'},
+  {id:'hyperped',cat:'bikes',name:'Hyper Aero Ultra',maker:'Velocity',logo:'🌪️',price:12000,kind:'bike',motor:false,top:22,accel:12.5,boost:0,batt:0,turn:0.75,spin:0.75,susp:0,wr:0.33,wb:1.22,tw:0.026,color:'#00f5d4',accent:'#0a0a0a'},
+  {id:'cargo',cat:'ebikes',name:'Cargo Hauler',maker:'CityGlide',logo:'📦',price:2200,kind:'bike',motor:true,top:10,accel:9,boost:3,batt:18,turn:0.9,spin:0.9,susp:1,wr:0.3,wb:1.35,tw:0.06,color:'#adb5bd',accent:'#343a40'},
+  {id:'stepthru',cat:'ebikes',name:'Step-Thru Cruiser',maker:'Sunny Cycles',logo:'🌺',price:2500,kind:'bike',motor:true,top:11.5,accel:9,boost:4,batt:14,turn:1.05,spin:1,susp:1,wr:0.32,wb:1.2,tw:0.05,color:'#ffafcc',accent:'#5a189a'},
+  {id:'gravele',cat:'ebikes',name:'Gravel E-Rover',maker:'Roam',logo:'🧭',price:6800,kind:'bike',motor:true,top:18,accel:11,boost:9,batt:20,turn:0.95,spin:0.95,susp:2,wr:0.34,wb:1.18,tw:0.045,color:'#a98467',accent:'#2a1f16'},
+  {id:'fsemtb',cat:'ebikes',name:'Full-Sus E-MTB',maker:'Ridgeline',logo:'🌋',price:9500,kind:'bike',motor:true,top:21,accel:12,boost:11,batt:22,turn:1,spin:1,susp:4,wr:0.35,wb:1.2,tw:0.075,color:'#ff5400',accent:'#1a0f08'},
+  {id:'ped45',cat:'ebikes',name:'Speed Pedelec 45',maker:'Velocity',logo:'🏎️',price:15000,kind:'bike',motor:true,top:25,accel:13,boost:12,batt:24,turn:0.9,spin:0.9,susp:1,wr:0.33,wb:1.22,tw:0.03,color:'#ffd60a',accent:'#101010'},
+  {id:'fatpro',cat:'ebikes',name:'Fat Pro Max',maker:'BigRoll',logo:'🦍',price:18000,kind:'bike',motor:true,top:24,accel:13,boost:12,batt:28,turn:1,spin:1,susp:3,wr:0.37,wb:1.22,tw:0.115,color:'#ff006e',accent:'#190011'},
+  {id:'hyperbike',cat:'ebikes',name:'Hyper E-Bike',maker:'Gigawatt',logo:'💫',price:28000,kind:'bike',motor:true,top:29,accel:15,boost:14,batt:30,turn:1,spin:1,susp:3,wr:0.34,wb:1.22,tw:0.045,color:'#3a86ff',accent:'#001233'},
+  {id:'quantum',cat:'ebikes',name:'Quantum E-Bike',maker:'NightForge',logo:'🔮',price:45000,kind:'bike',motor:true,top:33,accel:17,boost:16,batt:34,turn:1.05,spin:1,susp:4,wr:0.34,wb:1.22,tw:0.04,color:'#7209b7',accent:'#0a0014'},
+  {id:'scrambler',cat:'emotos',name:'Scrambler 300',maker:'Torque Moto',logo:'🧨',price:9000,kind:'moto',motor:true,top:29.5,accel:12.5,boost:7,batt:23,turn:0.95,spin:0.95,susp:4,wr:0.36,wb:1.3,tw:0.08,color:'#ff6d00',accent:'#1a1a1a'},
+  {id:'endmoto',cat:'emotos',name:'Enduro Moto-E',maker:'ApexWorks',logo:'🏔️',price:16000,kind:'moto',motor:true,top:32.5,accel:13.5,boost:9,batt:25,turn:0.95,spin:0.95,susp:6,wr:0.37,wb:1.32,tw:0.085,color:'#00a896',accent:'#0b1f1d'},
+  {id:'trialsm',cat:'emotos',name:'Trials Moto',maker:'Dune Co',logo:'🐐',price:24000,kind:'moto',motor:true,top:33,accel:14,boost:9,batt:26,turn:1.25,spin:1.2,susp:6,wr:0.35,wb:1.25,tw:0.08,color:'#e9ecef',accent:'#d00000'},
+  {id:'streetf',cat:'emotos',name:'Street Fighter S',maker:'NightForge',logo:'🐍',price:45000,kind:'moto',motor:true,top:41,accel:16,boost:13,batt:30,turn:1.1,spin:1,susp:4,wr:0.37,wb:1.34,tw:0.09,color:'#2ec4b6',accent:'#0b1013'},
+  {id:'hyperstrike',cat:'emotos',name:'Hyperstrike',maker:'Gigawatt',logo:'🦈',price:150000,kind:'moto',motor:true,top:58,accel:22,boost:18,batt:42,turn:1.1,spin:1.05,susp:6,wr:0.37,wb:1.34,tw:0.09,color:'#00bbf9',accent:'#02111a'},
+  {id:'blackout',cat:'emotos',name:'Blackout Moto',maker:'NightForge',logo:'🌑',price:220000,kind:'moto',motor:true,top:64,accel:24,boost:20,batt:46,turn:1.1,spin:1.05,susp:6,wr:0.37,wb:1.34,tw:0.09,color:'#161616',accent:'#9d4edd'},
+  {id:'solarflare',cat:'emotos',name:'Solar Flare',maker:'ApexWorks',logo:'☀️',price:340000,kind:'moto',motor:true,top:70,accel:26,boost:22,batt:50,turn:1.1,spin:1.05,susp:6,wr:0.37,wb:1.34,tw:0.09,color:'#ffbe0b',accent:'#3a0ca3'},
+  {id:'nova',cat:'emotos',name:'Nova GP',maker:'Gigawatt',logo:'🌠',price:520000,kind:'moto',motor:true,top:78,accel:28,boost:24,batt:56,turn:1.15,spin:1.05,susp:6,wr:0.37,wb:1.34,tw:0.09,color:'#ffffff',accent:'#e5383b'},
+  {id:'singularity',cat:'emotos',name:'Singularity X',maker:'NightForge',logo:'🕳️',price:900000,kind:'moto',motor:true,top:84,accel:32,boost:28,batt:64,turn:1.15,spin:1.1,susp:7,wr:0.37,wb:1.36,tw:0.09,color:'#0d0221',accent:'#00f5ff',rankLock:12},
+  {id:'zenith',cat:'emotos',name:'Zenith One',maker:'Gigawatt',logo:'👑',price:2000000,kind:'moto',motor:true,top:92,accel:36,boost:30,batt:72,turn:1.2,spin:1.1,susp:7,wr:0.37,wb:1.36,tw:0.09,color:'#ffd700',accent:'#2b1d00',rankLock:17},
+  {id:'xten',cat:'emotos',name:'X10 Phantom',maker:'NightForge',logo:'❌',price:5000000,kind:'moto',motor:true,top:100,accel:40,boost:32,batt:80,turn:1.2,spin:1.15,susp:8,wr:0.37,wb:1.36,tw:0.09,color:'#ff0054',accent:'#000000',rankLock:19},
+  {id:'cruisescoot',cat:'scooters',name:'Cruise Scoot',maker:'ScootCo',logo:'🛵',price:900,kind:'scooter',motor:true,top:10,accel:8.5,boost:2,batt:8,turn:1.3,spin:1.2,susp:0,wr:0.13,wb:0.95,tw:0.035,color:'#a8dadc',accent:'#1d3557'},
+  {id:'stuntscoot',cat:'scooters',name:'Stunt Scooter',maker:'Street Kings',logo:'🤸',price:800,kind:'scooter',motor:false,top:8,accel:8,boost:0,batt:0,turn:1.5,spin:1.5,susp:1,wr:0.12,wb:0.9,tw:0.035,color:'#ffbe0b',accent:'#111111'},
+  {id:'offscoot',cat:'scooters',name:'Off-Road Scoot',maker:'Dune Co',logo:'🏜️',price:3000,kind:'scooter',motor:true,top:15,accel:11,boost:5,batt:14,turn:1.2,spin:1.1,susp:3,wr:0.17,wb:1.02,tw:0.06,color:'#bc6c25',accent:'#283618'},
+  {id:'dualpro',cat:'scooters',name:'Dual Pro 2',maker:'Zapp',logo:'🔌',price:7500,kind:'scooter',motor:true,top:22,accel:14,boost:9,batt:18,turn:1.3,spin:1.2,susp:2,wr:0.14,wb:1,tw:0.04,color:'#06d6a0',accent:'#073b4c'},
+  {id:'triple',cat:'scooters',name:'Triple-Motor Beast',maker:'Zapp',logo:'🐲',price:22000,kind:'scooter',motor:true,top:31,accel:19,boost:12,batt:26,turn:1.2,spin:1.2,susp:3,wr:0.15,wb:1.05,tw:0.045,color:'#ef476f',accent:'#14081a'},
+  {id:'rocketscoot',cat:'scooters',name:'Rocket Scoot',maker:'Gigawatt',logo:'🚀',price:40000,kind:'scooter',motor:true,top:36,accel:21,boost:14,batt:30,turn:1.2,spin:1.2,susp:3,wr:0.15,wb:1.06,tw:0.045,color:'#ff9e00',accent:'#10002b'},
+  {id:'warp',cat:'scooters',name:'Warp Scooter',maker:'NightForge',logo:'🌀',price:90000,kind:'scooter',motor:true,top:46,accel:25,boost:17,batt:36,turn:1.25,spin:1.25,susp:4,wr:0.16,wb:1.08,tw:0.05,color:'#00ffc6',accent:'#001a1a',rankLock:10}
 ];
 const shopItem=id=>SHOP.find(b=>b.id===id);
+/* upgrades: every upgrade has 20 levels */
+const MAXLV=20;
+const mk=b0=>Array.from({length:MAXLV},(_,i)=>Math.round(b0*Math.pow(i+1,2.2)/10)*10);
 /* upgrades for your own pedal bike */
 const UPG=[
-  {id:'susp',name:'Suspension',max:5,costs:[250,600,1200,2200,4000],desc:'Softer landings: more forgiving flips and you survive bigger drops.'},
-  {id:'tires',name:'Tires & Grip',max:5,costs:[120,300,600,1000,1800],desc:'Sharper turning and stronger braking.'},
-  {id:'gears',name:'Gears & Drivetrain',max:5,costs:[150,350,700,1200,2000],desc:'Higher pedalling top speed.'},
-  {id:'frame',name:'Lightweight Frame',max:5,costs:[200,450,900,1500,2600],desc:'Faster acceleration and faster flips and spins.'},
+  {id:'susp',name:'Suspension',max:MAXLV,costs:mk(250),desc:'Softer landings: more forgiving flips and you survive bigger drops.'},
+  {id:'tires',name:'Tires & Grip',max:MAXLV,costs:mk(120),desc:'Sharper turning and stronger braking.'},
+  {id:'brakes',name:'Disc Brakes',max:MAXLV,costs:mk(150),desc:'Stronger braking and grip so you can stop on a dime.'},
+  {id:'gears',name:'Gears & Drivetrain',max:MAXLV,costs:mk(150),desc:'Higher pedalling top speed.'},
+  {id:'aero',name:'Aero Kit',max:MAXLV,costs:mk(300),desc:'Slippery shapes for a little extra top speed.'},
+  {id:'frame',name:'Lightweight Frame',max:MAXLV,costs:mk(200),desc:'Faster acceleration and faster flips and spins.'},
+  {id:'wheels',name:'Pro Wheelset',max:MAXLV,costs:mk(250),desc:'Quicker acceleration and a bit sharper handling.'},
   {id:'kit',name:'Conversion Kit (E-Bike)',max:3,costs:[2500,6000,12000],desc:'Turns your bike electric. Stage 1: motor, battery and boost (Shift). Stage 2: much more speed and boost. Stage 3: a monster motor that makes your bike properly fast.'}
 ];
 /* upgrades for your brand e-bike: max them out and it is seriously quick */
 const EUPG=[
-  {id:'motor',name:'Motor Power',max:6,costs:[1500,3500,8000,16000,30000,60000],desc:'More top speed and acceleration. Max level is crazy fast.'},
-  {id:'boost',name:'Boost Controller',max:5,costs:[1200,3000,7000,14000,26000],desc:'Hold Shift for a bigger speed burst. Every level adds more.'},
-  {id:'battery',name:'Battery Pack',max:5,costs:[800,2000,4500,9000,16000],desc:'A bigger battery means longer boosts.'},
-  {id:'susp',name:'Suspension',max:5,costs:[300,750,1500,2800,5000],desc:'Softer landings and bigger jumps.'},
-  {id:'tires',name:'Tires & Grip',max:5,costs:[150,400,800,1400,2400],desc:'Sharper turning and stronger braking.'},
-  {id:'frame',name:'Carbon Frame',max:5,costs:[250,600,1200,2000,3500],desc:'Faster acceleration and faster flips and spins.'}
+  {id:'motor',name:'Motor Power',max:MAXLV,costs:mk(1500),desc:'More top speed and acceleration. Max level is crazy fast.'},
+  {id:'ctrl',name:'Motor Controller',max:MAXLV,costs:mk(1000),desc:'Smarter power delivery: quicker acceleration, a stronger boost and a touch more speed.'},
+  {id:'boost',name:'Boost Controller',max:MAXLV,costs:mk(1200),desc:'Hold Shift for a bigger speed burst. Every level adds more.'},
+  {id:'battery',name:'Battery Pack',max:MAXLV,costs:mk(800),desc:'A bigger battery means longer boosts.'},
+  {id:'aero',name:'Aero Fairing',max:MAXLV,costs:mk(600),desc:'Cuts the wind for extra top speed.'},
+  {id:'susp',name:'Suspension',max:MAXLV,costs:mk(300),desc:'Softer landings and bigger jumps.'},
+  {id:'tires',name:'Tires & Grip',max:MAXLV,costs:mk(150),desc:'Sharper turning and stronger braking.'},
+  {id:'brakes',name:'Hydraulic Brakes',max:MAXLV,costs:mk(200),desc:'Stronger braking and more grip.'},
+  {id:'wheels',name:'Forged Wheels',max:MAXLV,costs:mk(400),desc:'Quicker acceleration and slightly sharper handling.'},
+  {id:'frame',name:'Carbon Frame',max:MAXLV,costs:mk(250),desc:'Faster acceleration and faster flips and spins.'}
 ];
 const LOGOS=['⚡','🔥','🦅','🐺','🌟','💀','🦁','🚀'];
-const FAME=[[0,'Unknown'],[2000,'Local Rider'],[8000,'Street Famous'],[25000,'Pro Brand'],[80000,'Global Icon'],[200000,'Legend']];
+const FAME=[[0,'Unknown'],[2000,'Local Rider'],[8000,'Street Famous'],[25000,'Pro Brand'],[80000,'Global Icon'],[200000,'Legend'],
+  [320000,'Hall of Famer'],[500000,'Superstar'],[750000,'Champion'],[1100000,'Grand Champion'],[1600000,'Elite'],[2300000,'Titan'],[3200000,'Overlord'],
+  [4400000,'Mythic'],[6000000,'Immortal'],[8000000,'Cosmic'],[11000000,'Galactic'],[15000000,'Eternal'],[20000000,'Transcendent'],[30000000,'X10 Legend']];
+const RANK_GIFTS={2:{bike:'djump'},3:{bike:'endped'},4:{bike:'trail'},5:{estyle:'ebike'},6:{bike:'ranger'},7:{bike:'hyperbike'},8:{estyle:'emoto'},9:{bike:'lightning'},10:{bike:'warp'},
+  11:{bike:'hyperstrike'},12:{bike:'singularity'},13:{bike:'blackout'},14:{bike:'rocketscoot'},15:{bike:'solarflare'},16:{bike:'nova'},17:{bike:'zenith'},18:{bike:'quantum'},19:{bike:'xten'}};
+const rankCash=l=>Math.round(1500*Math.pow(1.6,l-1)/100)*100;
 const DEF={money:300,fame:0,best:0,brand:{name:'Rad Wheels',logo:'⚡',color:'#ff5a1f',color2:'#222a3a'},
   design:{style:'bmx',frame:'#ff5a1f',seat:'#151515',rim:'#ffd23f',fork:'#dddddd'},
   edesign:{style:'ebike',frame:'#2dd4bf',seat:'#151515',rim:'#ffffff',fork:'#cfd3da'},
-  up:{susp:0,tires:0,gears:0,frame:0,kit:0},eup:{motor:0,boost:0,battery:0,susp:0,tires:0,frame:0},owned:['own'],estyles:[],cpuLvl:1,weather:'clear',bike:'own',mode:'street'};
+  up:{susp:0,tires:0,brakes:0,gears:0,aero:0,frame:0,wheels:0,kit:0},eup:{motor:0,ctrl:0,boost:0,battery:0,aero:0,susp:0,tires:0,brakes:0,wheels:0,frame:0},owned:['own'],estyles:[],cpuLvl:1,weather:'clear',upv:2,rankPaid:0,bike:'own',mode:'street'};
 let SAVE=JSON.parse(JSON.stringify(DEF));
-try{const s=JSON.parse(localStorage.getItem('bikebrand_v1')||'null');if(s){SAVE=Object.assign(SAVE,s);SAVE.brand=Object.assign({},DEF.brand,s.brand);SAVE.design=Object.assign({},DEF.design,s.design);SAVE.edesign=Object.assign({},DEF.edesign,s.edesign);SAVE.up=Object.assign({},DEF.up,s.up);SAVE.eup=Object.assign({},DEF.eup,s.eup);if(!Array.isArray(SAVE.owned))SAVE.owned=['own'];if(!Array.isArray(SAVE.estyles))SAVE.estyles=[]}}catch(e){}
+try{const s=JSON.parse(localStorage.getItem('bikebrand_v1')||'null');if(s){SAVE=Object.assign(SAVE,s);SAVE.brand=Object.assign({},DEF.brand,s.brand);SAVE.design=Object.assign({},DEF.design,s.design);SAVE.edesign=Object.assign({},DEF.edesign,s.edesign);SAVE.up=Object.assign({},DEF.up,s.up);SAVE.eup=Object.assign({},DEF.eup,s.eup);if(!s.upv){['susp','tires','gears','frame'].forEach(k=>SAVE.up[k]=Math.min(20,(SAVE.up[k]||0)*4));['motor','boost','battery','susp','tires','frame'].forEach(k=>SAVE.eup[k]=Math.min(20,Math.round((SAVE.eup[k]||0)*(k==='motor'?20/6:4))));SAVE.upv=2}if(!Array.isArray(SAVE.owned))SAVE.owned=['own'];if(!Array.isArray(SAVE.estyles))SAVE.estyles=[]}}catch(e){}
 let saveT=0;
 function save(){try{localStorage.setItem('bikebrand_v1',JSON.stringify(SAVE))}catch(e){}}
 function saveSoon(){clearTimeout(saveT);saveT=setTimeout(save,800)}
-function fameInfo(){let l=0;for(let i=0;i<FAME.length;i++)if(SAVE.fame>=FAME[i][0])l=i;const n=FAME[l+1];return{lvl:l,name:FAME[l][1],mult:1+.2*l,pct:n?(SAVE.fame-FAME[l][0])/(n[0]-FAME[l][0]):1}}
 
+/* ================= ranks ================= */
+function rankReward(l){
+  const cash=rankCash(l),g=RANK_GIFTS[l],parts=['+'+fmt(cash)];SAVE.money+=cash;
+  if(g&&g.bike&&shopItem(g.bike)&&!SAVE.owned.includes(g.bike)){SAVE.owned.push(g.bike);parts.push('free '+shopItem(g.bike).name)}
+  if(g&&g.estyle&&ESTYLES[g.estyle]&&!SAVE.estyles.includes(g.estyle)){SAVE.estyles.push(g.estyle);parts.push('free brand '+ESTYLES[g.estyle].name)}
+  return parts;
+}
+function rankCheck(){
+  const l=fameInfo().lvl;let any=false;
+  while((SAVE.rankPaid||0)<l){
+    SAVE.rankPaid=(SAVE.rankPaid||0)+1;const n=SAVE.rankPaid,parts=rankReward(n),txt='⭐ RANK UP: '+FAME[n][1]+' (x'+(1+9*n/(FAME.length-1)).toFixed(1)+' cash)  '+parts.join(' · ');
+    any=true;if(typeof state!=='undefined'&&state==='ride')pop(txt,'gold');else toast(txt);
+  }
+  if(any)save();
+}
+function addFame(n){SAVE.fame+=n;rankCheck()}
+function fameInfo(){let l=0;for(let i=0;i<FAME.length;i++)if(SAVE.fame>=FAME[i][0])l=i;const n=FAME[l+1];return{lvl:l,name:FAME[l][1],mult:1+9*l/(FAME.length-1),pct:n?(SAVE.fame-FAME[l][0])/(n[0]-FAME[l][0]):1}}
+
+const eqv=(l,old)=>(l||0)*old/20*1.15;
+function ebikeCalc(es,u){
+  const mo=es.kind==='moto',e=(k,old)=>eqv(u[k],old),m6=e('motor',6);
+  return{top:14+es.top+m6*(mo?5:3.6)+e('aero',5)*.7+e('ctrl',5)*.3,accel:10+m6*(mo?2:1.4)+e('frame',5)*.8+e('ctrl',5)*.9+e('wheels',5)*.4+(mo?5:0),
+    boost:6+e('boost',5)*3+e('ctrl',5)*.8+(mo?6:0),batt:14+e('battery',5)*4,turn:es.turn*(1+e('tires',5)*.06+e('wheels',5)*.02),spin:es.spin*(1+e('frame',5)*.07),
+    susp:es.susp+e('susp',5),grip:1.1+e('tires',5)*.1+e('brakes',5)*.1};
+}
 function stats(id){
   id=id||SAVE.bike;
   if(id==='ownE'){
-    const es=ESTYLES[SAVE.edesign.style]||ESTYLES.ebike,u=SAVE.eup;
-    const mo=es.kind==='moto';
-    return{name:SAVE.brand.name+' '+es.name,top:14+es.top+u.motor*(mo?5:3.6),accel:10+u.motor*(mo?2:1.4)+u.frame*.8+(mo?5:0),boost:6+u.boost*3+(mo?6:0),batt:14+u.battery*4,
-      turn:es.turn*(1+u.tires*.06),spin:es.spin*(1+u.frame*.07),susp:es.susp+u.susp,grip:1.1+u.tires*.1,motor:true,wr:es.wr,wb:es.wb,hop:1+(es.susp+u.susp)*.04};
+    const es=ESTYLES[SAVE.edesign.style]||ESTYLES.ebike,c=ebikeCalc(es,SAVE.eup);
+    return{name:SAVE.brand.name+' '+es.name,top:c.top,accel:c.accel,boost:c.boost,batt:c.batt,turn:c.turn,spin:c.spin,susp:c.susp,grip:c.grip,motor:true,wr:es.wr,wb:es.wb,hop:1+c.susp*.04};
   }
   const it=shopItem(id);
   if(it)return{name:it.name,top:it.top,accel:it.accel,boost:it.boost||0,batt:it.batt||0,turn:it.turn,spin:it.spin,susp:it.susp,grip:1.15,motor:!!it.motor,wr:it.wr,wb:it.wb,hop:1+it.susp*.04};
-  const st=STYLES[SAVE.design.style]||STYLES.bmx,u=SAVE.up,k=u.kit;
-  return{name:SAVE.brand.name+' '+st.name,top:9+u.gears*1.1+st.top+[0,4,8,12][k],accel:7+u.frame*.9+[0,3,5,8][k],boost:[0,8,13,18][k],batt:[0,10,16,24][k],
-    turn:st.turn*(1+u.tires*.06),spin:st.spin*(1+u.frame*.07),susp:u.susp+st.susp,grip:1+u.tires*.1,motor:k>0,wr:st.wr,wb:st.wb,hop:1+u.susp*.04};
+  const st=STYLES[SAVE.design.style]||STYLES.bmx,u=SAVE.up,k=u.kit,e=(n,old)=>eqv(u[n],old),sp=e('susp',5);
+  return{name:SAVE.brand.name+' '+st.name,top:9+e('gears',5)*1.1+e('aero',5)*.5+st.top+[0,4,8,12][k],accel:7+e('frame',5)*.9+e('wheels',5)*.4+[0,3,5,8][k],boost:[0,8,13,18][k],batt:[0,10,16,24][k],
+    turn:st.turn*(1+e('tires',5)*.06+e('wheels',5)*.02),spin:st.spin*(1+e('frame',5)*.07),susp:sp+st.susp,grip:1+e('tires',5)*.1+e('brakes',5)*.1,motor:k>0,wr:st.wr,wb:st.wb,hop:1+sp*.04};
 }
 function modelDesc(id){
   id=id||SAVE.bike;
@@ -668,9 +742,8 @@ function collide(){
 }
 function addPoints(label,pts){
   B.combo=Math.min(5,B.combo+1);B.comboT=6;const mult=B.combo,tot=Math.round(pts*mult),fi=fameInfo();
-  SAVE.money+=tot*.1*fi.mult;SAVE.fame+=tot;B.score+=tot;if(B.score>SAVE.best)SAVE.best=B.score;
+  SAVE.money+=tot*.1*fi.mult;B.score+=tot;if(B.score>SAVE.best)SAVE.best=B.score;addFame(tot);
   pop(label+'  +'+tot.toLocaleString()+(mult>1?'  x'+mult:''),'good');
-  const af=fameInfo();if(af.lvl>fi.lvl){SAVE.money+=500*af.lvl;pop('⭐ Brand level up: '+af.name+'!  +'+fmt(500*af.lvl),'gold')}
   saveSoon();
 }
 function landTricks(){
@@ -807,7 +880,7 @@ let tab='design',shopCat='ebikes',sbUrlVal='',sbKeyVal='';
 const ownedStyle=()=>SAVE.estyles.includes(SAVE.edesign.style);
 const ownedId=id=>id==='own'||(id==='ownE'&&ownedStyle())||SAVE.owned.includes(id);
 function bar(l,v,m,t){return '<div class="bar"><span>'+l+'</span><b><i style="width:'+Math.min(100,Math.max(0,v/m*100))+'%"></i></b>'+(t?'<em>'+t+'</em>':'')+'</div>'}
-function statBars(S){return bar('Top speed',S.top,75,Math.round(S.top*3.6)+' km/h')+bar('Accel',S.accel,24)+(S.motor?bar('Boost',S.boost,22)+bar('Battery',S.batt,40):'')+bar('Suspension',S.susp,6)+bar('Handling',S.turn,1.8)}
+function statBars(S){return bar('Top speed',S.top,100,Math.round(S.top*3.6)+' km/h')+bar('Accel',S.accel,40)+(S.motor?bar('Boost',S.boost,36)+bar('Battery',S.batt,80):'')+bar('Suspension',S.susp,12)+bar('Handling',S.turn,2.2)}
 function colorGrid(pre,d,labels){
   return '<div class="colors">'+[['frame',labels[0]],['fork',labels[1]],['rim',labels[2]],['seat',labels[3]]].map(p=>'<div><input type="color" data-f="'+pre+'.'+p[0]+'" value="'+d[p[0]]+'">'+p[1]+'</div>').join('')+'</div>';
 }
@@ -837,26 +910,27 @@ function eDesignHtml(){
     Object.keys(ESTYLES).map(k=>'<button class="chip '+(d.style===k?'on':'')+'" data-a="estyle" data-v="'+k+'">'+ESTYLES[k].name+'</button>').join('')+'</div><p>'+es.blurb+'</p>'+
     colorGrid('edesign',d,labels)+
     '<div style="margin-top:10px" class="row"><button class="btn alt" data-a="erand">🎲 Randomise</button>'+(ownedStyle()?equipBtn('ownE','Ride my e-bike'):'<button class="btn" data-a="buyestyle" '+(SAVE.money<es.price?'disabled':'')+'>🔒 Buy '+es.name+' '+fmt(es.price)+'</button>')+'</div></div>';
-  h+='<div class="card"><h3>Stats</h3>'+statBars(S)+'<p style="margin-top:6px">With max upgrades it reaches about '+Math.round((14+es.top+6*(es.kind==='moto'?5:3.6)+6+5*3+(es.kind==='moto'?6:0))*3.6)+' km/h with boost.</p></div>'+(ownedStyle()?upgCards(EUPG,SAVE.eup,'buyeup'):'<div class="card"><p style="margin:0">🔒 Buy this e-ride to unlock its upgrades.</p></div>');
+  h+='<div class="card"><h3>Stats</h3>'+statBars(S)+'<p style="margin-top:6px">With max upgrades it reaches about '+(()=>{const mx={};EUPG.forEach(x=>mx[x.id]=MAXLV);const c=ebikeCalc(es,mx);return Math.round((c.top+c.boost)*3.6)})()+' km/h with boost.</p></div>'+(ownedStyle()?upgCards(EUPG,SAVE.eup,'buyeup'):'<div class="card"><p style="margin:0">🔒 Buy this e-ride to unlock its upgrades.</p></div>');
   return h;
 }
 function shopHtml(){
   const cats=[['bikes','🚲 Bikes'],['ebikes','🔋 E-Bikes'],['emotos','🏍️ E-Motos'],['scooters','🛴 Scooters']];
   let h='<div class="chips" style="margin-bottom:10px">'+cats.map(c=>'<button class="chip '+(shopCat===c[0]?'on':'')+'" data-a="shopcat" data-v="'+c[0]+'">'+c[1]+'</button>').join('')+'</div>';
   SHOP.filter(i=>i.cat===shopCat).sort((a,b)=>a.price-b.price).forEach(e=>{
-    const owned=SAVE.owned.includes(e.id),eq=SAVE.bike===e.id,S=stats(e.id);
+    const owned=SAVE.owned.includes(e.id),eq=SAVE.bike===e.id,S=stats(e.id),locked=e.rankLock&&!owned;
     h+='<div class="card"><div class="row"><h3>'+e.logo+' '+esc(e.name)+'</h3><span style="font-size:12px;color:#9fb0d8">'+esc(e.maker)+'</span></div>'+statBars(S)+
       '<div class="row" style="margin-top:8px"><button class="btn alt" data-a="prev" data-v="'+e.id+'">👁 Preview</button>'+
-      (owned?'<button class="btn" data-a="equip" data-v="'+e.id+'" '+(eq?'disabled':'')+'>'+(eq?'Equipped':'Ride')+'</button>':'<button class="btn" data-a="buybike" data-v="'+e.id+'" '+(SAVE.money<e.price?'disabled':'')+'>Buy '+fmt(e.price)+'</button>')+'</div></div>';
+      (owned?'<button class="btn" data-a="equip" data-v="'+e.id+'" '+(eq?'disabled':'')+'>'+(eq?'Equipped':'Ride')+'</button>':locked?'<button class="btn" disabled>🔒 Earn at rank '+e.rankLock+' ('+FAME[e.rankLock][1]+')</button>':'<button class="btn" data-a="buybike" data-v="'+e.id+'" '+(SAVE.money<e.price?'disabled':'')+'>Buy '+fmt(e.price)+'</button>')+'</div></div>';
   });
   return h;
 }
 function renderMenu(){
+  rankCheck();
   const m=$('menu'),sc=m.scrollTop,fi=fameInfo();
   let h='<div class="top"><div class="logo">🚲 '+esc(GAME_NAME.toUpperCase())+'</div><div class="money">'+fmt(SAVE.money)+'</div></div>';
   h+='<div class="sub">'+esc(SAVE.brand.logo+' '+SAVE.brand.name)+' · Fame: '+fi.name+' (x'+fi.mult.toFixed(1)+' cash) · Best score '+SAVE.best.toLocaleString()+'<br>Riding: <b>'+esc(stats(SAVE.bike).name)+'</b></div>';
-  h+='<div class="tabs">'+[['design','🎨 My Bike'],['edesign','⚡ My E-Bike'],['shop','🛒 Shop'],['race','🏁 Race'],['online','🌐 Online']].map(t=>'<button data-a="tab" data-v="'+t[0]+'" class="'+(tab===t[0]?'on':'')+'">'+t[1]+'</button>').join('')+'</div>';
-  h+=tab==='design'?designHtml():tab==='edesign'?eDesignHtml():tab==='shop'?shopHtml():tab==='race'?raceHtml():onlineHtml();
+  h+='<div class="tabs">'+[['design','🎨 My Bike'],['edesign','⚡ My E-Bike'],['shop','🛒 Shop'],['race','🏁 Race'],['ranks','⭐ Ranks'],['online','🌐 Online']].map(t=>'<button data-a="tab" data-v="'+t[0]+'" class="'+(tab===t[0]?'on':'')+'">'+t[1]+'</button>').join('')+'</div>';
+  h+=tab==='design'?designHtml():tab==='edesign'?eDesignHtml():tab==='shop'?shopHtml():tab==='race'?raceHtml():tab==='ranks'?ranksHtml():onlineHtml();
   h+='<div class="card"><h3>🌦️ Weather</h3><div class="chips">'+Object.keys(WEATHER).map(k=>'<button class="btn'+((SAVE.weather||'clear')===k?'':' alt')+'" data-a="weather" data-v="'+k+'">'+WEATHER[k].name+'</button>').join('')+'</div><p style="margin-top:8px">Applies the next time you ride. Everyone sees their own weather.</p></div>';
   h+='<div class="card"><h3>Controls</h3><p>W gas · S brake · A/D steer · <b>Q</b> wheelie (hold to lift the front wheel, let go to lower it, hold too long and you flip backwards; S helps pull it down) · <b>Space</b> hold &amp; release to hop. In the air: <b>W/S</b> backflip/frontflip, <b>A/D</b> spin, <b>X</b> tabletop, <b>Z</b> no-hander. <b>Shift</b> boost on motor bikes. <b>M</b> sound. Land upright, level and with hands on the bars. Chain tricks for combos (x5) to earn cash and brand fame. Grab 🪙 coins. Esc = garage. 🚨 In the city, reach 60 km/h and the police chase you: stay free for a few seconds to escape, get caught and you pay a fine.</p></div>';
   m.innerHTML=h;m.scrollTop=sc;
@@ -877,7 +951,7 @@ $('menu').addEventListener('click',e=>{
     SAVE.money-=c;lv[v]++;save();toast(u.name+' upgraded!');setPreviewOwn();renderMenu();
   }
   else if(a==='buyestyle'){const es=ESTYLES[SAVE.edesign.style];if(!es||ownedStyle())return;if(SAVE.money<es.price){toast('Not enough cash');return}SAVE.money-=es.price;SAVE.estyles.push(SAVE.edesign.style);SAVE.bike='ownE';cur='ownE';save();setPreviewOwn();toast('Bought your brand '+es.name+'!');renderMenu()}
-  else if(a==='buybike'){const b=shopItem(v);if(!b)return;if(SAVE.money<b.price){toast('Not enough cash');return}SAVE.money-=b.price;SAVE.owned.push(v);SAVE.bike=v;cur=v;save();setPreview(v);toast('Bought the '+b.name+'!');renderMenu()}
+  else if(a==='buybike'){const b=shopItem(v);if(!b||b.rankLock)return;if(SAVE.money<b.price){toast('Not enough cash');return}SAVE.money-=b.price;SAVE.owned.push(v);SAVE.bike=v;cur=v;save();setPreview(v);toast('Bought the '+b.name+'!');renderMenu()}
   else if(a==='equip'){if(!ownedId(v))return;SAVE.bike=v;cur=v;save();setPreview(v);renderMenu()}
   else if(a==='prev'){cur=v;setPreview(v)}
   else if(a==='shopcat'){shopCat=v;renderMenu()}
@@ -1156,7 +1230,7 @@ function policeBust(){
 }
 function policeEscape(){
   const h=wanted.heat,bonus=250*h+Math.round(wanted.t*5);
-  SAVE.money+=bonus;SAVE.fame+=400*h;B.score+=400*h;if(B.score>SAVE.best)SAVE.best=B.score;saveSoon();
+  SAVE.money+=bonus;addFame(400*h);B.score+=400*h;if(B.score>SAVE.best)SAVE.best=B.score;saveSoon();
   pop('🚓 You lost the police!  +'+fmt(bonus),'gold');
   policeClear();wanted.grace=12;
 }
@@ -1402,6 +1476,16 @@ function saveSbCfg(){
   try{localStorage.setItem('rideempire_sb',JSON.stringify({url:u,key:k}))}catch(e){}
   netMsg='Saved! Online play is on.';renderMenu();
 }
+function ranksHtml(){
+  const fi=fameInfo(),nxt=FAME[fi.lvl+1];
+  let h='<div class="card"><h3>⭐ Rank '+fi.lvl+' of '+(FAME.length-1)+': '+esc(fi.name)+'</h3><p>Your cash multiplier is <b>x'+fi.mult.toFixed(1)+'</b> (tricks and race prizes). It climbs all the way to <b>x10</b> at the top rank.</p>'+
+    (nxt?'<div class="bar"><span>Next</span><b><i style="width:'+Math.round(fi.pct*100)+'%"></i></b><em>'+SAVE.fame.toLocaleString()+' / '+nxt[0].toLocaleString()+' fame</em></div><p style="margin-top:6px">Next rank: '+esc(nxt[1])+'</p>':'<p>You are at the very top. X10 Legend!</p>')+'</div>';
+  for(let l=1;l<FAME.length;l++){
+    const g=RANK_GIFTS[l],got=(SAVE.rankPaid||0)>=l,gift=g?(g.bike&&shopItem(g.bike)?' · free '+shopItem(g.bike).name:'')+(g.estyle&&ESTYLES[g.estyle]?' · free brand '+ESTYLES[g.estyle].name:''):'';
+    h+='<div class="card" style="'+(got?'':'opacity:.8')+'"><div class="row"><h3>'+(got?'✅':'🔒')+' '+l+'. '+esc(FAME[l][1])+'</h3><span style="font-size:12px;color:#9fb0d8">x'+(1+9*l/(FAME.length-1)).toFixed(1)+' cash</span></div><p style="margin:4px 0 0">'+FAME[l][0].toLocaleString()+' fame · reward: <b>'+fmt(rankCash(l))+'</b>'+esc(gift)+'</p></div>';
+  }
+  return h;
+}
 function raceHtml(){
   const lv=SAVE.cpuLvl==null?1:SAVE.cpuLvl,names=['Easy','Normal','Hard'];
   let h='<div class="card"><h3>🤖 Race vs CPU</h3><p>1 lap against 3 CPU riders. Ride through the glowing gates in order. Prize money: <b>'+CPU_PRIZE.map((v,i)=>['1st','2nd','3rd','4th'][i]+' '+fmt(Math.round(v*CPU_MULT[lv]))).join(' · ')+'</b></p>'+
@@ -1539,8 +1623,8 @@ function fmtTime(ms){const m=Math.floor(ms/60000),sec=(ms%60000)/1000;return m+'
 function raceFinish(R){
   R.timeMs=Math.max(0,performance.now()-R.startedAt);lbSubmit(R.timeMs);
   R.finished=true;R.fin.push(R.me);R.place=R.fin.length;R.state='done';R.msgT=8;
-  const prize=R.kind==='cpu'?Math.round((CPU_PRIZE[R.place-1]||1000)*CPU_MULT[R.lvl]):(ONLINE_PRIZE[R.place-1]||ONLINE_MIN);
-  R.prize=prize;SAVE.money+=prize;SAVE.fame+=Math.max(100,1000-(R.place-1)*300);B.score+=prize/10;if(B.score>SAVE.best)SAVE.best=B.score;save();
+  const rm=fameInfo().mult,prize=Math.round((R.kind==='cpu'?Math.round((CPU_PRIZE[R.place-1]||1000)*CPU_MULT[R.lvl]):(ONLINE_PRIZE[R.place-1]||ONLINE_MIN))*rm);
+  R.prize=prize;SAVE.money+=prize;addFame(Math.max(800,4000-(R.place-1)*900));B.score+=prize/10;if(B.score>SAVE.best)SAVE.best=B.score;save();
   pop('🏁 '+(ORD[R.place]||R.place+'th')+' place!  +'+fmt(prize)+'  ·  '+fmtTime(R.timeMs),'gold');
 }
 function raceProg(W,R){
