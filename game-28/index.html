@@ -115,7 +115,7 @@ ol.steps{margin:6px 0 8px 18px;padding:0;font-size:13px;line-height:1.5;color:#c
    Online play uses Realtime Broadcast + Presence only: no tables or SQL needed. */
 const SUPABASE_URL='https://jxirgdjsarzijdozhocz.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_j1CcIe4Eq_1V_bFURZGwOw_qxnXdWcq';
-const MAX_PLAYERS=10;     // riders per server (the next server opens when one is full)
+const MAX_PLAYERS=20;     // riders per server (the next server opens when one is full)
 const SEND_MS=170;        // how often your position is sent (~6 per second)
 const GAME_NAME='Ride Empire';   // change this to rename the game
 
@@ -198,7 +198,7 @@ const FAME=[[0,'Unknown'],[2000,'Local Rider'],[8000,'Street Famous'],[25000,'Pr
 const DEF={money:300,fame:0,best:0,brand:{name:'Rad Wheels',logo:'⚡',color:'#ff5a1f',color2:'#222a3a'},
   design:{style:'bmx',frame:'#ff5a1f',seat:'#151515',rim:'#ffd23f',fork:'#dddddd'},
   edesign:{style:'ebike',frame:'#2dd4bf',seat:'#151515',rim:'#ffffff',fork:'#cfd3da'},
-  up:{susp:0,tires:0,gears:0,frame:0,kit:0},eup:{motor:0,boost:0,battery:0,susp:0,tires:0,frame:0},owned:['own'],estyles:[],cpuLvl:1,weather:'clear',playerName:'',bike:'own',mode:'street'};
+  up:{susp:0,tires:0,gears:0,frame:0,kit:0},eup:{motor:0,boost:0,battery:0,susp:0,tires:0,frame:0},owned:['own'],estyles:[],cpuLvl:1,weather:'clear',bike:'own',mode:'street'};
 let SAVE=JSON.parse(JSON.stringify(DEF));
 try{const s=JSON.parse(localStorage.getItem('bikebrand_v1')||'null');if(s){SAVE=Object.assign(SAVE,s);SAVE.brand=Object.assign({},DEF.brand,s.brand);SAVE.design=Object.assign({},DEF.design,s.design);SAVE.edesign=Object.assign({},DEF.edesign,s.edesign);SAVE.up=Object.assign({},DEF.up,s.up);SAVE.eup=Object.assign({},DEF.eup,s.eup);if(!Array.isArray(SAVE.owned))SAVE.owned=['own'];if(!Array.isArray(SAVE.estyles))SAVE.estyles=[]}}catch(e){}
 let saveT=0;
@@ -821,7 +821,7 @@ function upgCards(list,lv,act){
 function equipBtn(id,label){return SAVE.bike===id?'<span style="font-size:12px;color:#6dff9a">✔ Equipped</span>':'<button class="btn" data-a="equip" data-v="'+id+'">'+label+'</button>'}
 function designHtml(){
   const d=SAVE.design,b=SAVE.brand,S=stats('own');
-  let h='<div class="card"><h3>Your brand</h3><label class="f">Brand name</label><input type="text" maxlength="18" data-f="brand.name" value="'+esc(b.name)+'">';
+  let h='<div class="card"><h3>Your brand</h3><label class="f">Brand name</label><input type="text" maxlength="16" data-f="brand.name" value="'+esc(b.name)+'">';
   h+='<label class="f">Logo</label><div class="chips">'+LOGOS.map(l=>'<button class="chip '+(b.logo===l?'on':'')+'" data-a="logo" data-v="'+l+'">'+l+'</button>').join('')+'</div>';
   h+='<div class="colors" style="margin-top:8px"><div><input type="color" data-f="brand.color" value="'+b.color+'">Brand colour</div><div><input type="color" data-f="brand.color2" value="'+b.color2+'">Jersey</div></div></div>';
   h+='<div class="card"><h3>🚲 Your bike</h3><div class="chips">'+Object.keys(STYLES).map(k=>'<button class="chip '+(d.style===k?'on':'')+'" data-a="style" data-v="'+k+'">'+STYLES[k].name+'</button>').join('')+'</div><p>'+STYLES[d.style].blurb+'</p>'+
@@ -895,7 +895,6 @@ $('ridebar').addEventListener('click',e=>{const t=e.target.closest('[data-a="rid
 $('menu').addEventListener('input',e=>{
   const id=e.target.id;
   if(id==='codeIn'){netCodeVal=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);e.target.value=netCodeVal;return}
-  if(id==='pname'){SAVE.playerName=e.target.value.replace(/[^\p{L}\p{N} _.\-]/gu,'').slice(0,16);saveSoon();return}
   if(id==='sbUrl'){sbUrlVal=e.target.value;return}
   if(id==='sbKey'){sbKeyVal=e.target.value;return}
   const f=e.target.dataset.f;if(!f)return;const p=f.split('.');SAVE[p[0]][p[1]]=e.target.value;saveSoon();
@@ -1445,7 +1444,7 @@ function onlineHtml(){
 /* ================= leaderboard (Supabase table race_times) ================= */
 let PID='';try{PID=localStorage.getItem('rideempire_pid')||'';if(!PID){PID=Array.from(crypto.getRandomValues(new Uint8Array(8)),b=>b.toString(16).padStart(2,'0')).join('');localStorage.setItem('rideempire_pid',PID)}}catch(e){PID=Math.random().toString(36).slice(2,18)}
 const LB={rows:null,msg:'',busy:false};
-const myName=()=>((SAVE.playerName||'').trim()||SAVE.brand.name||'Rider').slice(0,16);
+const myName=()=>((SAVE.brand.name||'').trim()||'Rider').slice(0,16);
 function getSb(){if(!netReady())return null;NET.sb=NET.sb||window.supabase.createClient(SB_URL,SB_KEY,{realtime:{params:{eventsPerSecond:10}}});return NET.sb}
 async function lbLoad(){
   const sb=getSb();if(!sb||LB.busy)return;
@@ -1468,7 +1467,7 @@ async function lbSubmit(ms){
   try{await sb.from('race_times').insert({player_id:PID,name:myName(),bike:stats(SAVE.bike).name.slice(0,40),time_ms:Math.round(ms)})}catch(e){}
 }
 function leaderboardHtml(){
-  let h='<div class="card"><h3>🏆 Fastest laps</h3><label class="f">Your racing name (shown on the leaderboard)</label><input type="text" id="pname" maxlength="16" placeholder="'+esc(SAVE.brand.name)+'" value="'+esc(SAVE.playerName||'')+'">';
+  let h='<div class="card"><h3>🏆 Fastest laps</h3><p>Your online username is your business name: <b>'+esc(myName())+'</b>. Change it in the My Bike tab.</p>';
   if(!netReady())return h+'<p style="margin-top:8px">Turn on online play to see the leaderboard.</p></div>';
   if(LB.rows&&LB.rows.length){
     h+='<div style="margin-top:10px">'+LB.rows.map((r,i)=>'<div style="display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid #ffffff18;'+(r.pid===PID?'color:#ffd23f;font-weight:800':'')+'"><span>'+(['🥇','🥈','🥉'][i]||(i+1)+'.')+' '+esc(r.name)+' <small style="opacity:.6">'+esc(r.bike)+'</small></span><b>'+fmtTime(r.ms)+'</b></div>').join('')+'</div>';
@@ -1519,7 +1518,7 @@ function raceStartOnline(ids,ms,seq){
 function raceResetOnline(){
   const R=world&&world.race;if(!R)return;
   R.state='lobby';R.seq=null;R.ids=[];R.fin=[];R.passed=0;R.finished=false;R.firstFin=0;R.lobbyT=0;R.msgT=0;R.waitT=0;world.gi=0;gateVisuals(world);B.rp=0;
-  placeOnGrid(Math.floor(Math.random()*10));
+  placeOnGrid(Math.floor(Math.random()*MAX_PLAYERS));
 }
 function netRaceSend(payload){
   if(!NET.ch)return;
