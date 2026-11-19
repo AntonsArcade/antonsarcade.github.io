@@ -109,7 +109,7 @@ ol.steps{margin:6px 0 8px 18px;padding:0;font-size:13px;line-height:1.5;color:#c
   <button class="xs" data-k="noh" style="right:134px;bottom:70px">NO<br>HAND</button>
 </div>
 <div id="menu"></div>
-<div id="ridebar"><button class="btn" data-a="ride" data-v="street">🏙️ Ride Streets</button><button class="btn" data-a="ride" data-v="trail">🌲 Ride Trails</button><button class="btn" data-a="ride" data-v="race">🏁 Race vs CPU</button></div>
+<div id="ridebar"><button class="btn" data-a="ride" data-v="street">🏙️ Ride Streets</button><button class="btn" data-a="ride" data-v="suburbs">🏡 Ride Suburbs</button><button class="btn" data-a="ride" data-v="trail">🌲 Ride Trails</button><button class="btn" data-a="ride" data-v="race">🏁 Race vs CPU</button></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
@@ -628,6 +628,78 @@ function buildStreet(){
   return W;
 }
 
+function buildSuburbs(){
+  const W=newWorld('suburbs','#bfe0ff');const r=rng(23),R=(a,b)=>a+(b-a)*r();
+  W.spawn={x:4,z:-40,yaw:0};
+  const gm=new THREE.Mesh(new THREE.PlaneGeometry(1200,1200),mat('#6fb556',0,1));gm.rotation.x=-Math.PI/2;gm.receiveShadow=true;W.group.add(gm);
+  const rm=new THREE.MeshStandardMaterial({map:roadTex(),roughness:1});
+  for(let i=-4;i<=4;i++){
+    const a=new THREE.Mesh(new THREE.PlaneGeometry(14,1000),rm);a.rotation.x=-Math.PI/2;a.position.set(i*100,.03,0);a.receiveShadow=true;W.group.add(a);
+    const b=new THREE.Mesh(new THREE.PlaneGeometry(14,1000),rm);b.rotation.set(-Math.PI/2,0,Math.PI/2);b.position.set(0,.04,i*100);b.receiveShadow=true;W.group.add(b);
+  }
+  const wallC=['#f2e6d0','#e9c9a8','#cfe0ea','#d9e8c9','#f0d0d0','#e8e0f0','#f5f0e6','#c9d6cf'],roofC=['#8a3b2e','#4a4f5c','#6b4a3a','#2f3a4a','#7a2f2f'];
+  const houses=[],trees=[],lawnMat=mat('#7cc460',0,1),driveMat=mat('#b9b7ae',0,1);
+  for(let i=-4;i<4;i++)for(let j=-4;j<4;j++){
+    const cx=i*100+50,cz=j*100+50,park=((i*2+j*3)%5+5)%5===0;
+    if(park){
+      const pk=new THREE.Mesh(new THREE.PlaneGeometry(84,84),mat('#58a94a',0,1));pk.rotation.x=-Math.PI/2;pk.position.set(cx,.02,cz);pk.receiveShadow=true;W.group.add(pk);
+      for(let k=0;k<16;k++){const tx=cx+R(-38,38),tz=cz+R(-38,38);if(Math.abs(tx-cx)<24&&Math.abs(tz-cz)<24)continue;trees.push({x:tx,y:0,z:tz,s:R(.8,1.4)})}
+      addRamp(W,cx-10,cz-18,0,{len:7,wid:5.5,h:3.2},0,'#c8a56a');
+      addRamp(W,cx+10,cz+18,Math.PI,{len:10,wid:6,h:5.5},0,'#c8a56a');
+      addRamp(W,cx-20,cz+6,Math.PI/2,{len:5,wid:5,h:1.5},0,'#c8a56a');
+      addRamp(W,cx+20,cz-6,-Math.PI/2,{len:7,wid:5.5,h:3.2},0,'#c8a56a');
+      continue;
+    }
+    const lw=new THREE.Mesh(new THREE.PlaneGeometry(84,84),lawnMat);lw.rotation.x=-Math.PI/2;lw.position.set(cx,.02,cz);lw.receiveShadow=true;W.group.add(lw);
+    for(const row of[-1,1])for(let k=-1;k<=1;k++){
+      const w=R(14,18),dd=R(11,14),h=R(5,7.5),hx=cx+k*27+R(-1.5,1.5),hz=cz+row*27;
+      houses.push({x:hx,z:hz,w,d:dd,h,row,wc:wallC[Math.floor(R(0,8))%8],rc:roofC[Math.floor(R(0,5))%5]});
+      W.rects.push({x0:hx-w/2,x1:hx+w/2,z0:hz-dd/2,z1:hz+dd/2,h:h+3});
+      /* driveway to the road */
+      const dl=Math.abs(cz+row*50-hz)-dd/2,dm=new THREE.Mesh(new THREE.PlaneGeometry(4,dl),driveMat);dm.rotation.x=-Math.PI/2;dm.position.set(hx+w/4,.03,hz+row*(dd/2+dl/2));dm.receiveShadow=true;W.group.add(dm);
+      /* front garden tree and back trees */
+      if(r()<.6)trees.push({x:hx-w/2-3,y:0,z:hz+row*(dd/2+5),s:R(.6,.9)});
+    }
+    for(let k=0;k<4;k++)trees.push({x:cx+R(-34,34),y:0,z:cz+R(-6,6),s:R(.8,1.2)});
+  }
+  /* street trees along the kerbs */
+  for(let a=-4;a<=4;a++)for(let k=-5;k<=4;k++)for(const sd of[-1,1]){
+    const o=a*100+sd*11,sp=k*100+R(15,85);if(r()<.45){trees.push({x:o,y:0,z:sp,s:R(.5,.7)});}
+    if(r()<.45){trees.push({x:sp,y:0,z:o,s:R(.5,.7)});}
+  }
+  /* houses as instanced meshes */
+  const n=houses.length,d=new THREE.Object3D(),col=new THREE.Color();
+  const body=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshStandardMaterial({color:'#ffffff',roughness:.9}),n);
+  const roof=new THREE.InstancedMesh((()=>{const g=new THREE.ConeGeometry(1,1,4);g.rotateY(Math.PI/4);return g})(),new THREE.MeshStandardMaterial({color:'#ffffff',roughness:.8}),n);
+  const door=new THREE.InstancedMesh(new THREE.BoxGeometry(1.4,2.3,.2),mat('#5a3a22',0,.8),n);
+  const win=new THREE.InstancedMesh(new THREE.BoxGeometry(2,1.5,.15),new THREE.MeshStandardMaterial({color:'#9fd0ff',emissive:'#5a86b8',emissiveIntensity:.35,roughness:.2}),n*2);
+  houses.forEach((q,i)=>{
+    d.rotation.set(0,0,0);d.scale.set(q.w,q.h,q.d);d.position.set(q.x,q.h/2,q.z);d.updateMatrix();body.setMatrixAt(i,d.matrix);body.setColorAt(i,col.set(q.wc));
+    const rh=3.4;d.scale.set(q.w*.78,rh,q.d*.78);d.position.set(q.x,q.h+rh/2,q.z);d.updateMatrix();roof.setMatrixAt(i,d.matrix);roof.setColorAt(i,col.set(q.rc));
+    const fz=q.z+q.row*(q.d/2+.05);
+    d.scale.set(1,1,1);d.position.set(q.x+q.w/4,1.15,fz);d.updateMatrix();door.setMatrixAt(i,d.matrix);
+    d.position.set(q.x-q.w/4,q.h*.55,fz);d.updateMatrix();win.setMatrixAt(i*2,d.matrix);
+    d.position.set(q.x+q.w/4,q.h*.75,fz);d.updateMatrix();win.setMatrixAt(i*2+1,d.matrix);
+  });
+  body.castShadow=roof.castShadow=true;body.receiveShadow=true;
+  if(body.instanceColor)body.instanceColor.needsUpdate=true;if(roof.instanceColor)roof.instanceColor.needsUpdate=true;
+  W.group.add(body,roof,door,win);
+  addTrees(W,trees);
+  addLamps(W);
+  /* kerb ramps and coins */
+  for(let i=-4;i<=4;i++)for(let j=-4;j<4;j++){
+    if(r()<.3)addRamp(W,i*100+4,j*100+44,0,SIZES(r),0,'#c8a56a');
+    if(r()<.3)addRamp(W,i*100-4,j*100+56,Math.PI,SIZES(r),0,'#c8a56a');
+    if(r()<.3)addRamp(W,j*100+44,i*100-4,Math.PI/2,SIZES(r),0,'#c8a56a');
+    if(r()<.3)addRamp(W,j*100+56,i*100+4,-Math.PI/2,SIZES(r),0,'#c8a56a');
+  }
+  for(let q=0;q<16;q++){
+    const ri=Math.floor(R(-4,5)),ax=r()<.5,s0=R(-340,260),lane=r()<.5?4:-4;
+    for(let k=0;k<6;k++){const sv=s0+k*7;ax?addCoin(W,ri*100+lane,1.1,sv):addCoin(W,sv,1.1,ri*100+lane)}
+  }
+  return W;
+}
+
 function buildTrail(race){
   const W=newWorld(race?'race':'trail','#b9defa');const r=rng(race?9:5),R=(a,b)=>a+(b-a)*r();
   const raw=(x,z)=>{const h=6*Math.sin(x*.011+1.3)*Math.cos(z*.013)+4*Math.sin((x+z)*.021)+2.2*Math.sin(x*.043)*Math.sin(z*.037)+3*Math.cos(x*.019-z*.007);return h*smooth(12,70,Math.hypot(x,z))};
@@ -727,20 +799,20 @@ function startRide(mode,online){
   policeReset();raceClear();
   SAVE.mode=mode;if(!ownedId(SAVE.bike))SAVE.bike='own';save();
   if(world){scene.remove(world.group);disposeGroup(world.group)}
-  world=mode==='street'?buildStreet():buildTrail(mode==='race');scene.add(world.group);
+  world=mode==='street'?buildStreet():mode==='suburbs'?buildSuburbs():buildTrail(mode==='race');scene.add(world.group);
   applyWeather(SAVE.weather);
   if(B&&B.rig){scene.remove(B.rig.root);disposeGroup(B.rig.root)}
   const S=stats(SAVE.bike),rig=buildBike(modelDesc(SAVE.bike));scene.add(rig.root);
   B={rig,S,x:world.spawn.x,z:world.spawn.z,yaw:world.spawn.yaw,speed:0,vy:0,air:false,flip:0,spin:0,tab:0,noh:0,tabT:0,nohT:0,airT:0,w:0,wd:0,wheelT:0,wheelDist:0,charge:0,batt:S.batt,
     crashT:0,crashDir:1,combo:0,comboT:0,score:0,pitch:0,lean:0,steer:0,ws:0,cr:0,gvy:0,gvyP:0,camYaw:world.spawn.yaw,shake:0,t:0,coins:0};
-  if(online&&(mode==='street'||mode==='race')){B.x+=(Math.random()-.5)*8;B.z+=(Math.random()-.5)*8}
+  if(online&&(mode==='street'||mode==='suburbs'||mode==='race')){B.x+=(Math.random()-.5)*8;B.z+=(Math.random()-.5)*8}
   B.y=world.groundY(B.x,B.z);
   if(mode==='race')raceInit(online?'online':'cpu');
   state='ride';$('menu').style.display='none';$('ridebar').style.display='none';$('hud').style.display='block';
   const isTouch=matchMedia('(pointer:coarse)').matches;$('touch').style.display=isTouch?'block':'none';document.body.classList.toggle('touchui',isTouch);joyEnd();
   $('hBattWrap').style.display=S.motor?'block':'none';
   engStart();dustInit();
-  $('hHint').textContent='W gas · A/D steer · Q wheelie · Space hop (hold to charge) · In the air: W/S flip, A/D spin, X tabletop, Z no-hander · Shift boost · R respawn'+(mode==='street'?' · 🚨 Hit 60 km/h and the police chase you!':'')+(mode==='race'?' · 🏁 1 lap: ride through the green glowing gates in order. Finish first to win big!':'');
+  $('hHint').textContent='W gas · A/D steer · Q wheelie · Space hop (hold to charge) · In the air: W/S flip, A/D spin, X tabletop, Z no-hander · Shift boost · R respawn'+((mode==='street'||mode==='suburbs')?' · 🚨 Hit 60 km/h and the police chase you!':'')+(mode==='race'?' · 🏁 1 lap: ride through the green glowing gates in order. Finish first to win big!':'');
   if(isTouch)$('hHint').textContent='Stick: gas / brake / steer · Hold WHEELIE and let go to lower · HOP · BOOST · in the air: stick flips & spins, TABLE, NO HAND';
   hintT=9;camSnap();
 }
@@ -1077,7 +1149,7 @@ function dustEmit(x,y,z,vx,vy,vz,life,s,col){
 }
 function dustTick(dt){
   if(!B||!dust.list.length)return;
-  const trail=world.mode!=='street',col=trail?'#a88c66':'#c9c9c9',fx=Math.sin(B.yaw),fz=Math.cos(B.yaw),h=B.rig.wb/2;
+  const trail=world.mode==='trail'||world.mode==='race',col=trail?'#a88c66':'#c9c9c9',fx=Math.sin(B.yaw),fz=Math.cos(B.yaw),h=B.rig.wb/2;
   if(B.crashT<=0&&!B.air){
     const skid=K.down&&B.speed>8,kick=trail&&B.speed>5,burn=B.w>.3&&B.speed>4;
     if(skid||kick||burn){
@@ -1295,7 +1367,7 @@ function policeTick(dt){
   if(W.lost>=6)policeEscape();
 }
 function policeHud(){
-  const st=world&&world.mode==='street',kph=B.speed*3.6;
+  const st=world&&(world.mode==='street'||world.mode==='suburbs'),kph=B.speed*3.6;
   $('spd').style.color=st&&kph>=POLICE_KPH?'#ff6b6b':'';
   let t='';
   if(st){
@@ -1316,7 +1388,7 @@ let lastOnline=null,netMsg='',netCodeVal='';
 let SB_URL=SUPABASE_URL,SB_KEY=SUPABASE_ANON_KEY;
 try{const c=JSON.parse(localStorage.getItem('rideempire_sb')||'null');if(c&&c.url&&c.key&&/PASTE/i.test(SUPABASE_URL+SUPABASE_ANON_KEY)){SB_URL=c.url;SB_KEY=c.key}}catch(e){}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-const HEX=/^#[0-9a-f]{6}$/i,CODE_RE=/^[STR][A-HJ-NP-Z2-9]{5}$/,CODE_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const HEX=/^#[0-9a-f]{6}$/i,CODE_RE=/^[STRU][A-HJ-NP-Z2-9]{5}$/,CODE_ALPHA='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 function netReady(){return !!(window.supabase&&SB_URL.startsWith('https://')&&!/PASTE/i.test(SB_URL+SB_KEY)&&SB_KEY.length>30)}
 function netWhyNot(){return window.supabase?'Online play is not set up yet. Open the Online tab in the garage to turn it on.':'Could not load the Supabase library. Check your internet connection and reload.'}
 function myMeta(){
@@ -1416,7 +1488,7 @@ function netConnect(name,cap){
 async function goOnline(kind,mode,code,create){
   if(NET.busy)return;
   if(!netReady()){netMsg=netWhyNot();renderMenu();return}
-  if(kind==='priv'&&create&&!code)code=(mode==='street'?'S':mode==='race'?'R':'T')+Array.from(crypto.getRandomValues(new Uint8Array(5)),b=>CODE_ALPHA[b%32]).join('');
+  if(kind==='priv'&&create&&!code)code=(mode==='street'?'S':mode==='suburbs'?'U':mode==='race'?'R':'T')+Array.from(crypto.getRandomValues(new Uint8Array(5)),b=>CODE_ALPHA[b%32]).join('');
   NET.busy=true;netMsg='Connecting…';renderMenu();
   netLeave();
   let ok='error',room='';
@@ -1452,7 +1524,7 @@ async function goOnline(kind,mode,code,create){
 function joinByCode(){
   const c=netCodeVal.trim().toUpperCase();
   if(!CODE_RE.test(c)){netMsg='That code does not look right. Codes are 6 characters.';renderMenu();return}
-  return goOnline('priv',c[0]==='S'?'street':c[0]==='R'?'race':'trail',c,false);
+  return goOnline('priv',c[0]==='S'?'street':c[0]==='U'?'suburbs':c[0]==='R'?'race':'trail',c,false);
 }
 function updateNetHud(){
   const n=$('hNet'),c=$('hCopy');if(!n)return;
@@ -1540,8 +1612,8 @@ function onlineHtml(){
     if(netMsg)h+='<p style="color:#ffd23f">'+esc(netMsg)+'</p>';
     return h+'</div>';
   }
-  let h='<div class="card"><h3>🌐 Public server</h3><p>Ride with other players. Up to '+MAX_PLAYERS+' riders per server; if one is full you are moved to the next.</p><div class="chips"><button class="btn" data-a="netpub" data-v="street">🏙️ Streets</button><button class="btn" data-a="netpub" data-v="trail">🌲 Trails</button></div></div>';
-  h+='<div class="card"><h3>🔒 Private server</h3><p>Create a server and share its code. Only people with the code can join.</p><div class="chips"><button class="btn" data-a="netpriv" data-v="street">🏙️ New streets</button><button class="btn" data-a="netpriv" data-v="trail">🌲 New trails</button></div></div>';
+  let h='<div class="card"><h3>🌐 Public server</h3><p>Ride with other players. Up to '+MAX_PLAYERS+' riders per server; if one is full you are moved to the next.</p><div class="chips"><button class="btn" data-a="netpub" data-v="street">🏙️ Streets</button><button class="btn" data-a="netpub" data-v="suburbs">🏡 Suburbs</button><button class="btn" data-a="netpub" data-v="trail">🌲 Trails</button></div></div>';
+  h+='<div class="card"><h3>🔒 Private server</h3><p>Create a server and share its code. Only people with the code can join.</p><div class="chips"><button class="btn" data-a="netpriv" data-v="street">🏙️ New streets</button><button class="btn" data-a="netpriv" data-v="suburbs">🏡 New suburbs</button><button class="btn" data-a="netpriv" data-v="trail">🌲 New trails</button></div></div>';
   h+='<div class="card"><h3>Join with a code</h3><div class="row"><input type="text" id="codeIn" maxlength="6" placeholder="e.g. S7K2QM" value="'+esc(netCodeVal)+'" style="text-transform:uppercase"><button class="btn" data-a="netjoin">Join</button></div></div>';
   if(lastOnline)h+='<div class="card"><div class="row"><span style="font-size:13px">Last: '+(lastOnline.kind==='pub'?'Public '+lastOnline.mode:'Private '+esc(lastOnline.code))+'</span><button class="btn alt" data-a="netrejoin">↩ Rejoin</button></div></div>';
   if(netMsg)h+='<div class="card"><p style="color:#ffd23f;margin:0">'+esc(netMsg)+'</p></div>';
@@ -1746,7 +1818,7 @@ function frame(now){
     renderer.render(prevScene,prevCam);
   }else if(B){
     const n=Math.max(1,Math.ceil(dt/.017));if(!(wanted.bustedT>0))for(let i=0;i<n;i++)sim(dt/n);
-    if(world.mode==='street')policeTick(dt);
+    if(world.mode==='street'||world.mode==='suburbs')policeTick(dt);
     raceTick(dt);
     view(dt);engTick();dustTick(dt);netTick(dt);renderer.render(scene,cam);
   }
