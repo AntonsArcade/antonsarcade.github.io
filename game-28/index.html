@@ -62,8 +62,19 @@ input[type=color]{width:100%;height:36px;border:0;border-radius:8px;background:n
 #hBatt{display:block;height:100%;background:#35e0ff;width:100%}
 #hLive{position:absolute;left:0;right:0;bottom:90px;text-align:center;font-size:20px;font-weight:900;text-shadow:0 2px 6px #000}
 #hHint{position:absolute;left:0;right:0;bottom:14px;text-align:center;font-size:13px;color:#ffeeb0;text-shadow:0 2px 4px #000;padding:0 150px}
-#touch{position:fixed;inset:0;pointer-events:none;display:none}
-#touch button{position:absolute;pointer-events:auto;width:62px;height:62px;border-radius:50%;border:2px solid #fff6;background:#0007;color:#fff;font-size:12px;font-weight:800;padding:0}
+#touch{position:fixed;inset:0;pointer-events:none;display:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#touch *{touch-action:none}
+#joy{position:absolute;left:max(18px,env(safe-area-inset-left));bottom:max(16px,env(safe-area-inset-bottom));width:112px;height:112px;border-radius:50%;border:2px solid #fff4;background:#0003;pointer-events:auto}
+#joy i{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:#fff5;border:2px solid #fff8;transition:transform .06s}
+#joy b{position:absolute;color:#fff7;font-size:11px;font-weight:800;line-height:1}
+#joy b:nth-of-type(1){left:50%;top:5px;transform:translateX(-50%)}#joy b:nth-of-type(2){left:50%;bottom:5px;transform:translateX(-50%)}
+#joy b:nth-of-type(3){left:6px;top:50%;transform:translateY(-50%)}#joy b:nth-of-type(4){right:6px;top:50%;transform:translateY(-50%)}
+#touch button{position:absolute;pointer-events:auto;border-radius:50%;border:2px solid #fff5;background:#0004;color:#fffd;font-size:10px;font-weight:800;padding:0;line-height:1.1}
+#touch button.on{background:#ffd23f99;color:#000}
+#touch .big{width:64px;height:64px;font-size:11px}#touch .sm{width:46px;height:46px}#touch .xs{width:40px;height:40px;font-size:9px}
+body.touchui #hbot{left:50%;transform:translateX(-50%);text-align:center;bottom:8px}
+body.touchui #hHint{bottom:56px;padding:0 200px;font-size:11px;opacity:.85}
+body.touchui #hLive{bottom:80px}
 #hWanted{position:absolute;left:0;right:0;top:12px;text-align:center;font-weight:900;font-size:22px;color:#fff;text-shadow:0 2px 6px #000;letter-spacing:1px}
 #hBustWrap{position:absolute;left:50%;top:48px;transform:translateX(-50%);width:220px;height:12px;border-radius:6px;background:#0009;overflow:hidden;display:none;border:1px solid #fff4}
 #hBust{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffd23f,#ff3b3b)}
@@ -90,15 +101,12 @@ ol.steps{margin:6px 0 8px 18px;padding:0;font-size:13px;line-height:1.5;color:#c
   <div id="hHint"></div>
 </div>
 <div id="touch">
-  <button data-k="left" style="left:12px;bottom:100px">◀</button>
-  <button data-k="right" style="left:84px;bottom:100px">▶</button>
-  <button data-k="down" style="left:48px;bottom:24px">▼<br>S</button>
-  <button data-k="up" style="right:12px;bottom:100px">▲<br>GAS</button>
-  <button data-k="jump" style="right:84px;bottom:24px">HOP</button>
-  <button data-k="wheelie" style="right:12px;bottom:24px;">WHEELIE</button>
-  <button data-k="boost" style="right:156px;bottom:24px">BOOST</button>
-  <button data-k="tab" style="right:156px;bottom:100px">TABLE</button>
-  <button data-k="noh" style="right:84px;bottom:100px">NO-HAND</button>
+  <div id="joy"><b>▲</b><b>▼</b><b>◀</b><b>▶</b><i></i></div>
+  <button class="big" data-k="wheelie" style="right:max(18px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom))">WHEELIE</button>
+  <button class="sm" data-k="jump" style="right:96px;bottom:20px">HOP</button>
+  <button class="sm" data-k="boost" style="right:28px;bottom:92px">BOOST</button>
+  <button class="xs" data-k="tab" style="right:84px;bottom:76px">TABLE</button>
+  <button class="xs" data-k="noh" style="right:134px;bottom:70px">NO<br>HAND</button>
 </div>
 <div id="menu"></div>
 <div id="ridebar"><button class="btn" data-a="ride" data-v="street">🏙️ Ride Streets</button><button class="btn" data-a="ride" data-v="trail">🌲 Ride Trails</button><button class="btn" data-a="ride" data-v="race">🏁 Race vs CPU</button></div>
@@ -692,8 +700,24 @@ addEventListener('keydown',e=>{
 addEventListener('keyup',e=>{const k=KEYMAP[e.code];if(k)K[k]=false});
 addEventListener('blur',()=>{K={}});
 document.querySelectorAll('#touch button').forEach(b=>{const k=b.dataset.k;
-  ['touchstart','mousedown'].forEach(ev=>b.addEventListener(ev,e=>{K[k]=true;e.preventDefault()},{passive:false}));
-  ['touchend','touchcancel','mouseup','mouseleave'].forEach(ev=>b.addEventListener(ev,e=>{K[k]=false;e.preventDefault()},{passive:false}));});
+  b.addEventListener('pointerdown',e=>{K[k]=true;b.classList.add('on');try{b.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault()});
+  ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>b.addEventListener(ev,e=>{K[k]=false;b.classList.remove('on');e.preventDefault()}));
+  b.addEventListener('contextmenu',e=>e.preventDefault());});
+const JOY={id:null};
+function joyKeys(u,d,l,r){K.up=u;K.down=d;K.left=l;K.right=r}
+function joyMove(e){
+  const el=$('joy'),r=el.getBoundingClientRect(),R=r.width/2;
+  let dx=e.clientX-(r.left+R),dy=e.clientY-(r.top+R);const m=Math.hypot(dx,dy),lim=R-8;
+  if(m>lim){dx*=lim/m;dy*=lim/m}
+  el.querySelector('i').style.transform='translate('+dx+'px,'+dy+'px)';
+  const dz=R*.28;joyKeys(dy<-dz,dy>dz,dx<-dz,dx>dz);
+}
+function joyEnd(){JOY.id=null;joyKeys(false,false,false,false);const i=$('joy').querySelector('i');if(i)i.style.transform=''}
+$('joy').addEventListener('pointerdown',e=>{if(JOY.id!==null)return;JOY.id=e.pointerId;try{$('joy').setPointerCapture(e.pointerId)}catch(_){}joyMove(e);e.preventDefault()});
+$('joy').addEventListener('pointermove',e=>{if(e.pointerId===JOY.id){joyMove(e);e.preventDefault()}});
+['pointerup','pointercancel'].forEach(ev=>$('joy').addEventListener(ev,e=>{if(e.pointerId===JOY.id)joyEnd()}));
+$('joy').addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('gesturestart',e=>e.preventDefault());
 
 function pop(text,cls){const d=document.createElement('div');d.className='pop '+(cls||'good');d.textContent=text;const p=$('pops');p.appendChild(d);while(p.children.length>4)p.removeChild(p.firstChild);setTimeout(()=>d.remove(),2000)}
 function toast(t){const e=$('toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',1800)}
@@ -713,14 +737,15 @@ function startRide(mode,online){
   B.y=world.groundY(B.x,B.z);
   if(mode==='race')raceInit(online?'online':'cpu');
   state='ride';$('menu').style.display='none';$('ridebar').style.display='none';$('hud').style.display='block';
-  $('touch').style.display=matchMedia('(pointer:coarse)').matches?'block':'none';
+  const isTouch=matchMedia('(pointer:coarse)').matches;$('touch').style.display=isTouch?'block':'none';document.body.classList.toggle('touchui',isTouch);joyEnd();
   $('hBattWrap').style.display=S.motor?'block':'none';
   engStart();dustInit();
   $('hHint').textContent='W gas · A/D steer · Q wheelie · Space hop (hold to charge) · In the air: W/S flip, A/D spin, X tabletop, Z no-hander · Shift boost · R respawn'+(mode==='street'?' · 🚨 Hit 60 km/h and the police chase you!':'')+(mode==='race'?' · 🏁 1 lap: ride through the green glowing gates in order. Finish first to win big!':'');
+  if(isTouch)$('hHint').textContent='Stick: gas / brake / steer · Hold WHEELIE and let go to lower · HOP · BOOST · in the air: stick flips & spins, TABLE, NO HAND';
   hintT=9;camSnap();
 }
 function respawn(){let sp=world.spawn;const R=world.race;if(R&&world.gates&&R.passed>0){const G=world.gates.length,g=world.gates[(R.passed-1)%G];sp={x:g.x,z:g.z,yaw:g.yaw}}B.x=sp.x;B.z=sp.z;B.yaw=sp.yaw;B.speed=0;B.air=false;B.crashT=0;B.w=0;B.flip=B.spin=0;B.y=world.groundY(B.x,B.z);camSnap()}
-function goMenu(){netLeave();policeReset();raceClear();renderer.toneMappingExposure=1.15;rain.visible=false;headlight.visible=false;if(tab==='race')setTimeout(lbLoad,900);engStop();dustClear();save();state='menu';$('hud').style.display='none';$('touch').style.display='none';$('menu').style.display='block';$('ridebar').style.display='flex';cur=SAVE.bike;setPreview(cur);renderMenu();resize()}
+function goMenu(){joyEnd();$('touch').style.display='none';document.body.classList.remove('touchui');netLeave();policeReset();raceClear();renderer.toneMappingExposure=1.15;rain.visible=false;headlight.visible=false;if(tab==='race')setTimeout(lbLoad,900);engStop();dustClear();save();state='menu';$('hud').style.display='none';$('touch').style.display='none';$('menu').style.display='block';$('ridebar').style.display='flex';cur=SAVE.bike;setPreview(cur);renderMenu();resize()}
 
 /* ================= physics ================= */
 function crash(reason){
