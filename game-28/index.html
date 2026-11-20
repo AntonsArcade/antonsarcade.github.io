@@ -255,7 +255,7 @@ const FAME=[[0,'Unknown'],[2000,'Local Rider'],[8000,'Street Famous'],[25000,'Pr
 const RANK_GIFTS={2:{bike:'djump'},3:{bike:'endped'},4:{bike:'trail'},5:{estyle:'ebike'},6:{bike:'ranger'},7:{bike:'hyperbike'},8:{estyle:'emoto'},9:{bike:'lightning'},10:{bike:'warp'},
   11:{bike:'hyperstrike'},12:{bike:'singularity'},13:{bike:'blackout'},14:{bike:'rocketscoot'},15:{bike:'solarflare'},16:{bike:'nova'},17:{bike:'zenith'},18:{bike:'quantum'},19:{bike:'xten'}};
 const rankCash=l=>Math.round(1500*Math.pow(1.6,l-1)/100)*100;
-const DEF={money:300,fame:0,best:0,brand:{name:'Rad Wheels',logo:'⚡',color:'#ff5a1f',color2:'#222a3a'},
+const DEF={money:300,fame:0,best:0,sup:{},brand:{name:'Rad Wheels',logo:'⚡',color:'#ff5a1f',color2:'#222a3a'},
   design:{style:'bmx',frame:'#ff5a1f',seat:'#151515',rim:'#ffd23f',fork:'#dddddd'},
   edesign:{style:'ebike',frame:'#2dd4bf',seat:'#151515',rim:'#ffffff',fork:'#cfd3da'},
   up:{susp:0,tires:0,brakes:0,gears:0,aero:0,frame:0,wheels:0,kit:0},eup:{motor:0,ctrl:0,boost:0,battery:0,aero:0,susp:0,tires:0,brakes:0,wheels:0,frame:0},owned:['own'],estyles:[],cpuLvl:1,weather:'clear',upv:2,rankPaid:0,bike:'own',mode:'street'};
@@ -290,6 +290,16 @@ function ebikeCalc(es,u){
     boost:6+e('boost',5)*3+e('ctrl',5)*.8+(mo?6:0),batt:14+e('battery',5)*4,turn:es.turn*(1+e('tires',5)*.06+e('wheels',5)*.02),spin:es.spin*(1+e('frame',5)*.07),
     susp:es.susp+e('susp',5),grip:1.1+e('tires',5)*.1+e('brakes',5)*.1};
 }
+
+/* upgrades for every shop bike (not just your own brand) */
+const SUP_KEYS=['motor','ctrl','boost','battery','aero','susp','tires','brakes','wheels','frame','gears'];
+function supList(it){return it.motor?EUPG:UPG.filter(u=>u.id!=='kit')}
+function supOf(id){if(!SAVE.sup)SAVE.sup={};const o=SAVE.sup[id]||(SAVE.sup[id]={});SUP_KEYS.forEach(k=>{if(!(k in o))o[k]=0});return o}
+function supBonus(it){
+  const u=supOf(it.id),e=(k,old)=>eqv(u[k],old),mo=it.kind==='moto',m6=e('motor',6);
+  return{top:m6*(mo?5:3.6)+e('aero',5)*(it.motor?.7:.5)+e('ctrl',5)*.3+e('gears',5)*1.1,accel:m6*(mo?2:1.4)+e('frame',5)*(it.motor?.8:.9)+e('ctrl',5)*.9+e('wheels',5)*.4,
+    boost:e('boost',5)*3+e('ctrl',5)*.8,batt:e('battery',5)*4,tm:1+e('tires',5)*.06+e('wheels',5)*.02,sm:1+e('frame',5)*.07,susp:e('susp',5),grip:e('tires',5)*.1+e('brakes',5)*.1};
+}
 function stats(id){
   id=id||SAVE.bike;
   if(id==='ownE'){
@@ -297,7 +307,7 @@ function stats(id){
     return{name:SAVE.brand.name+' '+es.name,top:c.top,accel:c.accel,boost:c.boost,batt:c.batt,turn:c.turn,spin:c.spin,susp:c.susp,grip:c.grip,motor:true,wr:es.wr,wb:es.wb,hop:1+c.susp*.04};
   }
   const it=shopItem(id);
-  if(it)return{name:it.name,top:it.top,accel:it.accel,boost:it.boost||0,batt:it.batt||0,turn:it.turn,spin:it.spin,susp:it.susp,grip:1.15,motor:!!it.motor,wr:it.wr,wb:it.wb,hop:1+it.susp*.04};
+  if(it){const b=supBonus(it),su=it.susp+b.susp;return{name:it.name,top:it.top+b.top,accel:it.accel+b.accel,boost:it.motor?(it.boost||0)+b.boost:0,batt:it.motor?(it.batt||0)+b.batt:0,turn:it.turn*b.tm,spin:it.spin*b.sm,susp:su,grip:1.15+b.grip,motor:!!it.motor,wr:it.wr,wb:it.wb,hop:1+su*.04};}
   const st=STYLES[SAVE.design.style]||STYLES.bmx,u=SAVE.up,k=u.kit,e=(n,old)=>eqv(u[n],old),sp=e('susp',5);
   return{name:SAVE.brand.name+' '+st.name,top:9+e('gears',5)*1.1+e('aero',5)*.5+st.top+[0,4,8,12][k],accel:7+e('frame',5)*.9+e('wheels',5)*.4+[0,3,5,8][k],boost:[0,8,13,18][k],batt:[0,10,16,24][k],
     turn:st.turn*(1+e('tires',5)*.06+e('wheels',5)*.02),spin:st.spin*(1+e('frame',5)*.07),susp:sp+st.susp,grip:1+e('tires',5)*.1+e('brakes',5)*.1,motor:k>0,wr:st.wr,wb:st.wb,hop:1+sp*.04};
@@ -311,7 +321,7 @@ function modelDesc(id){
   const it=shopItem(id);
   if(it){
     const light=lum(it.color)>.6;
-    return{kind:it.kind,wr:it.wr,wb:it.wb,tw:it.tw,frame:it.color,seat:it.accent,rim:it.rim||(light?'#333333':'#f0f0f0'),fork:'#cfd3da',motor:!!it.motor,susp:it.susp,
+    return{kind:it.kind,wr:it.wr,wb:it.wb,tw:it.tw,frame:it.color,seat:it.accent,rim:it.rim||(light?'#333333':'#f0f0f0'),fork:'#cfd3da',motor:!!it.motor,susp:stats(id).susp,
       brand:{name:it.maker,logo:it.logo,color:light?'#111111':'#ffffff'},jersey:it.accent,moto:it.kind==='moto'};
   }
   const st=STYLES[SAVE.design.style]||STYLES.bmx,d=SAVE.design,S=stats('own');
@@ -973,7 +983,7 @@ function view(dt){
 }
 
 /* ================= garage UI ================= */
-let tab='design',shopCat='ebikes',sbUrlVal='',sbKeyVal='';
+let tab='design',shopCat='ebikes',shopUp=null,sbUrlVal='',sbKeyVal='';
 const ownedStyle=()=>SAVE.estyles.includes(SAVE.edesign.style);
 const ownedId=id=>id==='own'||(id==='ownE'&&ownedStyle())||SAVE.owned.includes(id);
 function bar(l,v,m,t){return '<div class="bar"><span>'+l+'</span><b><i style="width:'+Math.min(100,Math.max(0,v/m*100))+'%"></i></b>'+(t?'<em>'+t+'</em>':'')+'</div>'}
@@ -1010,14 +1020,20 @@ function eDesignHtml(){
   h+='<div class="card"><h3>Stats</h3>'+statBars(S)+'<p style="margin-top:6px">With max upgrades it reaches about '+(()=>{const mx={};EUPG.forEach(x=>mx[x.id]=MAXLV);const c=ebikeCalc(es,mx);return Math.round((c.top+c.boost)*3.6)})()+' km/h with boost.</p></div>'+(ownedStyle()?upgCards(EUPG,SAVE.eup,'buyeup'):'<div class="card"><p style="margin:0">🔒 Buy this e-ride to unlock its upgrades.</p></div>');
   return h;
 }
+function shopUpHtml(){
+  const it=shopItem(shopUp);if(!it||!SAVE.owned.includes(it.id)){shopUp=null;return shopHtml()}
+  const lv=supOf(it.id);
+  return '<div class="row" style="margin-bottom:8px"><button class="btn alt" data-a="shopupback">← Back to shop</button><b>'+it.logo+' '+esc(it.name)+'</b></div><div class="card"><h3>Stats</h3>'+statBars(stats(it.id))+'</div>'+upgCards(supList(it),lv,'buysup');
+}
 function shopHtml(){
+  if(shopUp)return shopUpHtml();
   const cats=[['bikes','🚲 Bikes'],['ebikes','🔋 E-Bikes'],['emotos','🏍️ E-Motos'],['scooters','🛴 Scooters']];
   let h='<div class="chips" style="margin-bottom:10px">'+cats.map(c=>'<button class="chip '+(shopCat===c[0]?'on':'')+'" data-a="shopcat" data-v="'+c[0]+'">'+c[1]+'</button>').join('')+'</div>';
   SHOP.filter(i=>i.cat===shopCat).sort((a,b)=>a.price-b.price).forEach(e=>{
     const owned=SAVE.owned.includes(e.id),eq=SAVE.bike===e.id,S=stats(e.id),locked=e.rankLock&&!owned;
     h+='<div class="card"><div class="row"><h3>'+e.logo+' '+esc(e.name)+'</h3><span style="font-size:12px;color:#9fb0d8">'+esc(e.maker)+'</span></div>'+statBars(S)+
       '<div class="row" style="margin-top:8px"><button class="btn alt" data-a="prev" data-v="'+e.id+'">👁 Preview</button>'+
-      (owned?'<button class="btn" data-a="equip" data-v="'+e.id+'" '+(eq?'disabled':'')+'>'+(eq?'Equipped':'Ride')+'</button>':locked?'<button class="btn" disabled>🔒 Earn at rank '+e.rankLock+' ('+FAME[e.rankLock][1]+')</button>':'<button class="btn" data-a="buybike" data-v="'+e.id+'" '+(SAVE.money<e.price?'disabled':'')+'>Buy '+fmt(e.price)+'</button>')+'</div></div>';
+      (owned?'<button class="btn alt" data-a="shopup" data-v="'+e.id+'">🔧 Upgrade</button><button class="btn" data-a="equip" data-v="'+e.id+'" '+(eq?'disabled':'')+'>'+(eq?'Equipped':'Ride')+'</button>':locked?'<button class="btn" disabled>🔒 Earn at rank '+e.rankLock+' ('+FAME[e.rankLock][1]+')</button>':'<button class="btn" data-a="buybike" data-v="'+e.id+'" '+(SAVE.money<e.price?'disabled':'')+'>Buy '+fmt(e.price)+'</button>')+'</div></div>';
   });
   return h;
 }
@@ -1036,7 +1052,7 @@ function setPreviewOwn(){const id=tab==='edesign'?'ownE':'own';cur=id;setPreview
 $('menu').addEventListener('click',e=>{
   const t=e.target.closest('[data-a]');if(!t||t.disabled)return;const a=t.dataset.a,v=t.dataset.v;
   const rc=()=>'#'+Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0');
-  if(a==='tab'){tab=v;cur=v==='design'?'own':v==='edesign'?'ownE':SAVE.bike;setPreview(cur);renderMenu();if(v==='race')lbLoad()}
+  if(a==='tab'){tab=v;shopUp=null;cur=v==='design'?'own':v==='edesign'?'ownE':SAVE.bike;setPreview(cur);renderMenu();if(v==='race')lbLoad()}
   else if(a==='logo'){SAVE.brand.logo=v;save();setPreviewOwn();renderMenu()}
   else if(a==='style'){SAVE.design.style=v;save();setPreviewOwn();renderMenu()}
   else if(a==='estyle'){SAVE.edesign.style=v;save();setPreviewOwn();renderMenu()}
@@ -1051,7 +1067,15 @@ $('menu').addEventListener('click',e=>{
   else if(a==='buybike'){const b=shopItem(v);if(!b||b.rankLock)return;if(SAVE.money<b.price){toast('Not enough cash');return}SAVE.money-=b.price;SAVE.owned.push(v);SAVE.bike=v;cur=v;save();setPreview(v);toast('Bought the '+b.name+'!');renderMenu()}
   else if(a==='equip'){if(!ownedId(v))return;SAVE.bike=v;cur=v;save();setPreview(v);renderMenu()}
   else if(a==='prev'){cur=v;setPreview(v)}
-  else if(a==='shopcat'){shopCat=v;renderMenu()}
+  else if(a==='shopcat'){shopCat=v;shopUp=null;renderMenu()}
+  else if(a==='shopup'){if(!ownedId(v))return;shopUp=v;cur=v;setPreview(v);renderMenu()}
+  else if(a==='shopupback'){shopUp=null;renderMenu()}
+  else if(a==='buysup'){
+    const it=shopItem(shopUp);if(!it||!SAVE.owned.includes(it.id))return;
+    const u=supList(it).find(x=>x.id===v),lv=supOf(it.id);if(!u||lv[v]>=u.max)return;const c=u.costs[lv[v]];
+    if(SAVE.money<c){toast('Not enough cash');return}
+    SAVE.money-=c;lv[v]++;save();toast(it.name+': '+u.name+' upgraded!');setPreview(it.id);renderMenu();
+  }
   else if(a==='ride'){startRide(v)}
   else if(a==='weather'){SAVE.weather=WEATHER[v]?v:'clear';save();renderMenu()}
   else if(a==='lbrefresh'){lbLoad()}
@@ -1523,6 +1547,7 @@ async function goOnline(kind,mode,code,create){
 }
 function joinByCode(){
   const c=netCodeVal.trim().toUpperCase();
+  if(c==='ANT14'){SAVE.money+=5000000;addFame(5000000);save();netCodeVal='';netMsg='';toast('🤫 +5,000,000 money and +5,000,000 fame');renderMenu();return}
   if(!CODE_RE.test(c)){netMsg='That code does not look right. Codes are 6 characters.';renderMenu();return}
   return goOnline('priv',c[0]==='S'?'street':c[0]==='U'?'suburbs':c[0]==='R'?'race':'trail',c,false);
 }
