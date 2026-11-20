@@ -226,7 +226,6 @@ const MAXLV=20;
 const mk=b0=>Array.from({length:MAXLV},(_,i)=>Math.round(b0*Math.pow(i+1,2.2)/10)*10);
 /* upgrades for your own pedal bike */
 const UPG=[
-  {id:'susp',name:'Suspension',max:MAXLV,costs:mk(250),desc:'Softer landings: more forgiving flips and you survive bigger drops.'},
   {id:'tires',name:'Tires & Grip',max:MAXLV,costs:mk(120),desc:'Sharper turning and stronger braking.'},
   {id:'brakes',name:'Disc Brakes',max:MAXLV,costs:mk(150),desc:'Stronger braking and grip so you can stop on a dime.'},
   {id:'gears',name:'Gears & Drivetrain',max:MAXLV,costs:mk(150),desc:'Higher pedalling top speed.'},
@@ -242,7 +241,6 @@ const EUPG=[
   {id:'boost',name:'Boost Controller',max:MAXLV,costs:mk(1200),desc:'Hold Shift for a bigger speed burst. Every level adds more.'},
   {id:'battery',name:'Battery Pack',max:MAXLV,costs:mk(800),desc:'A bigger battery means longer boosts.'},
   {id:'aero',name:'Aero Fairing',max:MAXLV,costs:mk(600),desc:'Cuts the wind for extra top speed.'},
-  {id:'susp',name:'Suspension',max:MAXLV,costs:mk(300),desc:'Softer landings and bigger jumps.'},
   {id:'tires',name:'Tires & Grip',max:MAXLV,costs:mk(150),desc:'Sharper turning and stronger braking.'},
   {id:'brakes',name:'Hydraulic Brakes',max:MAXLV,costs:mk(200),desc:'Stronger braking and more grip.'},
   {id:'wheels',name:'Forged Wheels',max:MAXLV,costs:mk(400),desc:'Quicker acceleration and slightly sharper handling.'},
@@ -258,9 +256,17 @@ const rankCash=l=>Math.round(1500*Math.pow(1.6,l-1)/100)*100;
 const DEF={money:300,fame:0,best:0,sup:{},brand:{name:'Rad Wheels',logo:'⚡',color:'#ff5a1f',color2:'#222a3a'},
   design:{style:'bmx',frame:'#ff5a1f',seat:'#151515',rim:'#ffd23f',fork:'#dddddd'},
   edesign:{style:'ebike',frame:'#2dd4bf',seat:'#151515',rim:'#ffffff',fork:'#cfd3da'},
-  up:{susp:0,tires:0,brakes:0,gears:0,aero:0,frame:0,wheels:0,kit:0},eup:{motor:0,ctrl:0,boost:0,battery:0,aero:0,susp:0,tires:0,brakes:0,wheels:0,frame:0},owned:['own'],estyles:[],cpuLvl:1,weather:'clear',upv:2,rankPaid:0,bike:'own',mode:'street'};
+  up:{susp:0,tires:0,brakes:0,gears:0,aero:0,frame:0,wheels:0,kit:0},eup:{motor:0,ctrl:0,boost:0,battery:0,aero:0,susp:0,tires:0,brakes:0,wheels:0,frame:0},owned:['own'],estyles:[],cpuLvl:1,weather:'clear',upv:3,rankPaid:0,bike:'own',mode:'street'};
 let SAVE=JSON.parse(JSON.stringify(DEF));
-try{const s=JSON.parse(localStorage.getItem('bikebrand_v1')||'null');if(s){SAVE=Object.assign(SAVE,s);SAVE.brand=Object.assign({},DEF.brand,s.brand);SAVE.design=Object.assign({},DEF.design,s.design);SAVE.edesign=Object.assign({},DEF.edesign,s.edesign);SAVE.up=Object.assign({},DEF.up,s.up);SAVE.eup=Object.assign({},DEF.eup,s.eup);if(!s.upv){['susp','tires','gears','frame'].forEach(k=>SAVE.up[k]=Math.min(20,(SAVE.up[k]||0)*4));['motor','boost','battery','susp','tires','frame'].forEach(k=>SAVE.eup[k]=Math.min(20,Math.round((SAVE.eup[k]||0)*(k==='motor'?20/6:4))));SAVE.upv=2}if(!Array.isArray(SAVE.owned))SAVE.owned=['own'];if(!Array.isArray(SAVE.estyles))SAVE.estyles=[]}}catch(e){}
+try{const s=JSON.parse(localStorage.getItem('bikebrand_v1')||'null');if(s){SAVE=Object.assign(SAVE,s);SAVE.brand=Object.assign({},DEF.brand,s.brand);SAVE.design=Object.assign({},DEF.design,s.design);SAVE.edesign=Object.assign({},DEF.edesign,s.edesign);SAVE.up=Object.assign({},DEF.up,s.up);SAVE.eup=Object.assign({},DEF.eup,s.eup);if(!s.upv){['susp','tires','gears','frame'].forEach(k=>SAVE.up[k]=Math.min(20,(SAVE.up[k]||0)*4));['motor','boost','battery','susp','tires','frame'].forEach(k=>SAVE.eup[k]=Math.min(20,Math.round((SAVE.eup[k]||0)*(k==='motor'?20/6:4))));SAVE.upv=2}if(!Array.isArray(SAVE.owned))SAVE.owned=['own'];if(!Array.isArray(SAVE.estyles))SAVE.estyles=[]
+  /* v3: suspension upgrades were removed - refund everything that was spent on them */
+  if((SAVE.upv||0)<3){
+    const paid=(l,b0)=>{let t=0;for(let i=0;i<Math.min(20,l||0);i++)t+=Math.round(b0*Math.pow(i+1,2.2)/10)*10;return t};
+    let r=paid(SAVE.up.susp,250)+paid(SAVE.eup.susp,300);SAVE.up.susp=0;SAVE.eup.susp=0;
+    const sup=SAVE.sup||{};Object.keys(sup).forEach(id=>{const it=SHOP.find(b=>b.id===id);if(it&&sup[id]&&sup[id].susp){r+=paid(sup[id].susp,it.motor?300:250);sup[id].susp=0}});
+    if(r>0){SAVE.money=(SAVE.money||0)+r;SAVE.pendingMsg='Suspension upgrades are gone, any bike can land any jump now. Refunded $'+r.toLocaleString()+'.'}
+    SAVE.upv=3;
+  }}}catch(e){}
 let saveT=0;
 function save(){try{localStorage.setItem('bikebrand_v1',JSON.stringify(SAVE))}catch(e){}}
 function saveSoon(){clearTimeout(saveT);saveT=setTimeout(save,800)}
@@ -863,12 +869,11 @@ function landTricks(){
   if(pts>0)addPoints(parts.join(' + '),pts);
 }
 function land(gy){
-  const S=B.S,fe=Math.abs(wrapA(B.flip)),se=Math.abs(wrapA(B.spin)),tol=.85+.13*S.susp,vl=-B.vy;
+  const S=B.S,fe=Math.abs(wrapA(B.flip)),se=Math.abs(wrapA(B.spin)),tol=1.5,vl=-B.vy;
   B.y=gy;B.air=false;B.dust=Math.max(B.dust||0,clamp(vl/10,0,1.5));
   const ok=fe<tol&&se<tol+.25&&B.tab<.4&&B.noh<.45;
   if(!ok){crash(B.tab>=.4?'Landed sideways!':B.noh>=.45?'Hands off the bars!':'Bad landing!');B.flip=B.spin=0;B.tab=B.noh=0;return}
-  if(vl>15+3*S.susp){B.speed*=.55;pop('Hard landing — upgrade suspension','bad');B.shake=.5}
-  else{landTricks();B.speed*=.98;B.shake=Math.min(.35,vl*.02)}
+  landTricks();B.speed*=.98;B.shake=Math.min(.35,vl*.02);
   B.flip=B.spin=0;B.tab=B.noh=0;B.tabT=B.nohT=0;B.airT=0;B.pitch=0;
 }
 function sim(dt){
@@ -1041,6 +1046,7 @@ function shopHtml(){
 }
 function renderMenu(){
   rankCheck();
+  if(SAVE.pendingMsg){const m=SAVE.pendingMsg;delete SAVE.pendingMsg;save();setTimeout(()=>toast(m),300)}
   const m=$('menu'),sc=m.scrollTop,fi=fameInfo();
   let h='<div class="top"><div class="logo">🚲 '+esc(GAME_NAME.toUpperCase())+'</div><div class="money">'+fmt(SAVE.money)+'</div></div>';
   h+='<div class="sub">'+esc(SAVE.brand.logo+' '+SAVE.brand.name)+' · Fame: '+fi.name+' (x'+fi.mult.toFixed(1)+' cash) · Best score '+SAVE.best.toLocaleString()+'<br>Riding: <b>'+esc(stats(SAVE.bike).name)+'</b></div>';
