@@ -907,7 +907,8 @@ function sim(dt){
     const px=B.x,pz=B.z,py=B.y;
     B.x+=fx*B.speed*dt;B.z+=fz*B.speed*dt;collide();if(B.crashT>0)return;
     let gy=W.groundY(B.x,B.z);
-    if(gy>py+.75){B.x=px;B.z=pz;if(B.speed>8){crash('Hit a wall!');return}B.speed*=.2;gy=W.groundY(B.x,B.z)}
+    /* only a real wall counts: a ramp climbs at most ~1m per metre travelled, a wall face is vertical */
+    if(gy>py+.75&&gy-py>Math.max(.06,B.speed*dt)*1.25){B.x=px;B.z=pz;if(B.speed>8){crash('Hit a wall!');return}B.speed*=.2;gy=W.groundY(B.x,B.z)}
     if(py-gy>.22){
       B.air=true;B.vy=B.gvy;B.flip=B.pitch+B.w;B.spin=0;B.airT=0;B.tabT=B.nohT=0;B.y=py;
       if(B.w>.3&&B.wheelT>.6)addPoints('Wheelie '+Math.round(B.wheelDist)+'m',Math.round(B.wheelDist*14));
@@ -983,7 +984,7 @@ function view(dt){
 }
 
 /* ================= garage UI ================= */
-let tab='design',shopCat='ebikes',shopUp=null,sbUrlVal='',sbKeyVal='';
+let tab='design',shopCat='ebikes',shopUp=null,resetArm=false,resetT=0,sbUrlVal='',sbKeyVal='';
 const ownedStyle=()=>SAVE.estyles.includes(SAVE.edesign.style);
 const ownedId=id=>id==='own'||(id==='ownE'&&ownedStyle())||SAVE.owned.includes(id);
 function bar(l,v,m,t){return '<div class="bar"><span>'+l+'</span><b><i style="width:'+Math.min(100,Math.max(0,v/m*100))+'%"></i></b>'+(t?'<em>'+t+'</em>':'')+'</div>'}
@@ -1008,6 +1009,7 @@ function designHtml(){
     colorGrid('design',d,['Frame','Fork','Rims','Seat'])+
     '<div style="margin-top:10px" class="row"><button class="btn alt" data-a="rand">🎲 Randomise</button>'+equipBtn('own','Ride my bike')+'</div></div>';
   h+='<div class="card"><h3>Stats</h3>'+statBars(S)+'</div>'+upgCards(UPG,SAVE.up,'buyup');
+  h+='<div class="card"><h3>Reset progress</h3><p>Wipes your money, fame, bikes, upgrades and brand and starts again. Your online (Supabase) setup is kept.</p><button class="btn" style="background:'+(resetArm?'#e0314b':'#3a4466')+'" data-a="resetprog">'+(resetArm?'⚠ Tap again to erase everything':'🗑 Reset progress')+'</button></div>';
   return h;
 }
 function eDesignHtml(){
@@ -1070,6 +1072,11 @@ $('menu').addEventListener('click',e=>{
   else if(a==='shopcat'){shopCat=v;shopUp=null;renderMenu()}
   else if(a==='shopup'){if(!ownedId(v))return;shopUp=v;cur=v;setPreview(v);renderMenu()}
   else if(a==='shopupback'){shopUp=null;renderMenu()}
+  else if(a==='resetprog'){
+    if(!resetArm){resetArm=true;clearTimeout(resetT);resetT=setTimeout(()=>{resetArm=false;if(state==='menu')renderMenu()},4000);renderMenu();return}
+    resetArm=false;clearTimeout(resetT);clearTimeout(saveT);SAVE=JSON.parse(JSON.stringify(DEF));save();
+    tab='design';shopUp=null;setPreviewOwn();toast('Progress reset');renderMenu();
+  }
   else if(a==='buysup'){
     const it=shopItem(shopUp);if(!it||!SAVE.owned.includes(it.id))return;
     const u=supList(it).find(x=>x.id===v),lv=supOf(it.id);if(!u||lv[v]>=u.max)return;const c=u.costs[lv[v]];
