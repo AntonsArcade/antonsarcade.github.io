@@ -608,7 +608,7 @@ addEventListener('keydown',e=>{if(document.activeElement===$('ci')){if(e.code=='
  if(e.code=='KeyR'&&!P.fly){startHeist();prStartKey();wcStartKey();rcStartKey()};if(e.code=='KeyM')bigMap=!bigMap});
 addEventListener('keyup',e=>delete keys[e.code]);addEventListener('blur',()=>{for(const k in keys)delete keys[k];mouse=false});
 addEventListener('mousemove',e=>{mp.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);if(document.pointerLockElement===ren.domElement){const mx=e.movementX||0,my=e.movementY||0;if(P.foot&&!mk)P.h-=mx*.0028;else ML.off=cl(ML.off-mx*.0028,-2.6,2.6);ML.p=cl(ML.p+my*.003,-.3,1);ML.t=0}});
-const ML={off:0,p:0,t:0};
+const ML={off:0,p:0,t:0};var GANGH=0;
 function lockWant(){return started&&!paused&&!mk&&!bigMap&&!(typeof PHN!=='undefined'&&PHN.open)&&!(typeof SG!=='undefined'&&SG.on)}
 function lockTick(){if(document.pointerLockElement===ren.domElement&&!lockWant())document.exitPointerLock()}
 addEventListener('mousedown',()=>{if(lockWant()&&!document.pointerLockElement){try{const r=ren.domElement.requestPointerLock();if(r&&r.catch)r.catch(()=>{})}catch(e){}}});
@@ -1898,7 +1898,7 @@ function ggTick(dt){ggInc+=dt;const pay=ggInc>=60;if(pay)ggInc=0;let owned=0;
   const hot=!P.ug&&!st.own&&d<(c.gb?210:170)&&!(P.fly&&P.y>45);
   if(hot){const df=((Math.atan2(dx,dz)-c.h+3*PI)%(2*PI))-PI;let s2=cl(df*2,-1,1),t2=d>12?1:.3;const f=c.vx*Math.sin(c.h)+c.vz*Math.cos(c.h);
    if(c.rv>0){c.rv-=dt;t2=-1;s2=-c.st}else if(Math.abs(f)<2&&d>8){c.sk=(c.sk||0)+dt;if(c.sk>1){c.sk=0;c.rv=.9;c.st=s2||1}}else c.sk=0;step(c,dt,t2,s2,0);
-   c.sh=(c.sh===undefined?R(0,1):c.sh)-dt;if(c.sh<=0&&d<(c.gb?95:62)){c.sh=c.gb?1.3:1.1;tracer(c.x,2.2,c.z,P.x+R(-2,2),P.fly?P.y:1.2,P.z+R(-2,2),g.col);if(Math.random()<.55)hurtP(c.gb?g.bdm:g.gdm)}}
+   c.sh=(c.sh===undefined?R(0,1):c.sh)-dt;if(c.sh<=0&&d<(c.gb?95:62)){c.sh=c.gb?1.3:1.1;tracer(c.x,2.2,c.z,P.x+R(-2,2),P.fly?P.y:1.2,P.z+R(-2,2),g.col);if(Math.random()<.55){GANGH=1;hurtP(c.gb?g.bdm:g.gdm);GANGH=0}}}
   else step(c,dt,0,0,0)}}
 // ===================== STORY =====================
 const STY=[
@@ -2772,7 +2772,7 @@ function cool25(g,ty){if(!g||g.userData.cool)return g;g.userData.cool=1;if(ty=='
 <script>
 /* ===== v26 WORLD EXPANSION (add-on; leaves all earlier systems intact) ===== */
 (function(){
-const W=P.v9.w26=Object.assign({peace:1,aq:{},own:{pistol:1},ammo:{pistol:999},cur:'pistol',chips:{},zoo:{},duck:0,art:{},of:0,acc:0,ofOwn:{0:1},vip:0,dj:0,stash:0,ms:{}},P.v9.w26||{});if(!W.p37){W.p37=1;W.peace=1}
+const W=P.v9.w26=Object.assign({peace:1,aq:{},own:{pistol:1},ammo:{pistol:999},cur:'pistol',chips:{},zoo:{},duck:0,art:{},of:0,acc:0,ofOwn:{0:1},vip:0,dj:0,stash:0,ms:{}},P.v9.w26||{});W.peace=0;
 const M=(c,r=.8,m=0,e=0)=>Mt(c,r,m,e),MB=c=>new T.MeshBasicMaterial({color:c}),RL=n=>(n+.5)*48,SP=[],MK=[],GONE=[],TR=[],CH=[],AA=[],CRN=[],ATK=[];
 const G=(x=0,z=0,ry=0,par=scene)=>{const g=new T.Group();g.position.set(x,0,z);g.rotation.y=ry;par.add(g);return g};
 const cy=(g,rt,rb,h,m,x,y,z,sg=10)=>{const o=new T.Mesh(new T.CylinderGeometry(rt,rb,h,sg),m);o.position.set(x,y,z);g.add(o);return o};
@@ -3198,20 +3198,20 @@ let hT=0,gT=0;
 const xv=new T.Vector3();
 function xhTick(dt){const w=curW(),on=P.foot&&!mk&&!FC.on&&!w.melee&&!(FG.dance>0);xh.style.display=on?'block':'none';if(!on)return;recoil=Math.max(0,recoil-dt*4);const mv=Math.hypot(P.vx,P.vz);xv.set(P.x+Math.sin(P.h)*40,1.4,P.z+Math.cos(P.h)*40).project(cam);if(xv.z>1){xh.style.display='none';return}xh.style.transform='translate('+((xv.x*.5+.5)*innerWidth)+'px,'+((-xv.y*.5+.5)*innerHeight)+'px)';xh.style.setProperty('--g',(5+recoil*12+Math.min(mv,10)*.8+w.sp*60)+'px');
  const fx=Math.sin(P.h),fz=Math.cos(P.h);if(((xhF=(xhF+1)%3))==0){let hot=0;for(const t of [...TR,...ATK,...civs,...cops]){const dx=t.x-P.x,dz=t.z-P.z,al=dx*fx+dz*fz;if(al<2||al>w.rng)continue;if(Math.abs(dx*fz-dz*fx)<(t.rad?t.rad*.8:.9)){hot=1;break}}xh.classList.toggle('hot',!!hot)}}
-function tick(dt){fA=fA*.95+dt*.05;fT+=dt;if(fT>12&&fA>.036&&QL>0&&time-fC>10){fC=time;qSet(QL-1);toast('Game was laggy: graphics lowered automatically')}xhTick(dt);pinTick(dt);cullTick(dt);aquaTick();siteVis();pcB.style.display=started&&!paused&&!mk?'block':'none';if(W.peace&&!AH&&!P.heist&&P.pend>0){P.pend=0;P.peak=0}if(W.peace&&!P.foot&&!P.fly&&!P.ug){if(P.hp<lastHp-.5)sd2=0;sd2+=Math.hypot(P.vx,P.vz)*dt;if(sd2>500){sd2=0;P.cash+=40;toast('Safe driver bonus +$40')}}if(W.peace&&!AH&&!P.heist){if(ATK.length){ATK.forEach(a=>scene.remove(a.g));ATK.length=0}if(P.hp<lastHp-.01&&!ZH)P.hp=Math.min(lastHp,P.mx)}ZH=0;lastHp=P.hp;wcd-=dt;if(firing&&P.foot&&!mk)fire26();trTick(dt);chipTick(dt);animalTick(dt);clubTick(dt);siteTick(dt);evTick(dt);outerTick(dt);atkTick(dt);CRN.forEach(c=>{if(c.m)c.rotation.y+=dt*2});
+function tick(dt){fA=fA*.95+dt*.05;fT+=dt;if(fT>12&&fA>.036&&QL>0&&time-fC>10){fC=time;qSet(QL-1);toast('Game was laggy: graphics lowered automatically')}xhTick(dt);pinTick(dt);cullTick(dt);aquaTick();siteVis();pcB.style.display=started&&!paused&&!mk?'block':'none';if(W.peace&&!AH&&!P.heist&&P.pend>0){P.pend=0;P.peak=0}if(W.peace&&!P.foot&&!P.fly&&!P.ug){if(P.hp<lastHp-.5)sd2=0;sd2+=Math.hypot(P.vx,P.vz)*dt;if(sd2>500){sd2=0;P.cash+=40;toast('Safe driver bonus +$40')}}if(!(P.pend>0||AH||P.heist)&&ATK.length){ATK.forEach(a=>scene.remove(a.g));ATK.length=0}ZH=0;lastHp=P.hp;wcd-=dt;if(firing&&P.foot&&!mk)fire26();trTick(dt);chipTick(dt);animalTick(dt);clubTick(dt);siteTick(dt);evTick(dt);outerTick(dt);atkTick(dt);CRN.forEach(c=>{if(c.m)c.rotation.y+=dt*2});
  gT-=dt;if(gT<0){gT=2;GONE.forEach(b=>{b.a=0;b.m.visible=false})}
  hT-=dt;if(hT<0){hT=.2;const w=curW();hudW.style.display=P.foot?'block':'none';if(P.foot)hudW.innerHTML='<b>'+w.n+'</b> '+(w.ap?(W.ammo[w.id]||0):'∞')+'<br>'+WP.map((q,i)=>'<span style="opacity:'+(W.own[q.id]?1:.3)+';'+(q.id==w.id?'color:#ffd24a;font-weight:700':'')+'">'+(i+1)+'</span>').join(' ')+'<br><small>Click/U fire · Z switch · X interact · O/I outfit</small>';
   hudI.textContent=(PIN?'PIN '+Math.round(Math.hypot(PIN.x-P.x,PIN.z-P.z))+'m · ':'')+'CHIPS '+Object.keys(W.chips).length+'/'+CH.length+' · ZOO '+Object.keys(W.zoo).length+'/'+ZSP.length+' · FEED '+(W.feed||0);if(window.b26a){b26a.style.display=P.foot?'block':'none';b26f.style.display=P.foot?'block':'none'}}}
 {const _u=update;update=function(dt){if(P.foot)mouse=false;_u(dt);try{tick(dt)}catch(e){console.error('v26 tick',e)}}}
 /* ---------- HOSTILE PEDS / DRIVERS ---------- */
 function mkAtk(x,z,hp=40){if(ATK.length>14)return null;const g=new T.Group(),cols=[0xcc4444,0x4477cc,0xddaa33,0x55aa66,0xaa66bb,0x333344];B(g,.5,.9,.35,M(cols[Math.floor(R(0,6))],.9),0,1,0);B(g,.4,.7,.3,M(0x222233,.9),0,.35,0);const h=new T.Mesh(new T.SphereGeometry(.2,10,8),M(0xe0b090));h.position.y=1.7;g.add(h);B(g,.07,.1,.45,M(0x222226,.4,.6),.3,1.25,.35);g.position.set(x,0,z);scene.add(g);const a={g,x,z,hp,cd:R(.5,1.2),rad:.9,run:R(4,6)};ATK.push(a);return a}
-function civAngry(n){const i=civs.indexOf(n);if(i<0||W.peace)return;civs.splice(i,1);scene.remove(n.g);const a=mkAtk(n.x,n.z,40);if(a&&Math.random()<.5)toast('A pedestrian pulls a gun and fights back!')}
+function civAngry(n){const i=civs.indexOf(n);if(i<0||!(P.pend>0))return;civs.splice(i,1);scene.remove(n.g);const a=mkAtk(n.x,n.z,40);if(a&&Math.random()<.5)toast('A pedestrian pulls a gun and fights back!')}
 function spawnDrivers(x,z,n){for(let i=0;i<n;i++)mkAtk(x+R(-3,3),z+R(-3,3),60)}
 function atkTick(dt){for(const a of [...ATK]){if(a.hp<=0){scene.remove(a.g);ATK.splice(ATK.indexOf(a),1);P.cash+=150;toast('Attacker down +$150');puff(a.x,1,a.z,0,2,0,0xaa1111,2.5,.7,0);continue}
  const dx=P.x-a.x,dz=P.z-a.z,d=Math.hypot(dx,dz);if(d>150){scene.remove(a.g);ATK.splice(ATK.indexOf(a),1);continue}
  const hh=Math.atan2(dx,dz);a.g.rotation.y=hh;const sp=d>9?a.run:d<5?-2:0;a.x+=Math.sin(hh)*sp*dt;a.z+=Math.cos(hh)*sp*dt;wall(a,.5);a.g.position.set(a.x,Math.abs(Math.sin(time*10))*.05*(sp?1:0),a.z);
  a.cd-=dt;if(d<40&&!P.fly&&!P.ug&&a.cd<=0){a.cd=R(.9,1.5);tracer(a.x,1.3,a.z,P.x+R(-1,1),1.3,P.z+R(-1,1),0xff6644);sfx('throw');if(Math.random()<(P.foot?.45:.3))hurtP(P.foot?5:3)}}}
-{const _k=killPed;killPed=function(n){if(civs.includes(n)){if(!W.peace&&Math.random()<.3){civAngry(n);return}civs.filter(c=>c!==n&&Math.hypot(c.x-n.x,c.z-n.z)<18).forEach(c=>{if(Math.random()<.25)civAngry(c)})}_k(n)}}
+{const _k=killPed;killPed=function(n){if(civs.includes(n)){if(P.pend>0&&Math.random()<.3){civAngry(n);return}civs.filter(c=>c!==n&&Math.hypot(c.x-n.x,c.z-n.z)<18).forEach(c=>{if(Math.random()<.25)civAngry(c)})}_k(n)}}
 {const _f=footKey;footKey=function(){const was=P.foot,c=was?carNear(5.5):null;if(W.peace&&c&&!c.mine){toast('Peaceful Mode: no carjacking. Switch to Outlaw Mode with the ☮ button.');return}_f();if(was&&c&&!c.mine&&!P.foot){spawnDrivers(P.x+Math.cos(P.h)*3,P.z-Math.sin(P.h)*3,1+(Math.random()<.4?1:0));toast('The driver pulls a gun on you!')}}}
 function jackTR(t){if(W.peace)return toast('Peaceful Mode: no carjacking.');const mp={bus:'truck',van:'truck',taxi:'sedan'},cty=t.gold?'sports':(mp[t.ty]||t.ty);if(!CT[cty])return;const x=t.x,z=t.z,h=t.hh;scene.remove(t.g);TR.splice(TR.indexOf(t),1);const c=mkCar(cty,x,z,h,'k');if(t.gold){P.cash+=3000;EV.on=0;toast('GOLDEN CAR JACKED! +$3,000')}useCar(c);P.pend+=1500;sfx('alarm');toast('CARJACKED! The driver is angry and armed.');spawnDrivers(x+2,z+2,1+(Math.random()<.4?1:0));setTimeout(()=>{if(TR.length<TRN)mkTR()},8000)}
 /* ---------- OUTER WORLD (massive expansion) ---------- */
@@ -3255,7 +3255,7 @@ function outerLandmarks(){
 {const _b=v9Big;v9Big=function(dot){try{const c=$('bm').getContext('2d'),sx=620/2600,sy=520/3440,X=x=>(x+760)*sx,Y=z=>(z+1720)*sy;BIO.forEach(r=>{c.fillStyle='#'+('000000'+r[4].toString(16)).slice(-6);c.globalAlpha=.55;c.fillRect(X(r[0]),Y(r[2]),(r[1]-r[0])*sx,(r[3]-r[2])*sy);c.globalAlpha=1});c.fillStyle='#2a6aa0';c.fillRect(X(1620),Y(-1720),180*sx,3440*sy);c.strokeStyle='#666';c.lineWidth=1;for(let n=15;n<=33;n++){c.beginPath();c.moveTo(X(RL(n)),Y(-1700));c.lineTo(X(RL(n)),Y(1700));c.stroke()}for(let n=-11;n<=10;n++){c.beginPath();c.moveTo(X(RL(n)),Y(-1700));c.lineTo(X(RL(n)),Y(-528));c.moveTo(X(RL(n)),Y(528));c.lineTo(X(RL(n)),Y(1700));c.stroke()}c.fillStyle='#fff';c.font='12px sans-serif';c.fillText('Click the map to drop a PIN (click it again to remove)',10,36)}catch(e){}_b(dot);MK.forEach(m=>dot(m[0],m[1],m[2],4,m[3]||''));if(PIN){dot(PIN.x,PIN.z,'#ff3b6b',7,'PIN');const c2=$('bm').getContext('2d'),X2=x=>(x+760)*620/2600,Y2=z=>(z+1720)*520/3440;c2.strokeStyle='#ff3b6b';c2.setLineDash([4,4]);c2.beginPath();c2.moveTo(X2(P.x),Y2(P.z));c2.lineTo(X2(PIN.x),Y2(PIN.z));c2.stroke();c2.setLineDash([])}}}
 
 /* ---------- PIN, PEACEFUL MODE, PERFORMANCE ---------- */
-let ZB=0,ZH=0;{const _hp=hurtP;hurtP=function(d){if(W.peace&&!ZB&&!P.heist&&!AH)return;_hp(d)}}
+let ZB=0,ZH=0;{const _hp=hurtP;hurtP=function(d){if(!(P.pend>0||P.heist||AH||ZB||GANGH))return;_hp(d)}}
 let PIN=null,pinM=null,sd2=0,lastHp=100,fA=.016,fT=0,fC=0,xhF=0;
 const pinHud=document.createElement('div');pinHud.style.cssText='position:fixed;left:0;top:0;z-index:44;pointer-events:none;display:none;transform:translate(-50%,-50%);text-align:center;font:800 14px sans-serif;color:#fff;text-shadow:0 1px 3px #000,0 0 6px #000';pinHud.innerHTML='<div style="width:24px;height:24px;margin:0 auto;background:#ff3b6b;border:3px solid #fff;transform:rotate(45deg);border-radius:4px;box-shadow:0 0 14px #ff3b6b"></div><div style="margin-top:8px">PIN</div>';document.body.appendChild(pinHud);
 function pinHudTick(){if(!PIN||!started||paused||mk){pinHud.style.display='none';return}
@@ -3268,7 +3268,7 @@ function setPin(x,z){clearPin();PIN={x,z,d0:Math.hypot(x-P.x,z-P.z)};const g=new
 const bmEl=$('bm');bmEl.style.pointerEvents='auto';bmEl.style.cursor='crosshair';
 bmEl.addEventListener('click',e=>{const r=bmEl.getBoundingClientRect(),cx=(e.clientX-r.left)*620/r.width,cy2=(e.clientY-r.top)*520/r.height,x=Math.round(cx/620*2600-760),z=Math.round(cy2/520*3440-1720);if(PIN&&Math.hypot(PIN.x-x,PIN.z-z)<80){clearPin();toast('Pin removed');return}setPin(x,z)});
 function pinTick(dt){pinHudTick();if(!PIN)return;pinM.children[1].rotation.y+=dt*2;if(Math.hypot(PIN.x-P.x,PIN.z-P.z)<16&&!(P.fly&&P.y>10)){const r=Math.min(5000,Math.round(PIN.d0*1.2));P.cash+=r;toast('You arrived! Trip bonus +$'+r.toLocaleString('en-US'));sfx('coin');clearPin();save()}}
-const pcB=document.createElement('button');pcB.style.cssText='position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:45;background:rgba(0,0,0,.6);color:#fff;border:1px solid #fff;border-radius:16px;padding:4px 12px;font:700 12px sans-serif;cursor:pointer;display:none';document.body.appendChild(pcB);
+const pcB=document.createElement('button');pcB.style.cssText='position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:45;background:rgba(0,0,0,.6);color:#fff;border:1px solid #fff;border-radius:16px;padding:4px 12px;font:700 12px sans-serif;cursor:pointer;display:none';
 function peaceUI(){pcB.textContent=W.peace?'☮ PEACEFUL MODE: ON':'☠ OUTLAW MODE';pcB.style.borderColor=W.peace?'#7dff9a':'#ff5a5a'}
 pcB.onclick=()=>{W.peace=W.peace?0:1;if(W.peace){if(!AH&&!P.heist){P.pend=0;P.peak=0}ATK.forEach(a=>scene.remove(a.g));ATK.length=0;toast('PEACEFUL MODE: nobody attacks you, no cops. Weapons only work inside the zoo. Earn safe-driver and trip bonuses.')}else toast('OUTLAW MODE: weapons, carjacking and crime are enabled.');peaceUI();save()};peaceUI();
 {const _a=add;add=function(b,m){if(W.peace&&!AH&&!P.heist)return;_a(b,m)}}
@@ -3280,7 +3280,7 @@ W.own.knife=1;safe(buildChar);safe(buildLights);for(let i=0;i<TRN;i++)safe(()=>m
 site(ZCX,-925,330,buildZoo);site(AQX,AQZ,170,buildAqua);site(CX,CZ,240,buildClub);site(336,-240,280,buildSite);site(600,0,520,buildAir);
 site(-144,-48,200,()=>buildShop(-144,-48,'OUTLAW ARMS',0xff5533,'#ff9a7a',1,0));site(240,-48,200,()=>buildShop(240,-48,'BIG BOOM',0xffaa22,'#ffd070',1,0));site(-432,432,200,()=>buildShop(-432,432,'',0,'',.8,1));
 site(48,144,180,buildCloth);site(432,336,190,buildMaze);site(-432,-96,190,buildUFO);site(-48,-432,170,buildDuck);safe(buildChips);safe(outerRoads);safe(outerCity);safe(outerLandmarks);safe(safariJeep);
-toast('PEACEFUL MODE is ON: nobody attacks you. Click the game to lock the mouse (Esc frees it). M = map + PIN. Zoo + aquarium far north!');peaceUI();
+toast('Nobody attacks you unless you have a bounty. Click the game to lock the mouse (Esc frees it). M = map + PIN. Zoo + aquarium far north!');peaceUI();
 })();
 
 </script>
