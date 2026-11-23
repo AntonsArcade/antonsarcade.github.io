@@ -2807,13 +2807,13 @@ const curW=()=>WP.find(x=>x.id==W.cur)||WP[0];
 function wallDist(ox,oz,dx,dz,mx){for(let s=1.5;s<mx;s+=1.5){const x=ox+dx*s,z=oz+dz*s;for(const b of bl){if(!b.a||b.h<3)continue;if(Math.abs(x-b.x)<b.w&&Math.abs(z-b.z)<b.d&&!(b.m&&b.m.userData.noshot))return s}}return mx}
 function fire26(){const w=curW();if(!P.foot||mk||wcd>0||FC.on)return;if(W.peace&&Math.hypot(P.x-ZCX,P.z-ZCZ)>380){toast('Peaceful Mode: weapons only work inside the zoo. Tap the ☮ button for Outlaw Mode.');wcd=2;return}if(w.ap&&(W.ammo[w.id]||0)<=0){toast('Out of ammo: buy more at a Gun Shop');wcd=.5;return}
  wcd=w.cd;if(w.ap)W.ammo[w.id]--;if(w.melee)return stab(w);aimT=1.2;recoil=1;FG.fire=.15;civs.filter(n=>Math.hypot(n.x-P.x,n.z-P.z)<22).forEach(n=>{if(Math.random()<.35)civAngry(n)});sfx('throw');const ox=P.x+Math.sin(P.h)*.7,oz=P.z+Math.cos(P.h)*.7;
- const pool=[...new Set([...cops,...TR,...civs,...cars.filter(c=>c.role!='k'),...AA.filter(q=>!q.dead),...ATK,...(window.MPR||[])])];
+ const pool=[...new Set([...cops,...TR,...civs,...cars.filter(c=>c.role!='k'),...AA.filter(q=>!q.dead),...ATK])];
  for(let p=0;p<w.pel;p++){const a=P.h+R(-w.sp,w.sp),dx=Math.sin(a),dz=Math.cos(a),mxd=wallDist(ox,oz,dx,dz,w.rng);let hits=[];
   for(const t of pool){if(t===P)continue;const rx=t.x-ox,rz=t.z-oz,al=rx*dx+rz*dz;if(al<0||al>mxd)continue;const lat=Math.abs(rx*dz-rz*dx),rad=t.rad?t.rad*.8:(t.dan!==undefined?1.2:.8);if(lat<rad)hits.push([al,t])}
   hits.sort((a,b)=>a[0]-b[0]);if(!w.pierce)hits=hits.slice(0,1);let end=mxd;
-  for(const [al,t] of hits){end=w.pierce?end:al;if(t.mp){window.mpHit&&window.mpHit(t,w.dmg);continue}if(t.zoo){hurtAnimal(t,w.dmg);continue}if(civs.includes(t))killPed(t);else if(TR.includes(t))t.hp-=w.dmg;else dmg(t,w.dmg)}
+  for(const [al,t] of hits){end=w.pierce?end:al;if(t.zoo){hurtAnimal(t,w.dmg);continue}if(civs.includes(t))killPed(t);else if(TR.includes(t))t.hp-=w.dmg;else dmg(t,w.dmg)}
   if(w.boom){const ex=ox+dx*end,ez=oz+dz*end;boom(ex,ez,11,1,1)}
-  const c=w.col<0?new T.Color().setHSL(Math.random(),1,.6).getHex():w.col;tracer(ox,1.4,oz,ox+dx*end,1.4,oz+dz*end,c);window.mpShot&&window.mpShot(ox,oz,ox+dx*end,oz+dz*end,c);if(w.id=='plasma')tracer(ox,1.5,oz,ox+dx*end,1.5,oz+dz*end,0xffffff)}
+  const c=w.col<0?new T.Color().setHSL(Math.random(),1,.6).getHex():w.col;tracer(ox,1.4,oz,ox+dx*end,1.4,oz+dz*end,c);if(w.id=='plasma')tracer(ox,1.5,oz,ox+dx*end,1.5,oz+dz*end,0xffffff)}
  const mf=T.Math?0:0;puff(ox,1.4,oz,0,0,0,w.col<0?0xff66ff:w.col,1.6,.12,1)}
 function selW(i){const w=WP[i];if(!w)return;if(!W.own[w.id]){toast(w.n+' is locked'+(w.secret?' (secret!)':': buy it at a Gun Shop'));return}W.cur=w.id;toast(w.n+(w.ap?' · ammo '+(W.ammo[w.id]||0):''));gunSkin()}
 function nextW(d){const o=WP.filter(w=>W.own[w.id]);let i=o.findIndex(w=>w.id==W.cur);W.cur=o[(i+d+o.length)%o.length].id;toast(curW().n);gunSkin()}
@@ -2825,7 +2825,6 @@ window.w26={close:closeM,buy(id,d){const w=WP.find(x=>x.id==id),c=Math.round(w.c
  out(i){const c=OUT[i].cost;if(!W.ofOwn[i]){if(P.cash<c)return;P.cash-=c;W.ofOwn[i]=1;sfx('coin')}W.of=i;applyOut();save();openM(clothHtml())},acc(i){const c=i?300:0;if(!(W.accOwn&&W.accOwn[i])&&i){if(P.cash<c)return;P.cash-=c;(W.accOwn=W.accOwn||{})[i]=1;sfx('coin')}W.acc=i;applyOut();save();openM(clothHtml())}};
 /* ---------- character ---------- */
 const OUT=[{n:'Street Outlaw',sh:0xb02a2a,pa:0x1b1d26,so:0x111114,ja:0x20232b,ha:0x2a1a10,cost:0},{n:'Neon Raver',sh:0xff3fb4,pa:0x2a1b4a,so:0xeeeeee,ja:0x14c8c0,ha:0x8a2fff,cost:1500},{n:'Gentleman',sh:0xf2f2f2,pa:0x23262e,so:0x0a0a0c,ja:0x15151a,ha:0x1a1410,cost:3000},{n:'Desert Rider',sh:0xc8a46a,pa:0x5a4a32,so:0x3a2a1a,ja:0x7a4a22,ha:0x6a4a22,cost:2500},{n:'Gold Boss',sh:0x111111,pa:0xd4af37,so:0xd4af37,ja:0x3a2a00,ha:0xdddddd,cost:10000},{n:'Sunny Tourist',sh:0xffa21f,pa:0x2e8fd0,so:0xffffff,ja:null,ha:0x4a2a10,cost:1200}];
-window.v26OUT=OUT;
 const ACC=['None','Cap','Shades','Backpack','Cap + Shades','Headband'];
 function buildChar(){FG.clear();const s=FG.ms={sh:M(0xaa2222,.8),pa:M(0x222233,.85),so:M(0x111111,.6),ja:M(0x333344,.75),ha:M(0x2a1a10,.9),sk:M(0xe0b090,.85),bt:M(0x111111,.5,.6)};
  const leg=sx=>{const h=G(0,0,0,FG);h.position.set(sx*.15,.95,0);B(h,.21,.5,.23,s.pa,0,-.25,0);const k=G(0,0,0,h);k.position.y=-.5;B(k,.19,.46,.21,s.pa,0,-.23,0);B(k,.22,.12,.36,s.so,0,-.5,.07);h.kn=k;return h};
@@ -3115,7 +3114,6 @@ function buildSite(){clr(262,410,-312,-168);const g=G(0,0);const cells=[];for(le
  place('CONSTRUCTION SITE',336,-310,0xffb000,'#ffd070',10);label('DRIVE ANYTHING: press X next to a machine',336,6,-268,16,'#ffd070');siteStuff()}
 /* ---------- WORKING SITE MACHINES (v38): operable crane, forklift that lifts, tipping dump truck, excavator arm ---------- */
 const CRANES=[],CRATES=[],RACKS=[],CR={on:null,hold:null,px:0,pz:0,ph:0,hint:0},FK={load:null};
-window.CRX=CR;addEventListener('wheel',e=>{if(CR.on)CR.zoom=cl((CR.zoom||1)*(e.deltaY>0?1.12:.89),.35,2.4)},{passive:true});
 const crateG=new T.BoxGeometry(2,2,2);
 function mkCrate(x,z,col,y=1){const g=new T.Group();g.add(new T.Mesh(crateG,M(col,.8)));B(g,2.06,.16,2.06,M(0x222222,.7),0,.6,0);B(g,2.06,.16,2.06,M(0x222222,.7),0,-.6,0);B(g,.16,2.06,2.06,M(0x222222,.7),.6,0,0);B(g,.16,2.06,2.06,M(0x222222,.7),-.6,0,0);const c={m:g,x,z,y,held:0,vy:0};g.position.set(x,y,z);scene.add(g);CRATES.push(c);return c}
 function mkRack(x,z){const rk=G(x,z),w=10,d=3.6,wd=M(0x8a6a40,.8),st=M(0x3a5a8a,.6);[-1,1].forEach(a=>[-1,1].forEach(b=>B(rk,.3,6.4,.3,st,a*(w/2-.2),3.2,b*(d/2-.2))));[2.4,4.8].forEach(l=>B(rk,w,.25,d,wd,0,l-.12,0));B(rk,w,.2,.2,st,0,6.3,d/2-.2);B(rk,w,.2,.2,st,0,6.3,-d/2+.2);label('STORAGE RACK',x,8.6,z,9,'#9fe');RACKS.push({x,z,w,d,lv:[2.4,4.8]})}
@@ -3139,8 +3137,8 @@ function siteTick(dt){CRN.forEach((j,i)=>j.rotation.y+=dt*(.12+i*.05));
   if(keys.KeyA||keys.ArrowLeft)c.ang+=.35*dt;if(keys.KeyD||keys.ArrowRight)c.ang-=.35*dt;if(keys.KeyW||keys.ArrowUp)c.pz=Math.min(27,c.pz+7*dt);if(keys.KeyS||keys.ArrowDown)c.pz=Math.max(5,c.pz-7*dt);if(keys.KeyG)c.len=Math.max(3,c.len-9*dt);if(keys.KeyH)c.len=Math.min(42.5,c.len+9*dt);
   c.j.rotation.y=c.ang;c.tr.position.z=c.pz;c.cab.scale.y=c.len;c.cab.position.y=-c.len/2;c.hk.position.y=-c.len;
   const [hx,hy,hz]=craneWorld(c);if(CR.hold){const k=CR.hold;k.x=hx;k.z=hz;k.y=Math.max(1,hy-2.3);k.m.position.set(k.x,k.y,k.z);k.m.rotation.y=c.ang}
-  {const zz=CR.zoom||1,sa=Math.sin(c.ang),ca=Math.cos(c.ang);cam.position.set(hx-sa*11*zz+ca*3,Math.max(4,hy+7*zz),hz-ca*11*zz-sa*3);cam.lookAt(hx,Math.max(0,hy-8-4*zz),hz)}cam.fov=48;cam.updateProjectionMatrix();cam.updateMatrixWorld();sky.position.copy(cam.position);
-  shHint('CRANE · A/D swing · W/S trolley · G hook up · H hook down · L grab/release · wheel zoom · X exit');crateTick(dt);return}
+  cam.position.set(c.x-Math.sin(c.ang)*7,53,c.z-Math.cos(c.ang)*7);cam.lookAt(hx,hy+3,hz);cam.fov=62;cam.updateProjectionMatrix();cam.updateMatrixWorld();sky.position.copy(cam.position);
+  shHint('CRANE · A/D swing · W/S trolley · G hook up · H hook down · L grab/release · X exit');crateTick(dt);return}
  const g=P.g,u=g&&g.userData;let hint=null;
  if(!P.foot&&u){
   if(P.ty=='forklift'&&u.fk){let fl=u.fkl||0;if(keys.KeyG)fl=Math.min(5.4,fl+2.6*dt);if(keys.KeyH)fl=Math.max(0,fl-3*dt);u.fkl=fl;u.fk.position.y=fl;if(FK.load){const k=FK.load;k.x=P.x+Math.sin(P.h)*2.4;k.z=P.z+Math.cos(P.h)*2.4;k.y=fl+1.35;k.m.position.set(k.x,k.y,k.z);k.m.rotation.y=P.h}hint='FORKLIFT · G raise forks · H lower · L grab / put down crate'}
@@ -3306,73 +3304,4 @@ addEventListener('resize',()=>{if(QL==0)setTimeout(lowTune,50)});
 lowTune();
 })();
 
-</script><script>
-/* ===== v40: ONLINE MULTIPLAYER (Supabase Realtime) + construction controls fix ===== */
-(function(){
-const MP={ch:null,kind:'solo',room:'',id:Math.random().toString(36).slice(2,8),rem:{},cnt:1,lx:0,lz:0,lh:0,lt:0};
-window.MPR=[];const W=()=>P.v9.w26||{};
-const nm=()=>{P.v9.mpName=P.v9.mpName||'Outlaw'+Math.floor(100+Math.random()*900);return P.v9.mpName};
-const st=document.createElement('style');st.textContent='#mpm{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9999;background:rgba(12,12,18,.97);border:2px solid #7dff9a;border-radius:12px;padding:16px;color:#fff;font:14px sans-serif;max-width:92vw;max-height:84vh;overflow:auto;display:none;min-width:320px}#mpm button{background:#7dff9a;color:#111;border:0;border-radius:6px;padding:7px 12px;margin:2px;font-weight:700;cursor:pointer}#mpm .r{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #333}#mpm input{padding:6px;border-radius:6px;border:1px solid #666;background:#111;color:#fff}#mpb,#mpbd{position:fixed;z-index:45;background:rgba(0,0,0,.6);color:#fff;border:1px solid #7dff9a;border-radius:14px;padding:4px 12px;font:700 12px sans-serif;cursor:pointer;display:none}#mpb{top:38px;left:50%;transform:translateX(-50%)}#mpbd{right:12px;top:172px;text-align:right;border-radius:10px}@media (max-width:760px),(max-height:520px){#mpbd{top:120px}}';document.head.appendChild(st);
-const md=document.createElement('div');md.id='mpm';document.body.appendChild(md);
-const mb=document.createElement('button');mb.id='mpb';mb.textContent='🌐 ONLINE';document.body.appendChild(mb);
-const bd=document.createElement('div');bd.id='mpbd';document.body.appendChild(bd);
-function showM(h){md.innerHTML=h;md.style.display='block';mk=true}
-function closeM(){md.style.display='none';mk=false}
-const stat=t=>{const e=document.getElementById('mpst');if(e)e.textContent=t};
-function badge(){if(MP.kind==='solo'){bd.style.display='none';return}bd.style.display=started?'block':'none';bd.innerHTML=MP.kind==='prv'?'<div style="font-size:11px;color:#9fb">🔒 PRIVATE SERVER · tap to copy code</div><div style="font-size:22px;letter-spacing:3px;color:#7dff9a">'+MP.room+'</div><div style="font-size:11px">'+MP.cnt+'/10 players</div>':'<div style="font-size:11px;color:#9fb">🌐 PUBLIC SERVER #'+MP.room+'</div><div style="font-size:11px">'+MP.cnt+'/10 players</div>'}
-bd.onclick=()=>{if(MP.kind==='prv'){try{navigator.clipboard.writeText(MP.room)}catch(e){}toast('Code '+MP.room+' copied. Friends type it under ONLINE > Join with code.')}};
-function menu(){const on=MP.kind!=='solo';showM('<h3 style="margin:0 0 8px;color:#7dff9a">🌐 ONLINE MULTIPLAYER</h3><div>Your name: <input id="mpn" maxlength="12" value="'+nm()+'"></div>'+(on?'<div class="r"><span>Connected: <b>'+(MP.kind==='prv'?'PRIVATE '+MP.room:'PUBLIC #'+MP.room)+'</b> ('+MP.cnt+'/10)</span><button onclick="mp26.solo()">LEAVE</button></div>':'')+'<div class="r"><span><b>Play solo</b><br><small>Just you. No one else joins.</small></span><button onclick="mp26.solo()">SOLO</button></div><div class="r"><span><b>Public server</b><br><small>Up to 10 players. Finds one with space.</small></span><button onclick="mp26.pub()">JOIN</button></div><div class="r"><span><b>Private server</b><br><small>You get a code to share. Play alone or with friends.</small></span><button onclick="mp26.create()">CREATE</button></div><div class="r"><span><input id="mpc" maxlength="5" placeholder="CODE" style="width:80px;text-transform:uppercase"></span><button onclick="mp26.joinCode()">JOIN WITH CODE</button></div><div id="mpst" style="color:#ffd24a;min-height:20px;margin-top:6px"></div><div style="text-align:center;margin-top:8px"><button onclick="mp26.close()" style="background:#ccc">Close</button></div>')}
-async function ensure(){try{if(!SB_OK())throw 0}catch(e){throw 'nosb'}if(!window.supabase)await new Promise((ok,bad)=>olLoadK('sb',ok,bad));SBC=SBC||window.supabase.createClient(String(SB.url).trim(),String(SB.key).trim(),{realtime:{params:{eventsPerSecond:40}}})}
-function attempt(room,mustExist){return new Promise((res,rej)=>{let ch;try{ch=SBC.channel('ocw-'+room,{config:{broadcast:{self:false},presence:{key:MP.id}}})}catch(e){return rej('error')}
- let sub=0,fin=0;const fail=w=>{if(fin)return;fin=1;clearTimeout(to);try{SBC.removeChannel(ch)}catch(e){}rej(w)};const to=setTimeout(()=>fail('timeout'),10000);
- ch.on('presence',{event:'sync'},()=>{if(MP.ch===ch)onSync()});ch.on('broadcast',{event:'s'},p=>{if(MP.ch===ch)onState(p.payload)});ch.on('broadcast',{event:'f'},p=>{if(MP.ch===ch)onShot(p.payload)});ch.on('broadcast',{event:'h'},p=>{if(MP.ch===ch)onHit(p.payload)});
- ch.subscribe(s=>{if(s==='SUBSCRIBED'&&!sub){sub=1;setTimeout(async()=>{const n=Object.keys(ch.presenceState()).filter(k=>k!==MP.id).length;if(n>=10)return fail('full');if(mustExist&&n===0)return fail('empty');try{await ch.track({n:nm(),t:Date.now()})}catch(e){return fail('error')}
-  setTimeout(()=>{if(fin)return;const ks=Object.entries(ch.presenceState()).map(([k,v])=>[k,(v[0]&&v[0].t)||0]).sort((a,b)=>a[1]-b[1]||(a[0]<b[0]?-1:1)).map(x=>x[0]);if(ks.indexOf(MP.id)>=10)return fail('full');fin=1;clearTimeout(to);res(ch)},700)},900)}
-  else if(!sub&&(s==='CHANNEL_ERROR'||s==='TIMED_OUT'))fail('error');else if(fin&&sub&&(s==='CLOSED'||s==='CHANNEL_ERROR')){if(MP.ch===ch)lost()}})})}
-function leave(){if(MP.ch){try{SBC.removeChannel(MP.ch)}catch(e){}}MP.ch=null;MP.kind='solo';MP.room='';MP.cnt=1;for(const r of MPR.slice())drop(r.id);badge()}
-function joined(ch,kind,room){leave();MP.ch=ch;MP.kind=kind;MP.room=room;onSync();closeM();toast(kind==='prv'?'PRIVATE server '+room+' ready. Share the code (top right).':'Joined PUBLIC server #'+room)}
-function lost(){toast('Connection lost. You are playing solo.');leave()}
-const errMsg=e=>e==='nosb'?'Supabase is not set up (supabase-config.js missing).':e==='full'?'That server is full (10/10).':e==='empty'?'No server with that code. Check the code.':e==='timeout'?'Timed out. Check your internet connection.':'Could not connect to Supabase.';
-const wrap=async f=>{if(MP.busy)return;MP.busy=1;try{P.v9.mpName=(document.getElementById('mpn')||{}).value||nm();P.v9.mpName=P.v9.mpName.slice(0,12);stat('Connecting…');await ensure();await f()}catch(e){stat(errMsg(e))}MP.busy=0};
-window.mp26={close:closeM,solo(){leave();closeM();toast('Playing solo')},
- pub(){wrap(async()=>{for(let n=1;n<=40;n++){stat('Looking for a server… #'+n);try{const ch=await attempt('pub-'+n);return joined(ch,'pub',String(n))}catch(e){if(e==='full')continue;throw e}}stat('All public servers are full.')})},
- create(){wrap(async()=>{const code=Array.from({length:5},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(Math.random()*24)]).join('');const ch=await attempt('prv-'+code);joined(ch,'prv',code)})},
- joinCode(){const code=((document.getElementById('mpc')||{}).value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');if(code.length!==5){stat('Enter the 5-letter code.');return}wrap(async()=>{const ch=await attempt('prv-'+code,1);joined(ch,'prv',code)})}};
-mb.onclick=menu;
-addEventListener('keydown',e=>{if(md.style.display==='block'&&e.code==='Escape'){e.stopPropagation();closeM()}},true);
-/* ---- remote players ---- */
-function onSync(){if(!MP.ch)return;const ps=MP.ch.presenceState(),ks=Object.keys(ps);MP.cnt=ks.length;for(const r of MPR.slice())if(!ks.includes(r.id)&&performance.now()-r.last>2500)drop(r.id);badge()}
-function mkTag(t){const c=document.createElement('canvas');c.width=256;c.height=64;const x=c.getContext('2d');x.font='bold 32px sans-serif';x.textAlign='center';x.fillStyle='rgba(0,0,0,.55)';x.fillRect(0,8,256,48);x.fillStyle='#7dff9a';x.fillText(t,128,44);const s=new T.Sprite(new T.SpriteMaterial({map:new T.CanvasTexture(c),depthTest:false,transparent:true,fog:false}));s.scale.set(5,1.25,1);s.renderOrder=999;return s}
-function mpChar(oi,acc){const o=(window.v26OUT||[])[oi]||{sh:0xb02a2a,pa:0x1b1d26,so:0x111114,ja:0x20232b,ha:0x2a1a10},g=new T.Group(),mt=c=>Mt(c,.8),sk=mt(0xe0b090),pa=mt(o.pa),ja=mt(o.ja==null?o.sh:o.ja);
- const leg=sx=>{const h=new T.Group();h.position.set(sx*.15,.95,0);B(h,.2,.95,.22,pa,0,-.47,0);B(h,.22,.12,.36,mt(o.so),0,-.92,.07);g.add(h);return h};g.lL=leg(-1);g.lR=leg(1);B(g,.5,.55,.3,ja,0,1.3,0);B(g,.48,.2,.28,pa,0,1,0);
- const arm=sx=>{const a=new T.Group();a.position.set(sx*.36,1.55,0);B(a,.15,.6,.16,ja,0,-.3,0);B(a,.13,.12,.14,sk,0,-.62,0);g.add(a);return a};g.aL=arm(-1);g.aR=arm(1);
- const hd=new T.Mesh(new T.SphereGeometry(.17,12,8),sk);hd.position.y=1.8;hd.scale.set(1,1.12,1);g.add(hd);const hr=new T.Mesh(new T.SphereGeometry(.185,12,8,0,PI*2,0,PI*.55),mt(o.ha));hr.position.y=1.83;hr.rotation.x=-.25;g.add(hr);
- if(acc==1||acc==4)B(g,.38,.08,.38,mt(0xcc2222),0,2.02,.02);if(acc==2||acc==4)B(g,.34,.07,.04,mt(0x050505),0,1.82,.17);if(acc==3)B(g,.4,.5,.2,mt(0x3a5a3a),0,1.4,-.26);return g}
-function build(r,d,key){if(r.g)scene.remove(r.g);let g,rad=.9;
- try{if(d.f)g=mpChar(d.o,d.a);else if(d.fl){g=makeJet(0xdddddd);rad=4}else{g=carMesh(d.t,(CT[d.t]&&CT[d.t].col)||0x888888);rad=(CT[d.t]&&CT[d.t].rad)||2.2}}catch(e){g=new T.Group();B(g,2,1,4,Mt(0x888888,.8),0,.8,0)}
- const tg=mkTag(r.n);tg.position.y=d.f?2.7:4.2;g.add(tg);scene.add(g);r.g=g;r.rad=rad;r.key=key;r.tg=tg}
-function onState(d){if(!d||d.i===MP.id)return;let r=MP.rem[d.i];const key=(d.f?'F':'V'+d.t)+(d.fl?'J':'')+'_'+(d.o||0)+'_'+(d.a||0)+d.n;
- if(!r){r=MP.rem[d.i]={id:d.i,n:d.n,x:d.x,z:d.z,h:d.h,tx:d.x,tz:d.z,th:d.h,ty:0,mp:1,rad:.9,hp:100,key:'',g:null,ph:0,sp:0,foot:0,last:0};MPR.push(r)}
- r.n=d.n;r.tx=d.x;r.tz=d.z;r.th=d.h;r.ty=d.y||0;r.sp=d.s||0;r.foot=d.f;r.last=performance.now();if(r.key!==key)build(r,d,key)}
-function drop(id){const r=MP.rem[id];if(!r)return;if(r.g)scene.remove(r.g);delete MP.rem[id];const i=MPR.indexOf(r);if(i>=0)MPR.splice(i,1)}
-function send(ev,p){try{if(MP.ch){const r=MP.ch.send({type:'broadcast',event:ev,payload:p});if(r&&r.catch)r.catch(()=>{})}}catch(e){}}
-setInterval(()=>{if(MP.kind==='solo'||!started||paused)return;const now=performance.now(),mv=Math.abs(P.x-MP.lx)>.05||Math.abs(P.z-MP.lz)>.05||Math.abs(P.h-MP.lh)>.02;if(!mv&&now-MP.lt<1000)return;MP.lx=P.x;MP.lz=P.z;MP.lh=P.h;MP.lt=now;
- send('s',{i:MP.id,n:nm(),x:+P.x.toFixed(1),z:+P.z.toFixed(1),h:+P.h.toFixed(2),y:P.fly?+P.y.toFixed(1):0,f:P.foot?1:0,t:P.ty,s:+Math.hypot(P.vx||0,P.vz||0).toFixed(1),o:W().of||0,a:W().acc||0,fl:P.fly?1:0})},170);
-setInterval(()=>{badge();mb.style.display=started&&!paused&&!mk?'block':'none'},400);
-function onShot(d){if(d)tracer(d.a,1.4,d.b,d.c,1.4,d.d,d.k)}
-function onHit(d){if(!d||d.to!==MP.id||W().peace)return;hurtP(d.d);toast('Shot by '+d.n+'!')}
-window.mpShot=(a,b,c,d,k)=>send('f',{a:+a.toFixed(1),b:+b.toFixed(1),c:+c.toFixed(1),d:+d.toFixed(1),k});
-window.mpHit=(r,dm)=>{send('h',{to:r.id,d:dm,n:nm()});puff(r.x,1.4,r.z,0,1,0,0xff3333,1.2,.3,0)};
-const _u=update;update=function(dt){_u(dt);if(MP.kind==='solo')return;const k=Math.min(1,dt*10);for(const r of MPR.slice()){if(performance.now()-r.last>8000){drop(r.id);continue}r.x+=(r.tx-r.x)*k;r.z+=(r.tz-r.z)*k;let dh=r.th-r.h;dh=Math.atan2(Math.sin(dh),Math.cos(dh));r.h+=dh*k;r.g.position.set(r.x,r.ty||0,r.z);r.g.rotation.y=r.h;
- if(r.foot&&r.g.lL){const m=r.sp>.5;r.ph+=dt*(m?9:0);const s=Math.sin(r.ph)*(m?.7:0);r.g.lL.rotation.x=-s;r.g.lR.rotation.x=s;r.g.aL.rotation.x=s;r.g.aR.rotation.x=-s}
- if(!P.foot&&!P.fly&&!r.foot&&!r.ty){const dx=P.x-r.x,dz=P.z-r.z,d=Math.hypot(dx,dz),m=(P.rad||2.2)+r.rad;if(d<m&&d>.01){const o=(m-d)*.5;P.x+=dx/d*o;P.z+=dz/d*o}}}};
-addEventListener('beforeunload',()=>{try{leave()}catch(e){}});
-/* ---- construction vehicle controls fix ---- */
-const HVY={bulldozer:1,excavator:1,forklift:1,tug:1,dump:2,mixer:2,fuel:2},CRX=window.CRX||{};
-const machine=()=>started&&!paused&&((window.CRX&&window.CRX.on)||(!P.foot&&['forklift','dump','excavator'].includes(P.ty)));
-{const a=cuOpen;cuOpen=function(){if(machine())return;return a.apply(this,arguments)}}{const a=rdOpen;rdOpen=function(){if(machine())return;return a.apply(this,arguments)}}
-{const _s=step;step=function(c,dt,th,st,nit){_s(c,dt,th,st,nit);const k=HVY[c.ty];if(c===P&&k&&!P.foot){const f=c.vx*Math.sin(c.h)+c.vz*Math.cos(c.h);if(k==1)c.h+=st*dt*1.6*(1-cl(Math.abs(f)/6,0,1))*(th<0?-1:1)+st*dt*.6*cl(f/5,-1,1);else c.h+=st*dt*.8*cl(f/5,-1,1)}}}
-})();
-
-</script>
-</body></html>
+</script></body></html>
