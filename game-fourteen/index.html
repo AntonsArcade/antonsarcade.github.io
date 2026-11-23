@@ -2351,8 +2351,7 @@ function hoverMesh(col){const g=new T.Group(),bm=Mt(col,.3,.5),dk=Mt(0x1a1c22,.8
  [-.9,.9].forEach(x=>{const f=new T.Mesh(new T.CylinderGeometry(.7,.7,.15,10),dk);f.position.set(x,1.4,-1.6);g.add(f);const bl2=B(f,1.4,.06,.18,Mt(0x9aa0aa,.4,.7),0,.1,0);g.userData.fans.push(bl2)});
  B(g,.4,.12,.1,new T.MeshBasicMaterial({color:0xfff0c0}),-.8,1,2.25);B(g,.4,.12,.1,new T.MeshBasicMaterial({color:0xfff0c0}),.8,1,2.25);
  g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g}
-const SPK={viper26:{sp:82,ac:46,hp:170,ar:.6,col:0x111114,ms:1.1,rad:2.2},muscle26:{sp:74,ac:40,hp:230,ar:.5,col:0xd9541a,ms:1.4,rad:2.3},phantom26:{sp:86,ac:48,hp:160,ar:.65,col:0x2a2d34,ms:1.05,rad:2.2}};for(const k in SPK)Object.defineProperty(CT,k,{value:SPK[k],enumerable:false,writable:true,configurable:true});Object.assign(HVN,{viper26:'VENOM GT',muscle26:'HELLHOUND V8',phantom26:'PHANTOM X'});
-{const _c=carMesh;carMesh=function(ty,col){if(SPK[ty])return sportCar(ty);if(ty=='monster')return monsterMesh(col);if(ty=='hover')return hoverMesh(col);return _c(ty,col)}}
+{const _c=carMesh;carMesh=function(ty,col){if(ty=='monster')return monsterMesh(col);if(ty=='hover')return hoverMesh(col);return _c(ty,col)}}
 let monN=0;
 function v21Veh(dt){if(P.foot||P.fly||P.ug)return;
  if(P.ty=='hover'){if(P.g&&P.g.userData.fans)P.g.userData.fans.forEach(f=>f.rotation.y+=dt*30);if(lkIn(P.x,P.z)&&Math.hypot(P.vx,P.vz)>6&&Math.random()<.5)puff(P.x-Math.sin(P.h)*2.4,.3,P.z-Math.cos(P.h)*2.4,R(-2,2),1,R(-2,2),0xbfe6ff,2.4,.7,0)}
@@ -2869,7 +2868,8 @@ function hvMesh(ty,col){const g=new T.Group(),y=M(col,.6,.3),k=M(0x1a1a1e,.9),gl
  else if(ty=='bigfoot'){B(g,2.2,.9,4,y,0,1.8,0);B(g,1.8,.9,1.8,y,0,2.7,-.3);B(g,1.6,.5,.1,gl2,0,2.8,.6);[[-1.5,1.6],[1.5,1.6],[-1.5,-1.6],[1.5,-1.6]].forEach(p=>wh(p[0],1.1,p[1],1.1,.9))}
  else if(ty=='ufocar'){const s=new T.Mesh(new T.SphereGeometry(1.6,16,10),M(0xaab4c0,.2,.9));s.scale.set(1.5,.4,1.5);s.position.y=1;g.add(s);const d=new T.Mesh(new T.SphereGeometry(.8,12,8,0,PI*2,0,PI/2),new T.MeshBasicMaterial({color:0x66ffaa,transparent:true,opacity:.7}));d.position.y=1.2;g.add(d);const u=new T.Mesh(new T.CircleGeometry(1.7,16),new T.MeshBasicMaterial({color:0x44ff99,transparent:true,opacity:.5}));u.rotation.x=-PI/2;u.position.y=.1;g.add(u)}
  g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g}
-{const _c=carMesh;carMesh=function(ty,col){if(ty=='ghost26'){const g=_c('hyper',0xffd700);const u=new T.Mesh(new T.PlaneGeometry(2.6,5),new T.MeshBasicMaterial({color:0xffd23a,transparent:true,opacity:.35,depthWrite:false}));u.rotation.x=-PI/2;u.position.y=.08;g.add(u);return g}if(HVT[ty])return hvMesh(ty,HVT[ty].col);return _c(ty,col)}}
+const SPK={viper26:{sp:82,ac:46,hp:170,ar:.6,col:0x111114,ms:1.1,rad:2.2},muscle26:{sp:74,ac:40,hp:230,ar:.5,col:0xd9541a,ms:1.4,rad:2.3},phantom26:{sp:86,ac:48,hp:160,ar:.65,col:0x2a2d34,ms:1.05,rad:2.2}};for(const k in SPK)Object.defineProperty(CT,k,{value:SPK[k],enumerable:false,writable:true,configurable:true});Object.assign(HVN,{viper26:'VENOM GT',muscle26:'HELLHOUND V8',phantom26:'PHANTOM X'});
+{const _c=carMesh;carMesh=function(ty,col){if(SPK[ty])return sportCar(ty);if(ty=='ghost26'){const g=_c('hyper',0xffd700);const u=new T.Mesh(new T.PlaneGeometry(2.6,5),new T.MeshBasicMaterial({color:0xffd23a,transparent:true,opacity:.35,depthWrite:false}));u.rotation.x=-PI/2;u.position.y=.08;g.add(u);return g}if(HVT[ty])return hvMesh(ty,HVT[ty].col);return _c(ty,col)}}
 {const _v=v9Car;v9Car=function(ty){if(HVT[ty]||SPK[ty])return;_v(ty)}}
 {const _t=throwBomb;throwBomb=function(){if(P.foot)return;_t()}}
 {const _b=boom;boom=function(...a){_b(...a);for(const t of [...TR])if(Math.hypot(t.x-a[0],t.z-a[1])<a[2]+2)t.hp-=a[2]*14}}
