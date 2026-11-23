@@ -3292,14 +3292,27 @@ const SITES=[];function site(x,z,r,fn){const n0=scene.children.length,b0=bl.leng
 function siteVis(){for(const s of SITES){const on=Math.hypot(P.x-s.x,P.z-s.z)<s.r;if(on!==s.on){s.on=on;s.objs.forEach(o=>o.visible=on&&!o.userData.hid)}if(on&&!s.inb){s.inb=1;for(const c of s.cols)bl.push(c)}else if(!on&&s.inb){s.inb=0;for(const c of s.cols){const i=bl.indexOf(c);if(i>=0)bl.splice(i,1)}}}}
 
 /* ---------- RICH SUBURB (far west edge) ---------- */
-function leopardCar(){const g=new T.Group(),bm=leoMat(),dk=M(0x0b0b0e,.5,.5),gl=glass,gold=M(0xc8a24a,.25,.9),rb=MB(0xff1a1a);
- const WH=(x,z,r,w)=>{const t=cy(g,r,r,w,dk,x,r,z,16);t.rotation.z=PI/2;const rim=cy(g,r*.64,r*.64,w+.02,gold,x,r,z,12);rim.rotation.z=PI/2};
- B(g,1.95,.4,4.5,bm,0,.5,0);B(g,1.8,.22,1.6,bm,0,.64,1.55).rotation.x=.1;B(g,1.5,.34,1.7,gl,0,.97,.15);B(g,1.3,.07,1.3,bm,0,1.16,.05);
- B(g,1.75,.3,1.7,bm,0,.84,-1.3).rotation.x=-.16;B(g,1.5,.05,.9,dk,0,1.0,-1.45);
- [-1,1].forEach(s=>{B(g,.1,.3,1.1,dk,s*.99,.62,-.45);B(g,.34,.3,1.4,bm,s*1.0,.7,-1.35);B(g,.3,.22,1.2,bm,s*.98,.68,1.45);B(g,.05,.05,4.2,MB(0xffd24a),s*.97,.4,0);B(g,.5,.07,.08,MB(0xfff4c0),s*.65,.66,2.24);B(g,.3,.1,.3,bm,s*1.08,.98,.7);B(g,.08,.35,.1,dk,s*.6,1.2,-2.0);for(let q=0;q<2;q++)cy(g,.09,.09,.3,M(0xaaaaaa,.2,.9),s*(.35+q*.35),.38,-2.4,8).rotation.x=PI/2});
- B(g,2.15,.07,.6,bm,0,1.4,-2.05).rotation.x=.08;B(g,.12,.2,.7,dk,-1.07,1.3,-2.05);B(g,.12,.2,.7,dk,1.07,1.3,-2.05);
- B(g,2.0,.1,.5,dk,0,.28,2.3);B(g,1.95,.18,.7,dk,0,.32,-2.3);B(g,1.7,.07,.06,rb,0,.8,-2.26);B(g,1.1,.05,.2,MB(0xffffff),0,.74,2.2);
- WH(-.98,1.5,.38,.36);WH(.98,1.5,.38,.36);WH(-1.0,-1.4,.42,.46);WH(1.0,-1.4,.42,.46);
+function leopardCar(){const g=new T.Group(),bm=leoMat(),dk=M(0x0b0b0e,.5,.5),gl=glass,cu=M(0xb87333,.25,.9),chrome=M(0xcfd3d8,.2,.9),red=MB(0xff2a22),wht=MB(0xfff6d8),sg=new T.SphereGeometry(.5,10,8);
+ const xt=(pts,W,mt,x=0)=>{const sh=new T.Shape();pts.forEach((p,i)=>i?sh.lineTo(p[0],p[1]):sh.moveTo(p[0],p[1]));const geo=new T.ExtrudeGeometry(sh,{depth:W-.2,bevelEnabled:true,bevelThickness:.1,bevelSize:.08,bevelSegments:2,curveSegments:4});geo.translate(0,0,-(W-.2)/2);geo.rotateY(-PI/2);const m=new T.Mesh(geo,mt);m.position.x=x;g.add(m);return m};
+ const el=(sx,sy,sz,x,y,z,mt)=>{const o=new T.Mesh(sg,mt);o.scale.set(sx,sy,sz);o.position.set(x,y,z);g.add(o);return o};
+ const WH=(x,z,r,w)=>{const t=cy(g,r,r,w,dk,x,r,z,18);t.rotation.z=PI/2;const rim=cy(g,r*.66,r*.66,w+.03,cu,x,r,z,14);rim.rotation.z=PI/2;const cap=cy(g,r*.2,r*.2,w+.06,dk,x,r,z,8);cap.rotation.z=PI/2};
+ B(g,1.8,.1,4.5,dk,0,.2,0);
+ xt([[-2.35,.28],[-2.4,.62],[-2.25,.92],[-1.4,1.03],[-.6,.99],[.3,.91],[1.4,.74],[2.1,.6],[2.38,.46],[2.38,.28]],1.98,bm);
+ xt([[-.8,.9],[-.4,1.2],[.25,1.3],[.9,1.02],[1.2,.82],[-.8,.8]],1.5,gl);
+ B(g,1.34,.06,.95,bm,0,1.29,-.05).rotation.x=.04;
+ [-1,1].forEach(s=>{
+  B(g,.34,.3,1.7,bm,s*1.02,.64,-1.4);B(g,.3,.24,1.3,bm,s*1.0,.58,1.55);
+  B(g,.12,.36,1.15,dk,s*1.06,.62,-.35);B(g,.1,.06,1.1,chrome,s*1.07,.82,-.35);
+  B(g,.05,.1,3.1,dk,s*1.02,.34,0);
+  [.36,.62,.88].forEach((x,i)=>{el(.24,.1,.05,s*x,.73,-2.43,red)});B(g,.95,.24,.05,dk,s*.62,.73,-2.42);
+  cy(g,.14,.14,.3,chrome,s*.32,.42,-2.42,12).rotation.x=PI/2;cy(g,.1,.1,.32,dk,s*.32,.42,-2.43,12).rotation.x=PI/2;
+  B(g,.55,.06,.05,wht,s*.66,.64,2.37).rotation.z=s*-.12;B(g,.4,.12,.05,dk,s*.78,.4,2.4);
+  B(g,.22,.12,.3,bm,s*1.13,.96,.8);B(g,.05,.08,.2,dk,s*1.06,.92,.7)});
+ B(g,1.0,.16,.05,dk,0,.4,2.4);B(g,1.9,.05,.55,dk,0,.25,2.15);
+ B(g,.95,.04,.85,dk,0,1.045,-1.35);for(let i=0;i<4;i++)B(g,.95,.03,.05,bm,0,1.07,-1.7+i*.22).rotation.x=-.2;
+ B(g,1.95,.05,.4,bm,0,.98,-2.38).rotation.x=.25;
+ B(g,1.95,.34,.12,dk,0,.45,-2.42);B(g,1.7,.14,.7,dk,0,.3,-2.25).rotation.x=.25;B(g,.5,.14,.04,MB(0xf4f4f4),0,.58,-2.46);
+ WH(-.99,1.5,.4,.38);WH(.99,1.5,.4,.38);WH(-1.0,-1.45,.44,.5);WH(1.0,-1.45,.44,.5);
  g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g}
 function sportCar(k,ca){if(k=='leopard26')return leopardCar();const g=new T.Group(),sp=SPK[k],body=k=='leopard26'?leoMat():M(ca||sp.col,k=='phantom26'?.7:.25,.3),dk=M(0x0b0b0e,.5,.5),gl=glass,wd=(k=='viper26'||k=='leopard26')?1.1:1;
  const WH=(x,z,r,w)=>{const t=cy(g,r,r,w,dk,x,r,z,14);t.rotation.z=PI/2;const rim=cy(g,r*.62,r*.62,w+.02,M(0xcfd3d8,.2,.9),x,r,z,10);rim.rotation.z=PI/2};
@@ -3330,15 +3343,16 @@ function buildRich(){patch(-635,-1480,210,380,0x4f9a48,.03);for(let i=0;i<4;i++)
  label('HILLCREST ESTATES',-530,10,-1480,18,'#ffd24a');place('HILLCREST ESTATES',-535,-1480,0xffd24a,'#ffd24a',9)}
 
 /* ---------- CAR VALUES, DEALER, PRICE CHECK, LEOPARD ---------- */
-function snowLeoTex(){const N=512,c=document.createElement('canvas');c.width=c.height=N;const g=c.getContext('2d');let sd=77;const rnd=()=>(sd=(sd*16807)%2147483647)/2147483647;
- const gr=g.createLinearGradient(0,0,N,N);gr.addColorStop(0,'#eef1f3');gr.addColorStop(.5,'#dfe4e8');gr.addColorStop(1,'#eceff1');g.fillStyle=gr;g.fillRect(0,0,N,N);
- for(let i=0;i<26;i++){g.fillStyle='rgba(150,158,168,'+(.05+rnd()*.07)+')';g.beginPath();g.ellipse(rnd()*N,rnd()*N,30+rnd()*50,18+rnd()*30,rnd()*3,0,7);g.fill()}
- const ros=(x,y,r)=>{g.fillStyle='rgba(176,184,194,.85)';g.beginPath();g.ellipse(x,y,r*.62,r*.5,0,0,7);g.fill();const n=6+Math.floor(rnd()*3);for(let q=0;q<n;q++){const a=q/n*6.283+rnd()*.4,rr=r*(.78+rnd()*.2);g.fillStyle='#262a31';g.beginPath();g.ellipse(x+Math.cos(a)*rr*.9,y+Math.sin(a)*rr*.75,r*(.2+rnd()*.14),r*(.14+rnd()*.12),a,0,7);g.fill()}};
- const spot=(x,y,r)=>{g.fillStyle='#2c3037';g.beginPath();g.ellipse(x,y,r,r*(.6+rnd()*.4),rnd()*3,0,7);g.fill()};
- for(let i=0;i<46;i++){const x=rnd()*N,y=rnd()*N,r=24+rnd()*20;for(const dx of[-N,0,N])for(const dy of[-N,0,N])if(x+dx>-60&&x+dx<N+60&&y+dy>-60&&y+dy<N+60)ros(x+dx,y+dy,r)}
- for(let i=0;i<90;i++){const x=rnd()*N,y=rnd()*N,r=3+rnd()*6;for(const dx of[-N,0,N])for(const dy of[-N,0,N])if(x+dx>-20&&x+dx<N+20&&y+dy>-20&&y+dy<N+20)spot(x+dx,y+dy,r)}
- const t=new T.CanvasTexture(c);t.wrapS=t.wrapT=T.RepeatWrapping;t.repeat.set(1.2,1.2);if(T.sRGBEncoding)t.encoding=T.sRGBEncoding;return t}
-let _leoM=null;function leoMat(){if(!_leoM){_leoM=new T.MeshStandardMaterial({map:snowLeoTex(),roughness:.28,metalness:.3})}return _leoM}
+function snowLeoTex(){const N=1024,c=document.createElement('canvas');c.width=c.height=N;const g=c.getContext('2d');let sd=91;const rnd=()=>(sd=(sd*16807)%2147483647)/2147483647;
+ const gr=g.createLinearGradient(0,0,N,N);gr.addColorStop(0,'#e6e9ec');gr.addColorStop(.5,'#d4d9de');gr.addColorStop(1,'#e2e6e9');g.fillStyle=gr;g.fillRect(0,0,N,N);
+ for(let i=0;i<30;i++){g.fillStyle='rgba(140,148,160,'+(.06+rnd()*.07)+')';g.beginPath();g.ellipse(rnd()*N,rnd()*N,50+rnd()*90,30+rnd()*50,rnd()*3,0,7);g.fill()}
+ const ros=(x,y,r)=>{g.fillStyle='rgba(165,172,182,.9)';g.beginPath();g.ellipse(x,y,r*.6,r*.5,rnd()*3,0,7);g.fill();const n=7+Math.floor(rnd()*3);for(let q=0;q<n;q++){const a=q/n*6.283+rnd()*.35,rr=r*(.78+rnd()*.18);g.fillStyle='#1d2026';g.beginPath();g.ellipse(x+Math.cos(a)*rr,y+Math.sin(a)*rr*.85,r*(.24+rnd()*.14),r*(.15+rnd()*.1),a,0,7);g.fill()}};
+ const spot=(x,y,r)=>{g.fillStyle='#22252b';g.beginPath();g.ellipse(x,y,r,r*(.6+rnd()*.4),rnd()*3,0,7);g.fill()};
+ const wrap=(x,y,m,f)=>{for(const dx of[-N,0,N])for(const dy of[-N,0,N])if(x+dx>-m&&x+dx<N+m&&y+dy>-m&&y+dy<N+m)f(x+dx,y+dy)};
+ for(let a=0;a<4;a++)for(let b=0;b<4;b++){const x=(a+.5+(rnd()-.5)*.5)*N/4,y=(b+.5+(rnd()-.5)*.5)*N/4,r=58+rnd()*22;wrap(x,y,120,(X,Y)=>ros(X,Y,r))}
+ for(let i=0;i<60;i++){const x=rnd()*N,y=rnd()*N,r=6+rnd()*9;wrap(x,y,30,(X,Y)=>spot(X,Y,r))}
+ const t=new T.CanvasTexture(c);t.wrapS=t.wrapT=T.RepeatWrapping;t.repeat.set(1/1.5,1/1.5);t.anisotropy=4;if(T.sRGBEncoding)t.encoding=T.sRGBEncoding;return t}
+let _leoM=null;function leoMat(){if(!_leoM){_leoM=new T.MeshStandardMaterial({map:snowLeoTex(),roughness:.22,metalness:.3})}return _leoM}
 const PAL=[0xd01818,0x1a5ad8,0xf2c200,0xf4f4f4,0x18a84a,0xff7a1a,0x7a2ad8,0xff4fa0,0x10b8c8];
 const VAL={sedan:45000,muscle:180000,sports:650000,super:1400000,hyper:2500000,phantom:1800000,truck:90000,tank:900000,hearse:120000,godtank:25000000,ptruck:150000,limo:800000,raptor:1200000,cop:30000,park:20000,vip:3000000,viper26:2100000,muscle26:1300000,phantom26:2600000,ghost26:6000000,ufocar:9000000,leopard26:1000000000,safari:90000,bigfoot:400000,bulldozer:250000,excavator:300000,dump:180000,mixer:170000,forklift:40000,tug:30000,fuel:120000};
 function carValue(ty,hf){if(ty=='leopard26')return 1000000000;const base=VAL[ty]||Math.max(9000,Math.round(Math.pow(CT[ty]?CT[ty].sp:20,2)*180/1000)*1000);return Math.round(base*(.6+.4*cl(hf,0,1))/1000)*1000}
