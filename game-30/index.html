@@ -77,11 +77,19 @@ if(typeof THREE==='undefined'){document.body.innerHTML='<div style="padding:40px
 const TIERS=[
 {n:'Common',c:'#c4ccd4',base:2},{n:'Uncommon',c:'#62d96e',base:15},{n:'Rare',c:'#4aa8ff',base:150},
 {n:'Epic',c:'#b560ff',base:8000},{n:'Legendary',c:'#ffb830',base:50000},{n:'Mythic',c:'#ff4d6d',base:400000},
-{n:'Cosmic',c:'#3df2e6',base:6e6},{n:'Secret',c:'#ff8fd8',base:8e7},{n:'Eternal',c:'#8affc0',base:1e9},{n:'Divine',c:'#fff2a0',base:8e9}];
+{n:'Cosmic',c:'#3df2e6',base:6e6},{n:'Secret',c:'#ff8fd8',base:8e7},{n:'Eternal',c:'#8affc0',base:1e9},{n:'Divine',c:'#fff2a0',base:8e9},
+{n:'Celestial',c:'#ffb0e8',base:5e10},{n:'Astral',c:'#a0b4ff',base:3e11},{n:'Primal',c:'#7dffb0',base:2e12},{n:'Ancient',c:'#d4a060',base:1.5e13},{n:'Omega',c:'#ff5a3a',base:1e14},
+{n:'Transcendent',c:'#60e0ff',base:8e14},{n:'Infinite',c:'#ffffff',base:6e15},{n:'Godly',c:'#ffd84a',base:5e16},{n:'Ultimate',c:'#ff4ad0',base:4e17},{n:'Supreme',c:'#4affd8',base:3e18},
+{n:'Empyrean',c:'#b0ff4a',base:2.5e19},{n:'Paradox',c:'#c04aff',base:2e20},{n:'Genesis',c:'#ff9a4a',base:1.6e21},{n:'Absolute',c:'#4a8aff',base:1.3e22},{n:'Origin',c:'#fff08a',base:1e23}];
 const TIER_HINT=['Smooth plain egg','Small dots','Dots + a belt stripe','Belt + 3 small spikes','5 spikes','7 spikes + belt','8 big spikes + floating ring','Tall egg, 10 spikes + ring','12 spikes + two floating rings','14 spikes, two rings + golden orbs'];
 const MUTS=[
-{n:'Silver',m:1.5,w:40,c:0xd8dee6},{n:'Bloom',m:2,w:28,c:0xff9ad0},{n:'Golden',m:3,w:16,c:0xffc933},
-{n:'Spirit Bloom',m:5,w:8,c:0x4dff8a},{n:'Fractured',m:8,w:4.5,c:0x9a3aff},{n:'Parasite',m:12,w:2.5,c:0x2affb0},{n:'Rainbow',m:25,w:1,c:0xffffff}];
+{n:'Silver',m:1.5,w:40,c:0xd8dee6,st:'m',a:0},{n:'Bloom',m:2,w:28,c:0xff9ad0,st:'g',a:1},{n:'Golden',m:3,w:16,c:0xffc933,st:'m',a:2,e:0x6a4000},
+{n:'Spirit Bloom',m:5,w:8,c:0x4dff8a,st:'g',a:1},{n:'Fractured',m:8,w:4.5,c:0x9a3aff,st:'d',a:2},{n:'Parasite',m:12,w:2.5,c:0x2affb0,st:'d',a:3},{n:'Rainbow',m:25,w:1,c:0xffffff,st:'r',a:1,x:.4},
+{n:'Frosted',m:3.5,w:14,c:0xaee8ff,st:'g',a:2},{n:'Ember',m:4,w:12,c:0xff6a1a,st:'g',a:3},{n:'Toxic',m:6,w:9,c:0x9aff2a,st:'d',a:3},{n:'Crystalline',m:10,w:7,c:0x6ae8ff,st:'m',a:2},
+{n:'Shadow',m:15,w:5.5,c:0x6a2aaa,st:'d',a:1},{n:'Neon',m:18,w:4.5,c:0xff2ad8,st:'g',a:3},{n:'Thunder',m:22,w:3.8,c:0xffe84a,st:'g',a:2},{n:'Magma',m:30,w:3,c:0xff3a00,st:'d',a:3},
+{n:'Abyssal',m:40,w:2.4,c:0x1a6aff,st:'d',a:1},{n:'Starborn',m:55,w:1.9,c:0xfff0a0,st:'g',a:1},{n:'Voidtouched',m:75,w:1.5,c:0x4a0aaa,st:'d',a:2},{n:'Prismatic',m:100,w:1.1,c:0xffffff,st:'r',a:1,x:1.2},
+{n:'Galaxy',m:150,w:.8,c:0x2a2aff,c2:0xff2aff,st:'s',a:2,x:2},{n:'Holy',m:250,w:.55,c:0xfff6c0,c2:0xffffff,st:'s',a:1,x:3},{n:'Glitched',m:400,w:.35,c:0x00ffcc,c2:0xff0066,st:'s',a:3,x:9},
+{n:'Apex',m:800,w:.2,c:0xffffff,st:'r',a:2,x:2.4},{n:'Everlasting',m:1500,w:.1,c:0xffd84a,c2:0x4affff,st:'s',a:1,x:1.5}];
 const BIOMES=[
 {n:'Starter Forest',g:0x4caf50,s:0x9bd8ff,d:'tree',gn:'Thorn Boar',gc:0x6b4a3a},
 {n:'Sunny Meadow',g:0x8bd450,s:0xb8e6ff,d:'bush',gn:'Meadow Brute',gc:0x9a6a3a},
@@ -98,6 +106,41 @@ const BIOMES=[
 {n:'Alien World',g:0x2a5a3a,s:0x3a1a5a,d:'stalk',gn:'Xeno Queen',gc:0x1a1a22},
 {n:'Frozen Moon',g:0xb8b8d8,s:0x1a1a3a,d:'spike',gn:'Lunar Colossus',gc:0x8a8ac8},
 {n:'Spirit World',g:0xf0e8ff,s:0x2a1a4a,d:'lantern',gn:'Spirit Warden',gc:0xe8c8ff}];
+`Mushroom Grove|7a3a8a|c9a0e0|mushroom|Spore Giant|a04a8a
+Candy Kingdom|ff9ad0|ffe0f0|candy|Gummy Golem|ff4a6a
+Clockwork City|8a7a5a|c8b890|gear|Brass Colossus|b8902a
+Bone Valley|e0d8c0|a8a090|bone|Bone Behemoth|f0ead0
+Neon Metropolis|1a1a3a|2a0a4a|tower|Cyber Hound|2affd8
+Lava Lakes|5a1a10|ff7a2a|flame|Inferno Drake|ff3a1a
+Glacier Peaks|c8e8ff|e0f4ff|spike|Yeti King|e8f4ff
+Thunder Plains|4a5a6a|2a3a5a|rock|Storm Titan|ffe84a
+Abyss Trench|0a2a5a|0a1a3a|coral|Abyss Leviathan|1a4a8a
+Haunted Grounds|3a3a4a|2a2a3a|dead|Specter Lord|a0c0ff
+Dragon's Lair|4a2a1a|8a3a1a|rock|Elder Dragon|c82a2a
+Titan's Graveyard|5a5a50|7a7060|bone|Bone Titan|d8d0b0
+Floating Gardens|a8f0b8|b8e8ff|cloud|Wind Elemental|a0e0ff
+Sunken Atlantis|2ab8a8|4ac8e0|pillar|Trident Guardian|2a8aca
+Amber Wasteland|c88a2a|e8b050|cactus|Dust Reaper|8a5a1a
+Rainbow Hills|8ae8a0|ffd8f0|candy|Prism Beast|ff8aff
+Shadow Realm|1a1a22|0a0a14|orb|Shadow Sovereign|3a2a5a
+Starlight Plains|2a2a6a|1a1a4a|lantern|Comet Beast|8aa0ff
+Nebula Garden|5a2a7a|3a1a6a|stalk|Nebula Hydra|ff4ad8
+Black Hole Edge|0a0a0a|140a24|orb|Singularity|6a2aff
+Time Rift|5a4a8a|8a7ac8|gear|Chrono Warden|ffd84a
+Dream Dimension|c8a8f0|f0d0ff|cloud|Nightmare Weaver|8a4ac8
+Mirror World|c8d8e8|e8f4ff|crystal|Reflection Beast|ffffff
+Crystal Sun|ffd860|fff0a0|crystal|Solar Guardian|ff9a2a
+Pulsar Fields|2a3a6a|0a1a3a|spike|Pulsar Behemoth|4affff
+Quasar Core|3a1a5a|ff8aff|orb|Quasar Lord|ffd0ff
+Ancient Heaven|fff0d8|ffe8b0|pillar|Seraph Warden|fff2a0
+Throne of Gods|e8c860|ffe890|pillar|Godslayer|ffffff
+Primordial Soup|3a5a2a|6a8a3a|mushroom|Primal Ooze|7aff4a
+Genesis Garden|6aff9a|b8ffd8|palm|Genesis Colossus|2aca5a
+Void Palace|120a22|1a0a2a|crystal|Void Emperor|8a2aff
+Omega Citadel|3a3a4a|4a4a6a|tower|Omega Sentinel|ff4a4a
+Reality Fracture|2a2a2a|8a8a8a|spike|Paradox Beast|ff4aff
+Infinite Library|5a3a2a|3a2a1a|lantern|Eternal Librarian|ffe0a0
+Origin of Eggs|fff8d8|ffffff|bigegg|The First Egg|ffd84a`.split('\n').forEach(l=>{const a=l.trim().split('|');BIOMES.push({n:a[0],g:parseInt(a[1],16),s:parseInt(a[2],16),d:a[3],gn:a[4],gc:parseInt(a[5],16)})});
 // [biome,name,tier,kind,color1,color2,opts]
 const SPT=[
 [0,'Chicken',0,'bird',0xffffff,0xff5a2a,'comb'],[0,'Bunny',0,'quad',0xf2e6d8,0xffc0cb,'longears squat'],[0,'Raccoon',1,'quad',0x777777,0x222222,'stripes bigtail'],
@@ -115,24 +158,66 @@ const SPT=[
 [12,'Xeno Beast',7,'quad',0x2a2a30,0x8aff2a,'spikes glow fangs'],[12,'Void Walker',7,'golem',0x120a22,0xa82aff,'glow'],[12,'Ice Dragon',8,'quad',0xa8e0ff,0xffffff,'dragon horn'],
 [13,'Lunar Dragon',8,'quad',0xb8b8ff,0xfff0a0,'dragon horn glow'],[13,'Aurora Stag',8,'quad',0x3affc8,0xff8aff,'antlers neck glow'],[13,'Unicorn',9,'quad',0xffffff,0xff8ae0,'horn mane glow'],
 [14,'Kitsune',9,'quad',0xffa0e0,0xffffff,'tails9 glow'],[14,'Spirit World Guardian',9,'golem',0xffe8a0,0x6affff,'glow wings crystals'],[14,'Celestial Phoenix',9,'bird',0xffffff,0xffd0ff,'wings glow longtail']];
+const hxc=(h,sa,l)=>new THREE.Color().setHSL((((h%360)+360)%360)/360,sa,l).getHex();
+`Shroom Toad|quad|squat;Spore Moth|bird|wings glow;Funguzilla|golem|crystals
+Gummy Bear|quad|big squat;Cupcake Cat|quad|bigtail longears;Rock Candy Dragon|quad|dragon horn glow
+Gear Mouse|quad|longears squat;Cog Beetle|crab|beetle;Brass Colossus|golem|crystals glow
+Bone Hound|quad|fangs spikes;Skeletal Raptor|bird|wings longtail;Bone Dragon|quad|dragon horn
+Cyber Cat|quad|bigtail glow fangs;Hologram Owl|bird|wings glow;Mecha Rex|quad|big long croc glow
+Magma Salamander|quad|squat glow long;Fire Imp|bird|wings glow;Inferno Drake|quad|dragon horn glow
+Ice Fox|quad|bigtail;Yeti|quad|big fangs;Frost Wyrm|quad|dragon horn
+Spark Rabbit|quad|longears squat glow;Thunderbird|bird|wings big glow;Storm Elephant|quad|big tusks neck glow
+Anglerfish|fish|shark glow;Giant Squid|octo|big;Abyss Leviathan|fish|whale glow
+Ghost Cat|quad|bigtail glow longears;Poltergeist Crow|bird|wings glow;Specter Lord|golem|glow wings
+Baby Wyvern|quad|dragon wings;Fire Dragon|quad|dragon horn wings glow;Elder Dragon|quad|dragon horn wings big glow
+Grave Wolf|quad|fangs;Bone Titan|golem|crystals;Reaper Crow|bird|wings big
+Cloud Sheep|quad|squat;Wind Sprite|bird|wings glow;Sky Whale|fish|whale
+Seahorse|quad|neck horn glow;Trident Crab|crab|stinger glow;Atlantean Guardian|golem|glow
+Dust Jackal|quad|longears fangs;Sand Wyrm|quad|dragon;Amber Scarab|crab|beetle glow
+Rainbow Pony|quad|mane glow;Prism Butterfly|bird|wings glow;Rainbow Serpent|quad|dragon horn glow
+Shade Wolf|quad|fangs glow;Shadow Raven|bird|wings;Shadow Sovereign|golem|glow wings
+Star Rabbit|quad|longears glow;Comet Fox|quad|bigtail glow;Starlight Pegasus|quad|horn wings mane glow
+Nebula Cat|quad|bigtail glow;Galaxy Jelly|octo|glow;Nebula Hydra|octo|big glow
+Void Bat|bird|wings;Event Horizon Beast|quad|big spikes glow;Singularity|golem|glow crystals
+Hourglass Beetle|crab|beetle glow;Chrono Fox|quad|bigtail glow;Time Dragon|quad|dragon horn wings glow
+Dream Deer|quad|antlers neck glow;Sleepy Sloth|quad|squat;Nightmare Stallion|quad|mane horn glow
+Mirror Cat|quad|bigtail;Glass Golem|golem|crystals glow;Reflection Phoenix|bird|wings glow longtail
+Sun Lion|quad|mane glow;Solar Phoenix|bird|wings glow longtail;Radiant Titan|golem|crystals glow
+Pulse Wolf|quad|fangs glow;Pulsar Eel|fish|shark glow;Pulsar Behemoth|quad|big spikes glow
+Quasar Fox|quad|tails9 glow;Gravity Whale|fish|whale glow;Quasar Dragon|quad|dragon wings horn big glow
+Cherub Lamb|quad|squat glow wings;Angel Stag|quad|antlers wings glow;Seraphim|bird|wings big glow
+Golden Lion|quad|mane big glow;Valkyrie Horse|quad|wings horn glow;Titan God|golem|crystals wings glow
+Proto Slime|octo|glow;Ooze Beast|quad|squat big glow;Primal Hydra|octo|big glow
+Seed Sprite|bird|glow;Life Deer|quad|antlers neck glow;World Tree Ent|golem|crystals glow
+Void Cat|quad|bigtail glow;Void Dragon|quad|dragon horn wings glow;Void Emperor|golem|wings crystals glow
+Omega Hound|quad|spikes fangs glow;Omega Dragon|quad|dragon horn wings big glow;Omega Golem|golem|crystals wings glow
+Glitch Cat|quad|bigtail glow;Paradox Fox|quad|tails9 glow;Fracture Wyrm|quad|dragon horn big glow
+Tome Owl|bird|wings glow;Scribe Sphinx|quad|sphinx wings glow;Eternal Librarian|golem|wings crystals glow
+Egg Chick|bird|glow;Cosmic Hatchling|quad|dragon horn wings glow;First Egg Dragon|quad|dragon horn wings big glow mane`.split('\n').forEach((l,j)=>{const bi=15+j,base=10+Math.min(14,Math.floor(j*15/35));l.trim().split(';').forEach((sp,k)=>{const a=sp.split('|');SPT.push([bi,a[0],Math.min(24,base+(k===2?1:0)),a[1],hxc(bi*37+k*53,.55,.5),hxc(bi*37+k*53+150,.6,.7),a[2]||''])})});
 const SP=SPT.map((a,i)=>({id:i,biome:a[0],name:a[1],tier:a[2],kind:a[3],c1:a[4],c2:a[5],o:new Set(a[6].split(' '))}));
 const BSP=BIOMES.map(()=>[]);SP.forEach(s=>BSP[s.biome].push(s.id));SP.forEach(s=>{s.k=BSP[s.biome].indexOf(s.id);s.mult=1+.35*s.k});
-const WEAPONS=[{id:'fist',n:'Fists',r:3.5,stun:1.2,cd:.5,need:-1},{id:'bat',n:'Wooden Bat',r:5.5,stun:3,cd:.55,need:0},{id:'axe',n:'Battle Axe',r:7,stun:4,cd:.6,need:2},{id:'katana',n:'Katana',r:9,stun:5,cd:.35,need:5},{id:'hammer',n:'Thunder Hammer',r:11,stun:7,cd:.7,need:8},{id:'scythe',n:'Void Scythe',r:14,stun:9,cd:.4,need:11}];
+const WEAPONS=[{id:'fist',n:'Fists',r:3.5,stun:1.2,cd:.5,need:-1},{id:'bat',n:'Wooden Bat',r:5.5,stun:3,cd:.55,need:0},{id:'axe',n:'Battle Axe',r:7,stun:4,cd:.6,need:2},{id:'katana',n:'Katana',r:9,stun:5,cd:.35,need:5},{id:'hammer',n:'Thunder Hammer',r:11,stun:7,cd:.7,need:8},{id:'scythe',n:'Void Scythe',r:14,stun:9,cd:.4,need:11},
+{id:'spear',n:'Crystal Spear',r:16,stun:10,cd:.4,need:17,col:0x6ae8ff},{id:'trident',n:'Abyss Trident',r:18,stun:11,cd:.38,need:23,col:0x1a8aff},{id:'laser',n:'Laser Blade',r:20,stun:12,cd:.3,need:29,col:0xff2a6a},
+{id:'gauntlet',n:'Gravity Gauntlet',r:23,stun:14,cd:.45,need:35,col:0x8a4aff},{id:'starblade',n:'Star Blade',r:27,stun:16,cd:.3,need:41,col:0xfff0a0},{id:'omegacannon',n:'Omega Cannon',r:32,stun:19,cd:.5,need:46,col:0xff4a4a},{id:'infinity',n:'Infinity Edge',r:40,stun:24,cd:.25,need:49,col:0xffffff}];
 const TRAILS=[{id:'none',n:'No Trail',cost:0},{id:'spark',n:'Sparkle',cost:300},{id:'fire',n:'Flame',cost:5000},{id:'ice',n:'Frost',cost:60000},{id:'slime',n:'Slime',cost:8e5},{id:'stars',n:'Stardust',cost:1.5e7},{id:'rainbow',n:'Rainbow',cost:4e8},{id:'void',n:'Void Rift',cost:1e10}];
-const UPG={spd:{n:'Speed Boost',d:'+1.3 run speed',base:40,g:1.18,max:400},luck:{n:'Egg Luck',d:'Rarer species, more mutations & Huge eggs',base:3000,g:2.3,max:20},spawns:{n:'Egg Nests',d:'+1 wild egg in every biome',base:8000,g:2.5,max:10},magnet:{n:'Egg Magnet',d:'Bigger egg pickup range',base:4000,g:2.4,max:10},slots:{n:'Pen Slots',d:'+1 pet slot (max 16)',base:400,g:2.2,max:12},hatch:{n:'Hatch Speed',d:'-8% hatch time',base:1500,g:2.6,max:12},carry:{n:'Carry Strength',d:'Less slowdown while carrying eggs',base:2000,g:2.4,max:10},boost:{n:'Pet Treats',d:'+15% cash from all pets',base:5000,g:3.2,max:15}};
-const TREAD=[{n:'Basic Treadmill',rate:1,cost:0},{n:'Turbo Treadmill',rate:4,cost:3000},{n:'Quantum Treadmill',rate:20,cost:250000},{n:'Plasma Treadmill',rate:100,cost:2e7},{n:'Cosmic Treadmill',rate:500,cost:1.5e9},{n:'Stellar Treadmill',rate:2500,cost:1e11},{n:'Galactic Treadmill',rate:12000,cost:8e12},{n:'Infinity Treadmill',rate:60000,cost:6e14}];
+const UPG={spd:{n:'Speed Boost',d:'+1.3 run speed',max:1000,f:L=>40*Math.pow(1.12,Math.min(L,150))*Math.pow(1.045,Math.max(0,L-150))},
+luck:{n:'Egg Luck',d:'Rarer species, more mutations & Huge eggs',base:3000,g:2.1,max:30},spawns:{n:'Egg Nests',d:'+1 wild egg in every biome',base:8000,g:2.5,max:10},magnet:{n:'Egg Magnet',d:'Bigger egg pickup range',base:4000,g:1.9,max:20},
+slots:{n:'Pen Slots',d:'+1 pet slot (max 16)',base:400,g:2.2,max:12},hatch:{n:'Hatch Speed',d:'-8% hatch time',base:1500,g:2.1,max:30},carry:{n:'Carry Strength',d:'Less slowdown while carrying eggs',base:2000,g:2.6,max:20},boost:{n:'Pet Treats',d:'+15% cash from all pets',f:L=>5000*Math.pow(2.6,L),max:40}};
+const TN=['Basic','Turbo','Quantum','Plasma','Cosmic','Stellar','Galactic','Infinity','Nebula','Pulsar','Quasar','Singularity','Chrono','Dream','Mirror','Solar','Divine','Genesis','Void','Omega','Paradox','Eternal','Absolute','Origin'],TR0=[[1,0],[4,3000],[20,250000],[100,2e7],[500,1.5e9],[2500,1e11],[12000,8e12],[60000,6e14]];
+const TREAD=TN.map((n,i)=>({n:n+' Treadmill',rate:i<8?TR0[i][0]:Math.round(60000*Math.pow(4.2,i-7)),cost:i<8?TR0[i][1]:6e14*Math.pow(5.8,i-7)}));
 const RIVALS=['xX_Speedy_Xx','EggHunter99','NoobSlayer','PixelPanda','TurboTina','Zorp','DragonDad','Sir Omelette'];
 const EGGCOLS=[0xe8504a,0x4a8ae8,0x4ac85a,0xe8d04a];
-const NIGHT=210,EGGS_PER=5,BSTEP=80;
-const SUF=['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc'];
-function fmt(n){if(n<1000)return n%1===0?''+n:n.toFixed(1);const i=Math.min(11,Math.floor(Math.log10(n)/3));return(n/Math.pow(10,3*i)).toFixed(2)+SUF[i]}
+const NIGHT=210,EGGS_PER=5,BSTEP=80,EGG_RANGE=300,MAXTRAIN=1000;
+const hintFor=i=>TIER_HINT[i]||`${Math.min(26,14+i-9)} spikes + ${i>=18?4:i>=12?3:2} rings + ${i>=15?8:4} orbs${i>=21?' + glowing shell':''}`;
+const SUF=['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc','Ud','Dd','Td','Qad','Qid','Sxd','Spd','Ocd','Nod','Vg'];
+function fmt(n){if(n<1000)return n%1===0?''+n:n.toFixed(1);const i=Math.min(21,Math.floor(Math.log10(n)/3));return(n/Math.pow(10,3*i)).toFixed(2)+SUF[i]}
 const nestZ=b=>-(80+BSTEP*b);
 
 /* ================= STATE ================= */
 const SAVE_KEY='steal_an_egg_v1';
 function defState(){return{cash:0,spd:0,train:0,txp:0,upg:{slots:0,hatch:0,carry:0,boost:0,luck:0,spawns:0,magnet:0},slots:[],idx:{},trails:['none'],trail:'none',weapons:['fist'],weapon:'fist',treads:[1,0,0],best:0,last:Date.now(),eggs:0}}
 function loadS(){try{const j=JSON.parse(localStorage.getItem(SAVE_KEY));if(j){const d=defState();return Object.assign(d,j,{upg:Object.assign(d.upg,j.upg||{})})}}catch(e){}return defState()}
-let S=loadS();while(S.slots.length<16)S.slots.push(null);
+let S=loadS();while(S.slots.length<16)S.slots.push(null);while(S.treads.length<TREAD.length)S.treads.push(0);
 function save(){S.last=Date.now();try{localStorage.setItem(SAVE_KEY,JSON.stringify(S))}catch(e){}}
 const petCps=s=>TIERS[SP[s.sp].tier].base*SP[s.sp].mult*(s.mut!=null?MUTS[s.mut].m:1)*s.w;
 const trailIdx=()=>Math.max(0,TRAILS.findIndex(t=>t.id===S.trail));
@@ -140,6 +225,8 @@ const cpsMult=()=>(1+.15*S.upg.boost)*(1+.03*trailIdx());
 function totalCps(){let t=0;for(const s of S.slots)if(s&&s.hatched)t+=petCps(s);return t*cpsMult()}
 const slotCount=()=>4+S.upg.slots;
 const playerSpeed=()=>12+S.train*1.1+S.spd*1.3;
+const moveSpeed=r=>r<=40?r:40+22*Math.log2(r/40);
+const needXP=L=>4*Math.pow(1.035,L);
 
 /* ================= AUDIO ================= */
 let AC;function beep(f,d,t,v,s){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=t||'square';o.frequency.value=f;if(s)o.frequency.exponentialRampToValueAtTime(f*s,AC.currentTime+d);g.gain.value=v||.04;g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}catch(e){}}
@@ -239,48 +326,47 @@ function animC(g,t,mv){const U=g.userData;for(const l of U.legs)l.p.rotation.x=M
 
 /* ================= MUTATIONS ================= */
 const mutRoots=new Set();
+const AGEO=[null,GS,GO,GC],_c1=new THREE.Color(),_c2=new THREE.Color();
 function applyMut(root,mi){
- if(mi==null)return;const U=root.userData;
- for(const m of U.mats){switch(mi){
-  case 0:m.color.set(0xcfd8e0);m.specular.set(0xffffff);m.shininess=140;break;
-  case 1:m.emissive.set(0xff6ab0);m.emissiveIntensity=.35;m.color.lerp(new THREE.Color(0xffb8dc),.5);break;
-  case 2:m.color.set(0xffc428);m.emissive.set(0x6a4000);m.emissiveIntensity=.8;m.specular.set(0xffeeaa);m.shininess=120;break;
-  case 3:m.emissive.set(0x1aff6a);m.emissiveIntensity=.5;m.color.lerp(new THREE.Color(0x7dff9a),.45);break;
-  case 4:m.color.lerp(new THREE.Color(0x2a1448),.6);m.emissive.set(0xa020ff);m.emissiveIntensity=.35;break;
-  case 5:m.color.lerp(new THREE.Color(0x103838),.6);m.emissive.set(0x10ffa8);m.emissiveIntensity=.35;break}}
- const aura=new THREE.Group(),col=MUTS[mi].c;
- const geo=[null,GS,GO,GS,GO,GC,GS][mi],n=mi===0?0:7;
- for(let i=0;i<n;i++){const a=i/n*Math.PI*2;const m=new THREE.MeshBasicMaterial({color:mi===6?0xffffff:col});
-  const o=M(geo,m,.18,.18,.18,Math.cos(a)*1.6,1.2+Math.sin(i*2)*.6,Math.sin(a)*1.6,aura);if(mi===5||mi===4)o.scale.set(.15,.5,.15);
-  if(mi===6)U.rb=(U.rb||[]).concat([m])}
- root.add(aura);U.aura=aura;U.mut=mi;mutRoots.add(root);
- if(mi===6)U.rm=U.mats}
-function updMut(dt){mutRoots.forEach(r=>{if(!r.parent){mutRoots.delete(r);return}const U=r.userData;if(U.aura)U.aura.rotation.y+=dt*1.5;
- if(U.mut===6){const h=(time*.4)%1;for(const m of U.rm){m.color.setHSL(h,.8,.6);m.emissive.setHSL(h,1,.5);m.emissiveIntensity=.5}
-  if(U.rb)U.rb.forEach((m,i)=>m.color.setHSL((h+i*.14)%1,1,.6));if(U.beam)U.beam.material.color.setHSL(h,1,.6)}})}
-
+ if(mi==null)return;const U=root.userData,md=MUTS[mi],col=new THREE.Color(md.c);
+ for(const m of U.mats){switch(md.st){
+  case'm':m.color.copy(col);m.specular.set(0xffffff);m.shininess=140;if(md.e){m.emissive.set(md.e);m.emissiveIntensity=.8}break;
+  case'g':m.emissive.copy(col);m.emissiveIntensity=.5;m.color.lerp(col,.5);break;
+  case'd':m.color.lerp(new THREE.Color(0x120a1e),.6).lerp(col,.12);m.emissive.copy(col);m.emissiveIntensity=.35;break;
+  default:m.emissiveIntensity=.5}}
+ const aura=new THREE.Group(),geo=AGEO[md.a],n=geo?7:0;U.rb=[];
+ for(let i=0;i<n;i++){const a=i/n*Math.PI*2,am=new THREE.MeshBasicMaterial({color:(md.st==='r'||md.st==='s')?0xffffff:md.c});
+  const o=M(geo,am,.18,.18,.18,Math.cos(a)*1.6,1.2+Math.sin(i*2)*.6,Math.sin(a)*1.6,aura);if(geo===GC)o.scale.set(.15,.5,.15);U.rb.push(am)}
+ root.add(aura);U.aura=aura;U.mut=mi;mutRoots.add(root)}
+function updMut(dt){mutRoots.forEach(r=>{if(!r.parent){mutRoots.delete(r);return}const U=r.userData,md=MUTS[U.mut];if(U.aura)U.aura.rotation.y+=dt*1.5;
+ if(md.st==='r'){const h=(time*(md.x||.4))%1;for(const m of U.mats){m.color.setHSL(h,.8,.6);m.emissive.setHSL(h,1,.5);m.emissiveIntensity=.5}
+  U.rb.forEach((m,i)=>m.color.setHSL((h+i*.14)%1,1,.6));if(U.beam)U.beam.material.color.setHSL(h,1,.6)}
+ else if(md.st==='s'){const t=(Math.sin(time*(md.x||2))+1)/2;_c1.set(md.c).lerp(_c2.set(md.c2),t);for(const m of U.mats){m.color.copy(_c1);m.emissive.copy(_c1);m.emissiveIntensity=.55}U.rb.forEach(m=>m.color.copy(_c1));if(U.beam)U.beam.material.color.copy(_c1)}})}
 /* ================= EGGS ================= */
 function buildEgg(tier,color){
  const g=new THREE.Group(),U=g.userData,m=mat(color),acc=mat(new THREE.Color(color).offsetHSL(.5,.1,-.18));U.mats=[m,acc];
- const sy=tier>=7?1.65:1.25;M(GS,m,.95,sy,.95,0,sy,0,g);
+ const sy=tier>=12?1.9:tier>=7?1.65:1.25;if(tier>=21){m.emissive=new THREE.Color(color);m.emissiveIntensity=.5}M(GS,m,.95,sy,.95,0,sy,0,g);
  const P=(u,v)=>[.95*Math.sin(v)*Math.cos(u),sy*Math.cos(v),.95*Math.sin(v)*Math.sin(u)];
  if(tier>=1&&tier<=2)for(let i=0;i<6;i++){const p=P(i*1.05,.9+(i%3)*.5);M(GS,acc,.13,.13,.13,p[0],sy+p[1],p[2],g)}
  if(tier===2||tier===3||tier===5)M(GT,acc,.97,.97,.97,0,sy,0,g).rotation.x=Math.PI/2;
- const sn=[0,0,0,3,5,7,8,10,12,14][tier],Y=new THREE.Vector3(0,1,0);
+ const sn=tier<10?[0,0,0,3,5,7,8,10,12,14][tier]:Math.min(26,14+(tier-9)),Y=new THREE.Vector3(0,1,0);
  for(let i=0;i<sn;i++){const u=i*2.4,v=.8+(i%3)*.5,p=P(u,v),n=new THREE.Vector3(p[0]/.9,p[1]/(sy*sy),p[2]/.9).normalize(),len=.35+tier*.04;
   const s=new THREE.Mesh(GC,acc);s.scale.set(.14+tier*.01,len,.14+tier*.01);s.position.set(p[0],sy+p[1],p[2]).addScaledVector(n,len*.4);s.quaternion.setFromUnitVectors(Y,n);g.add(s)}
  const orbit=new THREE.Group();g.add(orbit);U.orbit=orbit;
  if(tier>=6){const r=M(GT,acc,1.6,1.6,1.6,0,sy,0,orbit);r.rotation.x=Math.PI/2.4}
  if(tier>=8){const r=M(GT,acc,1.9,1.9,1.9,0,sy,0,orbit);r.rotation.x=-Math.PI/3;r.rotation.y=1}
  if(tier>=9)for(let i=0;i<4;i++){const a=i*Math.PI/2;M(GS,cm(0xffe070),.16,.16,.16,Math.cos(a)*1.7,sy+Math.sin(a*2)*.4,Math.sin(a)*1.7,orbit)}
+ if(tier>=12){const r=M(GT,acc,2.2,2.2,2.2,0,sy,0,orbit);r.rotation.x=1.2;r.rotation.y=-.6}
+ if(tier>=15)for(let i=0;i<8;i++){const a=i*Math.PI/4;M(GS,cm(0x7affff),.2,.2,.2,Math.cos(a)*2.1,sy+Math.cos(a*3)*.5,Math.sin(a)*2.1,orbit)}
+ if(tier>=18){const r=M(GT,cm(0xffe070),2.5,2.5,2.5,0,sy,0,orbit);r.rotation.x=-1.1;r.rotation.y=.8}
  return g}
 const eggs=[];
-let RND=Math.random,ONLINE=false,ROOM='',curNight=0;const taken=new Set(),LK=k=>ONLINE?0:S.upg[k];
+let RND=Math.random,ONLINE=false,ROOM='solo'+Math.random().toString(36).slice(2,8),curNight=0;const SOLO=ROOM;const taken=new Set(),LK=k=>ONLINE?0:S.upg[k];
 function hashS(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
 function mulb(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-function rollMut(){if(RND()>.16+.012*LK('luck'))return null;const t=MUTS.reduce((a,m)=>a+m.w,0);let r=RND()*t,i=0;while(i<MUTS.length-1&&r>MUTS[i].w){r-=MUTS[i].w;i++}return i}
+function rollMut(b){if(RND()>.16+.012*LK('luck'))return null;const ws=MUTS.map((m,i)=>m.w*Math.pow(1+(b||0)/20,i*.35)),t=ws.reduce((a,v)=>a+v,0);let r=RND()*t,i=0;while(i<ws.length-1&&r>ws[i]){r-=ws[i];i++}return i}
 function rollEgg(b){const l=BSP[b],ws=l.length===2?[65,35]:[55,32,13];ws[0]*=Math.pow(.93,LK('luck'));let r=RND()*ws.reduce((a,v)=>a+v,0),i=0;while(i<l.length-1&&r>ws[i]){r-=ws[i];i++}
- const huge=RND()<.05+.003*LK('luck');return{sp:l[i],mut:rollMut(),huge,w:huge?2.2+RND()*.8:.8+RND()*.5,col:EGGCOLS[(RND()*4)|0]}}
+ const huge=RND()<.05+.003*LK('luck');return{sp:l[i],mut:rollMut(b),huge,w:huge?2.2+RND()*.8:.8+RND()*.5,col:EGGCOLS[(RND()*4)|0]}}
 function spawnEgg(b,id){
  const a=RND()*Math.PI*2,r=6+RND()*12,d=rollEgg(b),tier=SP[d.sp].tier;
  const mesh=buildEgg(tier,d.col);applyMut(mesh,d.mut);const hs=d.huge?1.6:1;mesh.scale.setScalar(hs);
@@ -288,7 +374,12 @@ function spawnEgg(b,id){
  let beam=null;if(d.mut!=null){beam=new THREE.Mesh(GY,new THREE.MeshBasicMaterial({color:MUTS[d.mut].c,transparent:true,opacity:d.mut>=3?.3:.18,blending:THREE.AdditiveBlending,depthWrite:false}));beam.scale.set(.9,9,.9);beam.position.y=9;mesh.add(beam);mesh.userData.beam=beam}
  const nest=M(GT,cm(0x6a4a2a),1.7,1.7,1.7,0,.1,0,mesh);nest.rotation.x=Math.PI/2;nest.scale.z=3;
  eggs.push(Object.assign(d,{b,id,mesh,home:mesh.position.clone(),hs,r:d.huge?4.2:2.8,carried:false,beam,ph:Math.random()*6}))}
-function resetEggs(){for(let i=eggs.length-1;i>=0;i--)if(!eggs[i].carried){scene.remove(eggs[i].mesh);eggs.splice(i,1)}for(let b=0;b<15;b++)for(let k=0;k<EGGS_PER+LK('spawns');k++){if(ONLINE){if(!taken.has(curNight+'-'+b+'-'+k))spawnSeeded(b,k,curNight)}else spawnEgg(b)}}
+function ensureEggs(){const want=new Set(),cnt=EGGS_PER+LK('spawns');
+ for(let b=0;b<BIOMES.length;b++)if(Math.abs(nestZ(b)-P.pos.z)<=EGG_RANGE)for(let k=0;k<cnt;k++)want.add(curNight+'-'+b+'-'+k);
+ const have=new Set();
+ for(let i=eggs.length-1;i>=0;i--){const e=eggs[i];if(e.carried){have.add(e.id);continue}if(!want.has(e.id)||taken.has(e.id)){scene.remove(e.mesh);eggs.splice(i,1)}else have.add(e.id)}
+ for(const id of want){if(have.has(id)||taken.has(id))continue;const q=id.split('-');spawnSeeded(+q[1],+q[2],+q[0])}}
+function resetEggs(){taken.clear();ensureEggs()}
 function spawnSeeded(b,k,n){RND=mulb(hashS(ROOM+':'+n+':'+b+':'+k));try{spawnEgg(b,n+'-'+b+'-'+k)}finally{RND=Math.random}}
 const eggDesc=e=>`${e.huge?'Huge ':''}${e.mut!=null?MUTS[e.mut].n+' ':''}${TIERS[SP[e.sp].tier].n} egg`;
 
@@ -307,6 +398,7 @@ function weaponMesh(id){const g=new THREE.Group(),w=cm(0x8a5a2a),st=cm(0xc8d0d8)
  else if(id==='katana'){M(GY,cm(0x222222),.08,.6,.08,0,.3,0,g);M(GB,cm(0xffc030),.45,.06,.22,0,.62,0,g);M(GB,cm(0xeaf4ff),.08,2.4,.03,0,1.85,0,g)}
  else if(id==='hammer'){M(GY,w,.08,2.2,.08,0,1.1,0,g);M(GB,cm(0x7a7a88),1,.8,.8,0,2.2,0,g);M(GB,em(0x4aa8ff,.8),1.05,.2,.85,0,2.2,0,g)}
  else if(id==='scythe'){M(GY,cm(0x4a2a6a),.07,2.6,.07,0,1.3,0,g);const b=M(GB,em(0xa84aff,.9),1.4,.14,.08,.6,2.6,0,g);b.rotation.z=.35}
+ else{const w2=WEAPONS.find(x=>x.id===id),cc=w2&&w2.col||0xffffff;M(GY,cm(0x333344),.08,.7,.08,0,.35,0,g);M(GB,em(cc,.9),.14,2.2,.14,0,1.8,0,g);M(GB,em(cc,.6),.9,.1,.2,0,.8,0,g)}
  return g}
 const player=buildPlayer();scene.add(player.g);
 const P={pos:player.g.position,yaw:0,vx:0,vz:0,carry:null,stun:0,swing:0,cd:0,tread:-1,treadCd:0,phase:0,noDep:0,shake:0};
@@ -331,16 +423,23 @@ function decor(type){
  case'orb':M(GS,em([0x6a4aff,0x4adaff,0xff4ad8][(r()*3)|0],.9),.9,.9,.9,0,2+r()*4,0,g);break;
  case'stalk':M(GC,em(0x4aff8a,.5),.4,6,.4,0,3,0,g);M(GS,em(0xb84aff,.9),.7,.7,.7,0,6.2,0,g);break;
  case'spike':M(GC,cm(0xcfe8ff),1,5,1,0,2.5,0,g);M(GC,cm(0xb0d0f0),.6,3,.6,1,1.5,.4,g);break;
- case'lantern':M(GY,cm(0x5a4a7a),.15,3.5,.15,0,1.75,0,g);M(GS,em(0xffe08a,1),.6,.6,.6,0,3.8,0,g);break}
+ case'lantern':M(GY,cm(0x5a4a7a),.15,3.5,.15,0,1.75,0,g);M(GS,em(0xffe08a,1),.6,.6,.6,0,3.8,0,g);break;
+ case'mushroom':M(GY,cm(0xf0e8d8),.4,2,.4,0,1,0,g);M(GS,cm([0xff4a6a,0xb84aff,0x4aa8ff][(r()*3)|0]),1.6,.9,1.6,0,2.3,0,g);M(GS,cm(0xffffff),.25,.2,.25,.6,2.9,.3,g);break;
+ case'candy':M(GY,cm(0xffffff),.12,3,.12,0,1.5,0,g);M(GY,cm([0xff4a8a,0x4affc8,0xffd84a][(r()*3)|0]),1.2,.25,1.2,0,3.2,0,g).rotation.x=Math.PI/2;break;
+ case'gear':M(GY,cm(0x9a8050),1.6,.5,1.6,0,1.9,0,g).rotation.x=Math.PI/2;for(let i=0;i<8;i++){const a=i*Math.PI/4;M(GB,cm(0x9a8050),.4,.5,.5,Math.cos(a)*1.7,1.9+Math.sin(a)*1.7,0,g)}break;
+ case'bone':M(GY,cm(0xeee8d0),.3,3.5,.3,0,1.75,0,g);M(GS,cm(0xeee8d0),.5,.5,.5,-.3,3.6,0,g);M(GS,cm(0xeee8d0),.5,.5,.5,.3,3.6,0,g);break;
+ case'tower':{const c=[0x2affd8,0xff2ad8,0x4a8aff][(r()*3)|0],hh=8+r()*8;M(GB,cm(0x22223a),2,hh,2,0,hh/2,0,g);M(GB,em(c,.9),2.1,.3,2.1,0,hh*.6,0,g);M(GB,em(c,.9),2.1,.3,2.1,0,hh*.9,0,g)}break;
+ case'flame':M(GC,em(0xff7a1a,.9),1,3,1,0,1.5,0,g);M(GC,em(0xffd02a,1),.6,2,.6,0,1.2,0,g);break;
+ case'bigegg':M(GS,cm(0xfff0c0),1.3,1.8,1.3,0,1.8,0,g);M(GS,em(0xffd84a,.8),.3,.3,.3,.5,2.6,.9,g);break}
  g.scale.setScalar(.8+Math.random()*.9);return g}
-const stripes=[];
+const stripes=[],bgroups=[];
 function buildWorld(){
- const ground=(w,d,x,z,c)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshPhongMaterial({color:c,flatShading:true}));m.rotation.x=-Math.PI/2;m.position.set(x,0,z);scene.add(m)};
+ const ground=(w,d,x,z,c,p)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshPhongMaterial({color:c,flatShading:true}));m.rotation.x=-Math.PI/2;m.position.set(x,0,z);(p||scene).add(m)};
  ground(500,112,0,16,0x6fcf6a);
- BIOMES.forEach((b,i)=>{ground(500,BSTEP,0,nestZ(i),b.g);
-  const sg=label(`▼ ${i+1}. ${b.n} ▼`,'#ffffff','Guardian: '+b.gn,1.6);sg.position.set(0,10,nestZ(i)+BSTEP/2-2);scene.add(sg);
-  for(let k=0;k<20;k++){const x=(Math.random()*2-1)*95,z=nestZ(i)+(Math.random()-.5)*(BSTEP-4);if(Math.abs(x)<28&&Math.abs(z-nestZ(i))<26)continue;const d=decor(b.d);d.position.set(x,0,z);scene.add(d)}
-  for(let k=0;k<5;k++){const d=decor(b.d);d.position.set((Math.random()<.5?-1:1)*(32+Math.random()*30),0,nestZ(i)+(Math.random()-.5)*(BSTEP-4));scene.add(d)}});
+ BIOMES.forEach((b,i)=>{const bg=new THREE.Group();scene.add(bg);bgroups.push(bg);ground(500,BSTEP,0,nestZ(i),b.g,bg);
+  const sg=label(`▼ ${i+1}. ${b.n} ▼`,'#ffffff','Guardian: '+b.gn,1.6);sg.position.set(0,10,nestZ(i)+BSTEP/2-2);bg.add(sg);
+  for(let k=0;k<20;k++){const x=(Math.random()*2-1)*95,z=nestZ(i)+(Math.random()-.5)*(BSTEP-4);if(Math.abs(x)<28&&Math.abs(z-nestZ(i))<26)continue;const d=decor(b.d);d.position.set(x,0,z);bg.add(d)}
+  for(let k=0;k<5;k++){const d=decor(b.d);d.position.set((Math.random()<.5?-1:1)*(32+Math.random()*30),0,nestZ(i)+(Math.random()-.5)*(BSTEP-4));bg.add(d)}});
  // base: shop
  const shop=new THREE.Group();M(GB,cm(0xe8a84a),14,7,8,0,3.5,0,shop);M(GB,cm(0xc83a3a),15,1,9,0,7.5,0,shop);M(GB,cm(0x6a3a1a),3,4,.3,0,2,4.1,shop);
  const sl=label('🥚 EGG SHOP (B)','#ffe27a','',1.6);sl.position.set(0,10.5,0);shop.add(sl);shop.position.set(0,0,52);scene.add(shop);
@@ -351,9 +450,9 @@ function buildWorld(){
  M(GB,fm,36,.3,.3,-30,1.8,5,pen);M(GB,fm,36,.3,.3,-30,1.8,40,pen);M(GB,fm,.3,.3,35,-48,1.8,22.5,pen);M(GB,fm,.3,.3,10,-12,1.8,9.5,pen);M(GB,fm,.3,.3,10,-12,1.8,35,pen);
  const pl=label('🐾 YOUR PEN — bring eggs here','#ffffff','',1.5);pl.position.set(-30,6,5);pen.add(pl);scene.add(pen);
  // treadmills
- TREAD.forEach((t,i)=>{const g=new THREE.Group();M(GB,cm([0x4a4a5a,0x2a6aaa,0x8a2aca,0xca2a8a,0xca8a2a,0x2aca8a,0x2a2aca,0xdddddd][i]),7,.5,11,0,.25,0,g);
+ TREAD.forEach((t,i)=>{const g=new THREE.Group();M(GB,cm(i===0?0x4a4a5a:new THREE.Color().setHSL(i/TREAD.length,.6,.45).getHex()),7,.5,11,0,.25,0,g);
   for(let k=0;k<8;k++){const s=M(GB,cm(0xffffff),6,.1,.5,0,.55,0,g);s.userData.k=k;stripes.push({s,i})}
-  const lb=label(t.n,'#fff',S.treads[i]?'Stand here to train':'🔒 $'+fmt(t.cost),1.2);lb.position.set(0,5,0);g.add(lb);g.position.set(14+(i%4)*12,0,20+((i/4)|0)*16);scene.add(g);t.lb=lb;t.g=g});
+  const lb=label(t.n,'#fff',S.treads[i]?'Stand here to train':'🔒 $'+fmt(t.cost),1.2);lb.position.set(0,5,0);g.add(lb);g.position.set(14+(i%8)*11,0,18+((i/8)|0)*14);scene.add(g);t.lb=lb;t.g=g});
  // spawn sign
  const wl=label('⬆ Biomes to the NORTH ⬆','#7dff8a','',1.6);wl.position.set(0,8,-20);scene.add(wl)}
 const pads=[],slotVis=[];
@@ -377,11 +476,11 @@ function updParts(dt){for(const p of parts){if(p.l<=0)continue;p.l-=dt;if(p.l<=0
 /* ================= GUARDIANS ================= */
 const guards=[];
 function buildGuards(){BIOMES.forEach((b,bi)=>{const n=bi<5?2:3;for(let k=0;k<n;k++){
- const sc=1.1+bi*.07,mesh=buildCreature({kind:'quad',c1:b.gc,c2:0xff3a2a,o:new Set(['big','horn','spikes','tusks'])},true);mesh.scale.setScalar(sc);
+ const sc=1.1+bi*.05,mesh=buildCreature({kind:'quad',c1:b.gc,c2:0xff3a2a,o:new Set(['big','horn','spikes','tusks'])},true);mesh.scale.setScalar(sc);
  const a=k/n*Math.PI*2,hx=Math.cos(a)*14,hz=nestZ(bi)+Math.sin(a)*14;mesh.position.set(hx,0,hz);scene.add(mesh);
  const lb=label('⚠ '+b.gn,'#ff6a6a','',.8);lb.position.y=5.5;mesh.add(lb);
  const stars=new THREE.Group();stars.position.y=5;stars.visible=false;for(let i=0;i<3;i++){const a2=i*2.1;M(GS,em(0xffe040,1),.25,.25,.25,Math.cos(a2)*.9,0,Math.sin(a2)*.9,stars)}mesh.add(stars);
- guards.push({b:bi,mesh,stars,sc,home:new THREE.Vector3(hx,0,hz),cz:nestZ(bi),state:'patrol',stun:0,cool:0,tx:hx,tz:hz,speed:11+bi*3.6,wt:Math.random()*3})}})}
+ guards.push({b:bi,mesh,stars,sc,home:new THREE.Vector3(hx,0,hz),cz:nestZ(bi),state:'patrol',stun:0,cool:0,tx:hx,tz:hz,speed:11+bi*3,wt:Math.random()*3})}})}
 
 /* ================= UI HELPERS ================= */
 function toast(t,ms){const d=document.createElement('div');d.className='toast';d.innerHTML=t;const c=$('toasts');c.appendChild(d);while(c.children.length>4)c.removeChild(c.firstChild);setTimeout(()=>d.remove(),ms||3200)}
@@ -389,14 +488,15 @@ let popT;function popup(html,ms){const p=$('popup');p.innerHTML=html;p.classList
 function showCarry(){const c=$('carry');if(!P.carry){c.style.display='none';return}const e=P.carry,t=TIERS[SP[e.sp].tier];c.style.display='block';c.style.borderColor=t.c;c.innerHTML=`🥚 Carrying <span style="color:${t.c}">${eggDesc(e)}</span><br><small>Run back to your pen! (south, west side)</small>`}
 
 /* ================= GAME LOGIC ================= */
-let time=0,nightT=NIGHT,rivalT=10,camYaw=0,camPitch=.42,skyCol=new THREE.Color(0x8fd3ff),curBiome=-1,started=false;
+let time=0,nightT=NIGHT,rivalT=10,ensT=0,camYaw=0,camPitch=.42,skyCol=new THREE.Color(0x8fd3ff),curBiome=-1,started=false;
 const keys={},joy={x:0,y:0};
 const freeSlot=()=>{for(let i=0;i<slotCount();i++)if(!S.slots[i])return i;return-1};
 const inPen=p=>p.x>-48&&p.x<-12&&p.z>5&&p.z<40;
+function segDist(ax,az,bx,bz,px,pz){const dx=bx-ax,dz=bz-az,l=dx*dx+dz*dz;let t=l>0?((px-ax)*dx+(pz-az)*dz)/l:0;t=Math.max(0,Math.min(1,t));return Math.hypot(ax+dx*t-px,az+dz*t-pz)}
 function carrySlow(){if(!P.carry)return 1;const e=P.carry;return Math.min(.97,Math.max(.45,.88-SP[e.sp].tier*.025-(e.huge?.08:0)+S.upg.carry*.025))}
-function pickup(e){if(ONLINE&&e.id){taken.add(e.id);net('take',{id:e.id,n:NAME})}P.carry=e;e.carried=true;scene.remove(e.mesh);player.g.add(e.mesh);e.mesh.position.set(0,2.4,-.95);e.mesh.scale.setScalar(.55);e.mesh.rotation.set(0,0,0);if(e.beam)e.beam.visible=false;
+function pickup(e){taken.add(e.id);if(ONLINE)net('take',{id:e.id,n:NAME});P.carry=e;e.carried=true;scene.remove(e.mesh);player.g.add(e.mesh);e.mesh.position.set(0,2.4,-.95);e.mesh.scale.setScalar(.55);e.mesh.rotation.set(0,0,0);if(e.beam)e.beam.visible=false;
  beep(520,.15,'triangle',.06,1.6);toast(`🥚 Grabbed a <b style="color:${TIERS[SP[e.sp].tier].c}">${eggDesc(e)}</b>! RUN!`);showCarry();emit(P.pos.x,2,P.pos.z,0xffffff,12,6,.6,1,4,3)}
-function dropEgg(){const e=P.carry;if(!e)return;if(ONLINE&&e.id){taken.delete(e.id);net('ret',{id:e.id})}player.g.remove(e.mesh);e.mesh.scale.setScalar(e.hs);e.mesh.position.copy(e.home);e.mesh.rotation.set(0,0,0);if(e.beam)e.beam.visible=true;scene.add(e.mesh);e.carried=false;P.carry=null;showCarry()}
+function dropEgg(){const e=P.carry;if(!e)return;taken.delete(e.id);if(ONLINE)net('ret',{id:e.id});player.g.remove(e.mesh);e.mesh.scale.setScalar(e.hs);e.mesh.position.copy(e.home);e.mesh.rotation.set(0,0,0);if(e.beam)e.beam.visible=true;scene.add(e.mesh);e.carried=false;P.carry=null;showCarry()}
 function deposit(){const i=freeSlot();if(i<0){toast('🐾 Pen is full! Sell a pet (Menu → Pets) or buy more slots.');P.noDep=3;return}
  const e=P.carry;player.g.remove(e.mesh);eggs.splice(eggs.indexOf(e),1);const sp=SP[e.sp];
  S.slots[i]={sp:e.sp,mut:e.mut,huge:e.huge,w:e.w,col:e.col,prog:0,total:(4+sp.tier*3)*Math.pow(.92,S.upg.hatch),hatched:false};
@@ -412,7 +512,7 @@ function swing(){if(P.cd>0||P.stun>0||P.tread>=0)return;const w=WEAPONS.find(x=>
  for(const g of guards){const d=Math.hypot(g.mesh.position.x-P.pos.x,g.mesh.position.z-P.pos.z);if(d<w.r+g.sc){g.stun=w.stun;g.state='return';g.cool=w.stun+1;hit++;const dx=g.mesh.position.x-P.pos.x,dz=g.mesh.position.z-P.pos.z,l=Math.hypot(dx,dz)||1;g.mesh.position.x+=dx/l*5;g.mesh.position.z+=dz/l*5;emit(g.mesh.position.x,3,g.mesh.position.z,0xffe040,14,8,.5,1,3,3)}}
  emit(P.pos.x+Math.sin(P.yaw)*3,2.5,P.pos.z+Math.cos(P.yaw)*3,0xffffff,6,3,.3,.8,0,0);if(hit){beep(180,.15,'square',.07,.5);P.shake=.25}}
 function rivalSteal(){const c=eggs.filter(e=>!e.carried&&Math.hypot(e.mesh.position.x-P.pos.x,e.mesh.position.z-P.pos.z)>35);if(!c.length)return;let tot=0;const ws=c.map(e=>{const w=Math.pow(SP[e.sp].tier+1,1.3);tot+=w;return w});let r=Math.random()*tot,i=0;while(i<c.length-1&&r>ws[i]){r-=ws[i];i++}
- const e=c[i];emit(e.mesh.position.x,2,e.mesh.position.z,0xffffff,14,8,.7,1.2,3,3);scene.remove(e.mesh);eggs.splice(eggs.indexOf(e),1);
+ const e=c[i];taken.add(e.id);emit(e.mesh.position.x,2,e.mesh.position.z,0xffffff,14,8,.7,1.2,3,3);scene.remove(e.mesh);eggs.splice(eggs.indexOf(e),1);
  if(SP[e.sp].tier>=3||e.mut!=null)toast(`🏃 <b>${RIVALS[(Math.random()*RIVALS.length)|0]}</b> stole a ${eggDesc(e)} in ${BIOMES[e.b].n}!`,3500)}
 function banner(t){popup(`<div class="t">${t}</div>`,2600)}
 function goHome(){if(P.carry){toast("Can't teleport while carrying an egg!");return}P.pos.set(0,0,22);P.vx=P.vz=0;P.tread=-1;beep(500,.2,'sine',.05,2)}
@@ -425,9 +525,9 @@ function applyAway(){const el=Math.min((Date.now()-S.last)/1000,43200);if(el<8)r
 function update(dt){
  time+=dt;
  if(ONLINE){const ns=Date.now()/1000,n=Math.floor(ns/NIGHT);nightT=NIGHT-(ns%NIGHT);if(n!==curNight){curNight=n;taken.clear();resetEggs();banner('🌙 Nightfall! Wild eggs have reset!');beep(200,.5,'sine',.06,.5)}}
- else{nightT-=dt;if(nightT<=0){nightT=NIGHT;resetEggs();banner('🌙 Nightfall! Wild eggs have reset!');beep(200,.5,'sine',.06,.5)}
+ else{nightT-=dt;if(nightT<=0){nightT=NIGHT;curNight++;resetEggs();banner('🌙 Nightfall! Wild eggs have reset!');beep(200,.5,'sine',.06,.5)}
  rivalT-=dt;if(rivalT<=0){rivalT=7+Math.random()*8;rivalSteal()}}
- S.cash+=totalCps()*dt;
+ S.cash+=totalCps()*dt;ensT-=dt;if(ensT<=0){ensT=.4;ensureEggs();for(let i=0;i<bgroups.length;i++)bgroups[i].visible=Math.abs(nestZ(i)-P.pos.z)<BSTEP*3.6}
  for(let i=0;i<16;i++){const s=S.slots[i];if(!s)continue;const v=slotVis[i];
   if(!s.hatched){s.prog+=dt;const p=Math.min(1,s.prog/s.total);if(v.fg){v.fg.scale.x=Math.max(.05,3.8*p);v.fg.position.x=-1.9+1.9*p}
    if(v.egg){v.egg.rotation.z=Math.sin(time*(8+p*20))*.05*p;v.egg.userData.orbit&&(v.egg.userData.orbit.rotation.y+=dt)}
@@ -443,17 +543,17 @@ function update(dt){
  const len=Math.hypot(ix,iz);if(len>1){ix/=len;iz/=len}
  const dx=-Math.sin(camYaw)*iz+Math.cos(camYaw)*ix,dz=-Math.cos(camYaw)*iz-Math.sin(camYaw)*ix;
  P.stun-=dt;P.cd-=dt;P.treadCd-=dt;P.noDep-=dt;P.shake-=dt;P.swing-=dt;
- let moving=false,spd=0;
+ let moving=false,spd=0;P.ox=P.pos.x;P.oz=P.pos.z;
  if(P.tread>=0){
   if(len<.15)P.armed=true;
   if(len>.5&&P.armed){P.tread=-1;P.treadCd=1.5;P.armed=false}
   else{const t=TREAD[P.tread];P.pos.set(t.g.position.x,0.5,t.g.position.z);P.yaw=Math.PI;P.vx=P.vz=0;
-   S.txp+=t.rate*dt;let need=4*Math.pow(1.045,S.train);while(S.train<500&&S.txp>=need){S.txp-=need;S.train++;need=4*Math.pow(1.045,S.train);toast('💪 Training level '+S.train+'! Run speed now '+playerSpeed().toFixed(1));beep(700,.12,'triangle',.05,1.5)}
+   S.txp+=t.rate*dt;{const l0=S.train;let need=needXP(S.train);while(S.train<MAXTRAIN&&S.txp>=need){S.txp-=need;S.train++;need=needXP(S.train)}if(S.train>l0){toast('💪 Training level '+S.train+'! Run speed now '+playerSpeed().toFixed(1));beep(700,.12,'triangle',.05,1.5)}if(S.train>=MAXTRAIN)S.txp=0}
    P.phase+=dt*14;moving=true;spd=12}}
  else{
-  const sp=playerSpeed()*carrySlow()*(P.stun>0?0:1),f=1-Math.exp(-dt*9);
+  const sp=moveSpeed(playerSpeed())*carrySlow()*(P.stun>0?0:1),f=1-Math.exp(-dt*9);
   P.vx+=(dx*sp-P.vx)*f;P.vz+=(dz*sp-P.vz)*f;P.pos.x+=P.vx*dt;P.pos.z+=P.vz*dt;
-  P.pos.x=Math.max(-70,Math.min(70,P.pos.x));P.pos.z=Math.max(-(40+BSTEP*15)+3,Math.min(72,P.pos.z));P.pos.y=0;
+  P.pos.x=Math.max(-70,Math.min(110,P.pos.x));P.pos.z=Math.max(-(40+BSTEP*BIOMES.length)+3,Math.min(72,P.pos.z));P.pos.y=0;
   spd=Math.hypot(P.vx,P.vz);moving=spd>1;if(spd>1.5)P.yaw+=((a=>Math.atan2(Math.sin(a),Math.cos(a)))(Math.atan2(P.vx,P.vz)-P.yaw))*Math.min(1,dt*12);
   P.phase+=dt*Math.min(16,3+spd*.4);
   if(P.treadCd<=0&&!P.carry&&P.stun<=0)for(let i=0;i<TREAD.length;i++)if(S.treads[i]){const t=TREAD[i].g.position;if(Math.abs(P.pos.x-t.x)<3.2&&Math.abs(P.pos.z-t.z)<5.2){P.tread=i;P.armed=false;P.vx=P.vz=0;toast('🏃 Training on the '+TREAD[i].n+' — let go of the keys, then move to step off')}}
@@ -474,15 +574,15 @@ function update(dt){
   else if(t==='rainbow')emit(x,.5,z,new THREE.Color().setHSL((time*1.5)%1,1,.6),3,2,1,1.4,0,1);
   else if(t==='void')emit(x,.6,z,Math.random()<.5?0x7a2aff:0x1a0a3a,3,3,1,1.6,-1,.5)}
  // current biome
- const nb=P.pos.z<-40?Math.min(14,Math.floor((-P.pos.z-40)/BSTEP)):-1;if(nb!==curBiome){curBiome=nb;if(nb>S.best)S.best=nb;$('biomeName').textContent=nb<0?'🏠 Base Camp':`${nb+1}. ${BIOMES[nb].n}`}
+ const nb=P.pos.z<-40?Math.min(BIOMES.length-1,Math.floor((-P.pos.z-40)/BSTEP)):-1;if(nb!==curBiome){curBiome=nb;if(nb>S.best)S.best=nb;$('biomeName').textContent=nb<0?'🏠 Base Camp':`${nb+1}. ${BIOMES[nb].n}`}
  // eggs
  for(const e of eggs){if(e.carried)continue;const m=e.mesh;m.rotation.y+=dt*.6;m.position.y=Math.sin(time*2+e.ph)*.15;if(m.userData.orbit)m.userData.orbit.rotation.y+=dt*1.2;
-  if(!P.carry&&P.stun<=0&&P.tread<0&&Math.abs(m.position.z-P.pos.z)<14){if(Math.hypot(m.position.x-P.pos.x,m.position.z-P.pos.z)<e.r+S.upg.magnet*.6)pickup(e)}}
+  if(!P.carry&&P.stun<=0&&P.tread<0&&Math.abs(m.position.z-P.pos.z)<60){if(segDist(P.ox,P.oz,P.pos.x,P.pos.z,m.position.x,m.position.z)<e.r+S.upg.magnet*.6)pickup(e)}}
  if(P.carry&&P.noDep<=0&&inPen(P.pos))deposit();
  if(P.carry){const m=P.carry.mesh;m.rotation.y+=dt*2}
  // guardians
  const safe=P.pos.z>-38;
- for(const g of guards){const m=g.mesh,gx=m.position.x,gz=m.position.z;g.stun-=dt;g.cool-=dt;
+ for(const g of guards){const m=g.mesh;if(Math.abs(g.cz-P.pos.z)>BSTEP*4){m.visible=false;continue}m.visible=true;const gx=m.position.x,gz=m.position.z;g.stun-=dt;g.cool-=dt;
   if(g.stun>0){g.stars.visible=true;g.stars.rotation.y+=dt*4;animC(m,time,false);continue}g.stars.visible=false;
   const d=Math.hypot(P.pos.x-gx,P.pos.z-gz),aggro=(24+g.b*1.5)*(P.carry?1.35:1);let tx,tz,sp=0;
   if(g.state==='patrol'){g.wt-=dt;if(g.wt<=0){g.wt=2+Math.random()*3;const a=Math.random()*6.28,r=Math.random()*24;g.tx=g.home.x+Math.cos(a)*r;g.tz=g.cz+Math.sin(a)*r}tx=g.tx;tz=g.tz;sp=g.speed*.3;
@@ -512,7 +612,7 @@ function update(dt){
 let hudT=0;
 function hud(){
  $('cash').textContent='$'+fmt(S.cash);$('cps').textContent='+$'+fmt(totalCps())+' / sec';
- $('spd').textContent=`⚡ Speed ${playerSpeed().toFixed(1)} • Training Lv ${S.train}${P.tread>=0?' ('+Math.floor(S.txp/(4*Math.pow(1.045,S.train))*100)+'%)':''} • Pen ${S.slots.filter(Boolean).length}/${slotCount()}`;
+ $('spd').textContent=`⚡ Speed ${playerSpeed().toFixed(1)} • Training Lv ${S.train}/${MAXTRAIN}${P.tread>=0?' ('+Math.floor(S.txp/needXP(S.train)*100)+'%)':''} • Pen ${S.slots.filter(Boolean).length}/${slotCount()}`;
  $('nightbar').style.width=(nightT/NIGHT*100)+'%';const m=Math.floor(nightT/60),s=Math.floor(nightT%60);$('nightLbl').textContent=`🌙 Eggs reset in ${m}:${String(s).padStart(2,'0')}`;
  // minimap
  const c=$('mini'),x=c.getContext('2d'),W=150,k=W/220;x.clearRect(0,0,W,W);const px=P.pos.x,pz=P.pos.z,X=v=>W/2+(v-px)*k,Z=v=>W/2+(v-pz)*k;
@@ -531,7 +631,7 @@ function renderMenu(){
  $('tabs').innerHTML=TABS.map(t=>`<button class="${t[0]===tab?'on':''}" onclick="tab='${t[0]}';renderMenu()">${t[1]}</button>`).join('');
  const c=$('mc'),sc=c.scrollTop;let h=`<div style="font-weight:900;color:#7dff8a;font-size:18px;margin-bottom:6px">💵 $${fmt(S.cash)} <span style="color:#ffe27a;font-size:13px">(+$${fmt(totalCps())}/s)</span></div>`;
  if(tab==='shop'){h+='<h3>Upgrades</h3>';
-  for(const k in UPG){const u=UPG[k],L=k==='spd'?S.spd:S.upg[k],mx=L>=u.max,cost=u.base*Math.pow(u.g,L);
+  for(const k in UPG){const u=UPG[k],L=k==='spd'?S.spd:S.upg[k],mx=L>=u.max,cost=upCost(k,L);
    h+=`<div class="card"><div><b>${u.n}</b> Lv ${L}/${u.max}<small>${u.d}</small></div><div>${mx?'<b>MAX</b>':`<button class="btn sm" ${S.cash<cost?'disabled':''} onclick="buyUp('${k}')">$${fmt(cost)}</button> <button class="btn sm" onclick="buyUp('${k}',1)">Max</button>`}</div></div>`}
   h+='<h3>Treadmills (train speed)</h3>';TREAD.forEach((t,i)=>{h+=`<div class="card"><div><b>${t.n}</b><small>${t.rate} training XP/sec • at base, east of the pen</small></div><div>${S.treads[i]?'<b>Owned ✅</b>':`<button class="btn sm" ${S.cash<t.cost?'disabled':''} onclick="buyTread(${i})">$${fmt(t.cost)}</button>`}</div></div>`})}
  else if(tab==='trails'){h+='<h3>Trails (each tier +3% pet cash)</h3>';TRAILS.forEach((t,i)=>{const own=S.trails.includes(t.id);h+=`<div class="card"><div><b>${t.n}</b><small>+${i*3}% cash</small></div><div>${own?(S.trail===t.id?'<b>Equipped ✅</b>':`<button class="btn sm" onclick="equipTrail('${t.id}')">Equip</button>`):`<button class="btn sm" ${S.cash<t.cost?'disabled':''} onclick="buyTrail('${t.id}')">$${fmt(t.cost)}</button>`}</div></div>`})}
@@ -540,12 +640,13 @@ function renderMenu(){
   S.slots.forEach((s,i)=>{if(!s||!s.hatched)return;n++;const sp=SP[s.sp],t=TIERS[sp.tier];h+=`<div class="card"><div><b style="color:${t.c}">${s.huge?'HUGE ':''}${s.mut!=null?MUTS[s.mut].n+' ':''}${sp.name}</b> <small>${t.n} • ${(s.w*10).toFixed(1)}kg • $${fmt(petCps(s)*cpsMult())}/s</small></div><button class="btn sm" onclick="sellPet(${i})">Sell $${fmt(petCps(s)*40)}</button></div>`});if(!n)h+='<div class="card">No pets yet — go steal an egg!</div>'}
  else if(tab==='index'){h+='<h3>Species Index — complete a biome to unlock its weapon</h3>';BIOMES.forEach((b,i)=>{const got=BSP[i].filter(id=>S.idx[id]).length,w=WEAPONS.find(x=>x.need===i);h+=`<div class="card col"><div><b>${i+1}. ${b.n}</b> ${got===BSP[i].length?'✅':''} (${got}/${BSP[i].length})${w?` <span style="color:#ffe27a">🗡️ ${w.n}</span>`:''}</div><div>${BSP[i].map(id=>S.idx[id]?`<span style="color:${TIERS[SP[id].tier].c};font-weight:800">${SP[id].name}</span> <small style="display:inline">(${TIERS[SP[id].tier].n})</small>`:'<span style="opacity:.5">???</span>').join(' • ')}</div></div>`})}
  else if(tab==='map'){h+='<h3>Fast travel (not while carrying an egg)</h3><button class="btn sm" onclick="tp(-1)">🏠 Base Camp</button><div style="height:8px"></div>';BIOMES.forEach((b,i)=>{h+=`<div class="card"><div><b>${i+1}. ${b.n}</b><small>Guardian: ${b.gn} • ${BSP[i].map(id=>TIERS[SP[id].tier].n).filter((v,j,a)=>a.indexOf(v)===j).join('/')}</small></div>${i<=S.best?`<button class="btn sm" onclick="tp(${i})">Go</button>`:'🔒 Reach it first'}</div>`})}
- else if(tab==='guide'){h+='<h3>Reading eggs in the wild</h3><div class="card col"><small>Egg <b>color</b> is purely cosmetic. Read the <b>shape</b> to judge rarity:</small></div>';TIERS.forEach((t,i)=>{h+=`<div class="card"><b style="color:${t.c}">${t.n}</b><span>${TIER_HINT[i]}</span><small>~$${fmt(t.base)}/s</small></div>`});
-  h+='<h3>Mutations (glowing beam from afar)</h3>';MUTS.forEach(m=>{h+=`<div class="card"><b>${m.n}</b><span>×${m.m} cash</span></div>`});h+='<div class="card"><b>Huge</b><span>Oversized eggs hatch giant pets that earn far more.</span></div>'}
+ else if(tab==='guide'){h+='<h3>Reading eggs in the wild</h3><div class="card col"><small>Egg <b>color</b> is purely cosmetic. Read the <b>shape</b> to judge rarity:</small></div>';TIERS.forEach((t,i)=>{h+=`<div class="card"><b style="color:${t.c}">${t.n}</b><span>${hintFor(i)}</span><small>~$${fmt(t.base)}/s</small></div>`});
+  h+='<h3>Mutations (glowing beam from afar)</h3>';[...MUTS].sort((a,b)=>a.m-b.m).forEach(m=>{h+=`<div class="card"><b>${m.n}</b><span>×${m.m} cash</span></div>`});h+='<div class="card"><b>Huge</b><span>Oversized eggs hatch giant pets that earn far more.</span></div>'}
  else if(tab==='set'){h+=`<h3>Save data</h3><div class="card"><div>Progress auto-saves in this browser.<small>Eggs stolen: ${S.eggs}</small></div></div><button class="btn sm" onclick="exportSave()">📤 Export save code</button> <button class="btn sm" onclick="importSave()">📥 Import save code</button> <button class="btn sm" style="background:#d42a3a;color:#fff" onclick="resetSave()">🗑 Reset</button>`}
  c.innerHTML=h;c.scrollTop=sc}
-function buyUp(k,max){let n=0;for(;;){const u=UPG[k],L=k==='spd'?S.spd:S.upg[k];if(L>=u.max)break;const cost=u.base*Math.pow(u.g,L);if(S.cash<cost)break;S.cash-=cost;if(k==='spd')S.spd++;else S.upg[k]++;n++;if(!max)break}
- if(n){beep(660,.12,'triangle',.06,1.5);if(k==='slots')setPads();if(k==='spawns')for(let b=0;b<15;b++)spawnEgg(b);if(k==='boost')refreshAll();save()}else toast('Not enough cash!');renderMenu()}
+const upCost=(k,L)=>{const u=UPG[k];return u.f?u.f(L):u.base*Math.pow(u.g,L)};
+function buyUp(k,max){let n=0;for(;;){const u=UPG[k],L=k==='spd'?S.spd:S.upg[k];if(L>=u.max)break;const cost=upCost(k,L);if(S.cash<cost)break;S.cash-=cost;if(k==='spd')S.spd++;else S.upg[k]++;n++;if(!max)break}
+ if(n){beep(660,.12,'triangle',.06,1.5);if(k==='slots')setPads();if(k==='spawns')ensureEggs();if(k==='boost')refreshAll();save()}else toast('Not enough cash!');renderMenu()}
 function buyTread(i){const t=TREAD[i];if(S.cash<t.cost)return toast('Not enough cash!');S.cash-=t.cost;S.treads[i]=1;beep(660,.12,'triangle',.06,1.5);t.lb.parent.remove(t.lb);const nl=label(t.n,'#fff','Stand here to train',1.2);nl.position.set(0,5,0);t.g.add(nl);t.lb=nl;save();renderMenu()}
 function buyTrail(id){const t=TRAILS.find(x=>x.id===id);if(S.cash<t.cost)return toast('Not enough cash!');S.cash-=t.cost;S.trails.push(id);S.trail=id;beep(660,.12,'triangle',.06,1.5);refreshAll();save();renderMenu()}
 function equipTrail(id){S.trail=id;refreshAll();save();renderMenu()}
@@ -591,7 +692,7 @@ function updateRemotes(dt){for(const pid in remotes){const r=remotes[pid];if(tim
 function removeEggById(id,announce,who){const i=eggs.findIndex(e=>e.id===id&&!e.carried);if(i<0)return;const e=eggs[i];
  if(announce&&(SP[e.sp].tier>=3||e.mut!=null))toast(`🏃 <b>${who||'Someone'}</b> grabbed a ${eggDesc(e)} in ${BIOMES[e.b].n}!`,3500);
  emit(e.mesh.position.x,2,e.mesh.position.z,0xffffff,14,8,.7,1.2,3,3);scene.remove(e.mesh);eggs.splice(i,1)}
-function handleRet(id){taken.delete(id);const[n,b,k]=id.split('-').map(Number);if(n===curNight&&!eggs.some(e=>e.id===id))spawnSeeded(b,k,n)}
+function handleRet(id){taken.delete(id);ensureEggs()}
 function onMsg(p){if(!p||p.pid===MYID)return;
  if(p.t==='pos'){const r=getRemote(p.pid,cleanName(p.n)||'Player');r.tx=+p.x||0;r.tz=+p.z||0;r.ty=+p.yw||0;r.seen=time;
   if((p.ce||null)!==r.ce){r.ce=p.ce||null;r.pl.g.remove(r.lb);r.lb=label((r.ce?'🥚 ':'')+r.name,'#7dd3ff','',1);r.lb.position.y=4.9;r.pl.g.add(r.lb)}}
@@ -621,7 +722,7 @@ function begin(msg){$('start').style.display='none';started=true;beep(600,.15,'t
 async function goOnline(code){NAME=getName();code=String(code||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,12);if(!code){$('netmsg').textContent='Type a room code first!';return}
  $('netmsg').textContent='Connecting…';ONLINE=true;ROOM=code;curNight=Math.floor(Date.now()/1000/NIGHT);taken.clear();resetEggs();
  const ok=await connect(code,NAME);
- if(!ok){ONLINE=false;chan=null;resetEggs();$('players').style.display='none';$('netmsg').textContent='Could not connect — starting solo instead.';setTimeout(()=>begin(),900);return}
+ if(!ok){ONLINE=false;chan=null;ROOM=SOLO;curNight=0;resetEggs();$('players').style.display='none';$('netmsg').textContent='Could not connect — starting solo instead.';setTimeout(()=>begin(),900);return}
  const nl=label(NAME,'#ffffff','',1);nl.position.y=4.9;player.g.add(nl);updatePlayers();
  begin(`🌐 Joined room <b>${code}</b> as <b>${NAME}</b> — share the code with friends! (Egg Luck/Nests don't apply online)`)}
 $('playBtn').onclick=()=>{NAME=getName();begin()};
